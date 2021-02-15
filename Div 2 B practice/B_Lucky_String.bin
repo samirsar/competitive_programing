@@ -1,0 +1,1672 @@
+                                           Deque
+
+
+
+           Example  =======================================================
+
+            Source   #include <deque.h>
+                     #include <strng.h>
+
+                     main()
+                     {
+                         Deque d;
+                         String *s1 = new String("one");
+                         String *s2 = new String("two");
+                         String *s3 = new String("three");
+                         String *s4 = new String("four");
+
+                         // Populate the deque
+                         d.putLeft(*s1);
+                         d.putRight(*s2);
+                         d.putLeft(*s3);
+                         d.putRight(*s4);
+
+                         // Print to cout
+                         cout << "As a container:\n" << d << endl;
+
+                         // Empty to cout
+                         cout << "As a Deque:\n";
+                         while (!d.isEmpty())
+                         {
+                             cout << d.getLeft() << endl;
+                         }
+
+                         // Should be empty
+                         cout << "\nShould be empty:\n" << d;
+                     }
+
+            Output   As a container:
+                     Deque { three,
+                         one,
+                         two,
+                         four }
+
+                     As a Deque:
+                     three
+                     one
+                     two
+                     four
+
+                     Should be empty:
+
+
+
+
+
+                                  - 67 -
+
+
+Deque
+
+
+
+                     Deque { }
+
+
+  Member functions  =======================================================
+
+
+             flush  virtual void flush( DeleteType dt = DefDefault );
+
+                    Flushes (empties) the deque without destroying it. The
+                    fate of any objects thus removed depends on the current
+                    ownership status and the value of the dt argument.
+
+                    See also: TShouldDelete::ownsElements
+
+getItemsInContainer virtual countType getItemsInContainer() const;
+
+                    Returns the number of items in the deque.
+
+           getLeft  Object& getLeft();
+
+                    Returns the object at the left end and removes it from
+                    the deque. Returns NOOBJECT if the deque is empty.
+
+                    See also: TShouldDelete class
+
+          getRight  Object& getRight();
+
+                    As for getLeft, except that the right end of the deque
+                    is returned.
+
+                    See also: getLeft
+
+      initIterator  virtual ContainerIterator& initIterator() const;
+
+                    Initializes an iterator for the deque.
+
+                    See also: Container::initIterator
+
+               isA  virtual classType isA() const;
+
+                    Returns dequeClass, the Deque class ID.
+
+           isEmpty  virtual int isEmpty() const;
+
+                    Returns 1  if a container has no elements; otherwise
+                    returns 0.
+
+            nameOf  virtual char *nameOf() const;
+
+
+
+                                  - 68 -
+
+
+                                                                      Deque
+
+
+
+                    Returns "Deque", the Deque class ID string.
+
+          peekLeft  Object& peekLeft() const;
+
+                    Returns the object at the left end (head) of the deque.
+                    The object stays in the deque.
+
+         peekRight  Object& peekRight()
+
+                    Returns the object at the right end (tail) of the
+                    deque. The object stays in the deque.
+
+           putLeft  void putLeft( Object& obj );
+
+                    Adds (pushes) the given object at the left end (head)
+                    of the deque.
+
+          putRight  void putRight(Object& obj)
+
+                    Adds (pushes) the given object at the right end (tail)
+                    of the deque.
+
+
+
+===========================================================================
+Dictionary                                                           dict.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³    Set     ÃÄÄ¶ Dictionary º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+                    A dictionary is a special collection of Association
+                    type objects. The instance class Dictionary is derived
+                    from Collection via Bag and Set, implying that no
+                    duplicate association objects are allowed in a
+                    dictionary. Dictionary overrides the add function and
+                    adds a lookup function to the members inherited from
+                    Set. lookup allows you to retrieve the value object of
+                    an association stored in the dictionary if you supply
+                    the key.
+
+
+  Member functions  =======================================================
+
+
+               add  virtual void add( Object& assoc );
+
+
+
+
+
+                                  - 69 -
+
+
+Dictionary
+
+
+
+                    Adds the given association (assoc) to the dictionary.
+                    If the given argument is not of type Association, a
+                    runtime error occurs.
+
+       constructor  Dictionary( unsigned sz = DEFAULT_HASH_TABLE_SIZE );
+
+                    Invokes the base Set constructor to create an empty
+                    dictionary of size sz.
+
+               isA  virtual classType isA() const;
+
+                    Returns dictionaryClass, the Dictionary class ID.
+
+            lookup  Association& lookup( const Object& toLookUp ) const;
+
+                    Returns the association matching the toLookUp key. If
+                    no match is found, NOOBJECT is returned.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "Dictionary", the Dictionary class ID string.
+
+
+
+===========================================================================
+DoubleList                                                        dbllist.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ Collection ÃÄÄ¶ DoubleList º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The instance class DoubleList, derived from Collection,
+                    implements the classical doubly-linked list data
+                    structure (see D. E Knuth's The Art of Computer
+                    Programming, Volume 1, 2.2.5). Briefly, each node
+                    object of a doubly-linked list has two links, one
+                    pointing to the next node and one pointing to the
+                    previous node. The extreme nodes are called the head
+                    and the tail. As with the Deque class, you can examine,
+                    add, and remove objects at either end of the list.
+
+
+
+
+
+
+
+
+
+
+                                  - 70 -
+
+
+                                                                 DoubleList
+
+
+
+  Member functions  =======================================================
+
+
+               add  virtual void add( Object& toAdd );
+
+                    Add the given object at the beginning of the list.
+
+         addAtHead  void addAtHead( Object& toAdd );
+
+                    Adds the given object at the beginning (head) of the
+                    list.
+
+         addAtTail  void addAtTail( Object& toAdd );
+
+                    Adds the given object at the end (tail) the list.
+
+       constructor  DoubleList();
+
+                    Creates a new, empty doubly-linked list.
+
+   destroyFromHead  void destroyFromHead( const Object& toDestroy );
+
+                    Detaches the first occurrence of the given object
+                    encountered by searching from the beginning of the
+                    list. The object is destroyed only if it is owned by
+                    the list.
+
+   destroyFromTail  void destroyFromTail( const Object& toDestroy );
+
+                    Detaches the first occurrence of the given object
+                    encountered by searching from the tail of the list
+                    towards the head. The object is destroyed only if it is
+                    owned by the list.
+
+            detach  virtual void detach( Object& toDetach, DeleteType dt =
+                    NoDelete );
+
+                    Calls detachFromHead( toDetach, dt);
+
+    detachFromHead  void detachFromHead( const Object& toDetach, DeleteType
+                    dt = NoDelete );
+
+                    Removes the first occurrence of the given object
+                    encountered by searching from the beginning of the
+                    list. The dt argument determines if the detached object
+                    is itself destroyed. See TShouldDelete for details.
+
+
+
+
+
+                                  - 71 -
+
+
+DoubleList
+
+
+
+    detachFromTail  void detachFromTail( const Object& toDetach, DeleteType
+                    dt = NoDelete );
+
+                    Removes the first occurrence of the object starting at
+                    the tail of the list and scanning towards the head. The
+                    dt argument determines if the detached object is itself
+                    destroyed. See TShouldDelete for details.
+
+             flush  virtual void flush( DeleteType dt = DefDelete);
+
+                    Flushes (empties) the list without destroying it. The
+                    fate of the objects thus removed is determined by the
+                    dt argument as explained at TShouldDelete. The default
+                    value of dt means that the removed objects will be
+                    destroyed only if the list owns these objects.
+
+                    See also: TShouldDelete::ownsElements
+
+      initIterator  virtual ContainerIterator& initIterator() const;
+
+                    Creates and returns a forward (from head to tail)
+                    iterator for the list.
+
+               isA  virtual classType isA() const;
+
+                    Returns doubleListClass, the DoubleList class ID.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "DoubleList", the DoubleList class ID string.
+
+        peekAtHead  Object& peekAtHead() const;
+
+                    Returns the object at the head of the list (without
+                    removing it).
+
+        peekAtTail  Object& peekAtTail() const;
+
+                    Returns the object at the tail of the list (without
+                    removing it).
+
+
+
+
+
+
+
+
+
+
+
+                                  - 72 -
+
+
+                                                                 DoubleList
+
+
+
+           Friends  =======================================================
+
+                    DoubleListIterator is a friend of DoubleList
+
+
+
+===========================================================================
+DoubleListIterator                                                dbllist.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ContainerIteratorÃÄÄ¶DoubleListIteratorº
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+                    DoubleListIterator, derived from ContainerIterator,
+                    implements the special iterators for traversing
+                    doubly-linked lists in either direction. This class
+                    adds overloading of the pre- and postdecrement operator
+                    - - to allow reverse iteration. For more details on
+                    iterators, see ContainerIterator, and
+                    DoubleList::initIterator.
+
+
+  Member functions  =======================================================
+
+
+       constructor  DoubleListIterator(const DoubleList& toIterate, int
+                    atHead = 1);
+
+                    Creates an iterator for the given list. The iterator
+                    will begin at the head of the list if atHead is 1 ,
+                    otherwise it starts at the tail.
+
+           current  virtual Object& current();
+
+                    Returns the object at the current index of the
+                    iterator. If the current index exceeds the upper bound,
+                    NOOBJECT is returned.
+
+       operator ++  virtual Object& operator ++ ( int );
+                    virtual Object& operator ++ ();
+
+                    See ContainerIterator operator ++
+
+      operator - -  Object& operator - - ( int );
+                    Object& operator - - ();
+
+
+
+
+
+
+                                  - 73 -
+
+
+DoubleListIterator
+
+
+
+                    Moves the iterator back one position in the list. The
+                    object returned is either the current object
+                    (postdecrement) or the object at the new position
+                    (predecrement), or NOOBJECT if no valid object at the
+                    relevant position. The first version gives
+                    postdecrement, the second gives predecrement. The int
+                    argument is a dummy serving only to distinguish the two
+                    operators.
+
+      operator int  virtual operator int();
+
+                    Conversion operator to test for the end of an iteration
+                    condition.
+
+           restart  virtual void restart();
+
+                    Moves the iterator back to its starting position at the
+                    head of the list.
+
+                    See also: DoubleListIterator constructor
+
+
+
+===========================================================================
+Error                                                              object.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³   Object   ÃÄÄ¶   Error    º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The class Error is a special instance class derived
+                    from Object. There is just one instance of class Error,
+                    namely theErrorObject. Pointing to this global object
+                    is the static object pointer Object::ZERO. NOOBJECT is
+                    defined as  *(Object::ZERO) in object.h. The operator
+                    Object::operator new returns a pointer to
+                    theErrorObject if an attempt to allocate an object
+                    fails. You may test the return value of the new
+                    operator against Object::ZERO to see whether the
+                    allocation failed.
+                    NOOBJECT is rather like a null pointer, but serves the
+                    vital function of occupying empty slots in a container.
+                    For example, when an Array object is created (not to be
+                    confused with a traditional C array), each of its
+                    elements will initially contain NOOBJECT.
+
+
+
+
+
+                                  - 74 -
+
+
+                                                                      Error
+
+
+
+  Member functions  =======================================================
+
+
+            delete  void operator delete(void *);
+
+                    Invokes a runtime error if an attempt to delete the
+                    Error object is detected.
+
+               isA  virtual classtype isA() const;
+
+                    Returns errorClass, the Error class ID.
+
+           isEqual  virtual int isEqual( const Object& testObject const );
+
+                    Returns 1 if the test object is the Error object.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns the Error class ID string.
+
+           printOn  virtual void printOn(ostream& outputStream ) const;
+
+  operator << is a  Prints the string "Error\n" on the given stream.
+ friend of Object.  printOn is for internal use by the overloaded operator
+      See page 87.  <<.
+
+
+
+===========================================================================
+HashTable                                                         hashtbl.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ Collection ÃÄÄ¶ HashTable  º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The instance class HashTable provides an implementation
+                    of an unordered collection in which objects are added
+                    and retrieved via a hashing function. A hash table
+                    provides a fixed array with size slots (usually a prime
+                    number), one for each possible hash value modulo size.
+                    A hashing function computes the hash value for each
+                    object (or a key part of that object) to be added, and
+                    this determines the slot to which the new object is
+                    assigned.
+
+
+
+
+
+
+                                  - 75 -
+
+
+HashTable
+
+
+
+                    For each containable object of class X, the member
+                    function X::HashValue returns a value (of type
+                    hashValueType) between 0 and 65535, which is as
+                    "unique" as possible. This "raw" hash value is reduced
+                    modulo size. We'll use the term hash value to refer to
+                    this reduced value in the range 0 to size - 1. This
+                    hash value serves as an index into the hash table. The
+                    internal organization of the table is hidden, but it
+                    may help you to consider the slots as pointers to
+                    lists.
+
+                    It should be clear that if you want to store more than
+                    size objects, the hash value cannot be unique for each
+                    object. So two cases arise when an object is added: if
+                    the slot is empty, a new list is assigned to the slot
+                    and the object is stored in the list; if the slot is
+                    already occupied by an object with the same hash value
+                    (known as a collision), the new object is stored in the
+                    existing list attached to the slot. When it comes to
+                    locating an object, the hashing function computes its
+                    hash value to access the appropriate slot. If the slot
+                    is empty, NOOBJECT is returned, otherwise a
+                    List::findMember call locates the object.
+
+                    Choosing the best HashValue function and table size is
+                    a delicate compromise between avoiding too many
+                    collisions and taking up too much memory. (Other
+                    hashing techniques are available, but the modulo prime
+                    method is the most common. For more on hash table
+                    theory, see D. E. Knuth's The Art of Computer
+                    Programming, Volume 3, 6.4.). Hashing is widely used by
+                    compilers to maintain symbol tables.
+
+
+  Member functions  =======================================================
+
+
+               add  virtual void add( Object& objectToAdd );
+
+                    Adds the given object to the hash table.
+
+       constructor  HashTable( sizeType aPrime = DEFAULT_HASH_TABLE_SIZE );
+
+                    Creates an empty table. The aPrime argument is a prime
+                    number used in the hashing function (the default is
+                    defined in resource.h).
+
+            detach
+
+
+
+                                  - 76 -
+
+
+                                                                  HashTable
+
+
+
+                    virtual void detach( Object& objectToDetach, DeleteType
+                    dt = NoDelete );
+
+                    Removes the given object from the hash table. Whether
+                    the object itself is destroyed or not depends on the dt
+                    argument, as explained in TShouldDelete::ownsElements.
+
+        findMember  virtual Object& findMember( const Object& testObject )
+                    const;
+
+                    Returns the target object if found, otherwise returns
+                    NOOBJECT.
+
+             flush  virtual void flush( DeleteType dt = DefDelete );
+
+                    Removes all the elements from the table without
+                    destroying it. The value of dt determines whether the
+                    elements themselves are destroyed. By default (dt =
+                    DefDelete), the ownership status of the table
+                    determines the fate of all its elements, as explained
+                    in TShouldDelete::ownsElements. You can set dt to
+                    Delete to force destruction of the flushed elements
+                    regardless of ownership. If dt is set to NoDelete, the
+                    flushed elements will survive regardless of ownership.
+
+                    See also: TShouldDelete::ownsElements
+
+         hashValue  virtual hashValueType hashValue() const;
+
+                    Returns the raw hash value of this table. This must not
+                    be confused with the hash values calculated by the hash
+                    table for each of the objects it stores. When an object
+                    x of class X is added or retrieved from a hash table h,
+                    the raw hash value used is x.hashValue(). The true hash
+                    value (usually modulo size) is obtained from the hash
+                    table object via h.getHashValue( x ). Only classes with
+                    a proper hashValue member function can provide objects
+                    for storage in a hash table. All standard Object-
+                    derived classes in the library have meaningful hashing
+                    functions provided. For example, BaseDate::hashValue
+                    (unless overridden) returns the value YY + MM + DD from
+                    which the (private) member function
+                    HashTable::getHashValue computes a hash value (using
+                    mod size). It is this value that governs the hash
+                    table's add, findMember, and detach operations.
+
+      initIterator  virtual ContainerIterator& initIterator() const;
+
+
+
+
+                                  - 77 -
+
+
+HashTable
+
+
+
+                    Creates and returns an iterator for the hash table. See
+                    Container::initIterator for more details.
+
+               isA  virtual classType isA() const;
+
+                    Returns hashTableClass, the HashTable class ID.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "HashTable", the HashTable class ID string.
+
+
+           Friends  =======================================================
+
+                    HashTableIterator is a friend of HashTable
+
+
+
+===========================================================================
+HashTableIterator                                                 hashtbl.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ContainerIteratorÃÄÄ¶HashTableIterator º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    HashTableIterator is an instance class providing
+                    iterator functions for HashTable objects. Since hash
+                    values are stored in an array, hash table iterators use
+                    the array iterator mechanism. See ContainerIterator for
+                    a detailed discussion of iterators.
+
+
+  Member functions  =======================================================
+
+
+       constructor  HashTableIterator( const Array& toIterate );
+
+                    See ContainerIterator constructor
+
+           current  virtual operator Object& current();
+
+                    See ContainerIterator::current
+
+      operator int  virtual operator int();
+
+                    Conversion operator to test for end of iterator
+                    position.
+
+
+
+                                  - 78 -
+
+
+                                                          HashTableIterator
+
+
+
+       operator ++  virtual Object& operator ++ ( int );
+                    virtual Object& operator ++ ();
+
+                    See ContainerIterator::operator ++
+
+           restart  virtual void restart()
+
+                    See ContainerIterator::restart
+
+
+
+===========================================================================
+List                                                                 list.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ Collection ÃÄÄ¶    List    º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The instance class List, derived from Collection,
+                    implements a linear, linked list. Lists are unordered
+                    collections in which objects are linked in one
+                    direction only to form a chain. You can usually add
+                    objects only at the start of a list but any object can
+                    be removed from a list. You can traverse a list (from
+                    head to tail) with an iterator to access the objects
+                    sequentially. List has an internal private class
+                    ListElement providing memory management and other
+                    functions for the pairs of pointers (to object and to
+                    next element) that constitute the elements of a List
+                    object. (For more on list theory, see Sedgwick's
+                    Algorithms and Knuth's The Art of Computer Programming,
+                    Volume 1, 2.2).
+
+  Member functions  =======================================================
+
+
+               add  void add( Object& toAdd );
+
+                    Adds the given object at the head of the list. The
+                    added object becomes the new head.
+
+       constructor  List();
+
+                    Creates an empty list.
+
+            detach
+
+
+
+
+                                  - 79 -
+
+
+List
+
+
+
+                    virtual void detach( Object& toDetach, DeleteType dt =
+                    NoDelete );
+
+                    Removes the given object from the list. Whether the
+                    object itself is destroyed or not depends on the dt
+                    argument, as explained in TShouldDelete::ownsElements.
+
+             flush  virtual void flush( DeleteType dt = DefDelete );
+
+                    Removes all the objects from the list without
+                    destroying it. The value of dt determines whether the
+                    objects themselves are destroyed. By default (dt =
+                    DefDelete), the ownership status of the list determines
+                    the fate of its elements, as explained in
+                    TShouldDelete::ownsElements. You can set dt to Delete
+                    to force destruction of the flushed objects regardless
+                    of ownership. If dt is set to NoDelete, the flushed
+                    objects will survive regardless of ownership.
+
+                    See also: TShouldDelete::ownsElements
+
+         hashValue  virtual hashValueType hashValue() const;
+
+                    Returns the hash value of this list. See
+                    HashTable::hashValue for more details.
+
+      initIterator  virtual ContainerIterator& initIterator() const;
+
+                    See Container::initIterator
+
+               isA  virtual classType isA() const;
+
+                    Returns listClass the List class ID.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "List", the List class ID string.
+
+          peekHead  Object& peekHead() const;
+
+                    Returns the object at the head of the list.
+
+
+           Friends  =======================================================
+
+                    ListIterator is a friend of List and ListElement.
+
+
+
+
+
+                                  - 80 -
+
+
+                                                               ListIterator
+
+
+
+===========================================================================
+ListIterator                                                         list.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ContainerIteratorÃÄÄ¶   ListIterator   º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    ListIterator is an instance class derived from
+                    ContainerIterator providing iterator functions for List
+                    objects. See ContainerIterator for a discussion of
+                    iterators.
+
+
+  Member functions  =======================================================
+
+
+       constructor  ListIterator( const List& toIterate );
+
+                    Creates an iterator for the given list. The starting
+                    and current elements are set to the first element of
+                    the list. See ContainerIterator constructor for
+                    details.
+
+           current  virtual Object& current();
+
+                    See ContainerIterator::current
+
+       operator ++  virtual Object& operator ++ ( int );
+                    virtual Object& operator ++ ();
+
+                    See ContainerIterator::operator ++
+
+      operator int  virtual operator int();
+
+                    Conversion operator to test for end of iterator
+                    position.
+
+
+           restart  virtual void restart()
+
+                    See ContainerIterator::restart
+
+
+
+
+
+
+
+
+
+                                  - 81 -
+
+
+MemBlocks
+
+
+
+===========================================================================
+MemBlocks                                                          memmgr.h
+===========================================================================
+
+                    ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    º MemBlocks  Ç
+                    ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The classes MemBlocks and MemStack in memmgr.h offer
+                    specialized memory management not only for the
+                    container classes but for other applications. Detailed
+                    knowledge of their operations is not needed for normal
+                    container applications. If you are planning your own
+                    advanced memory management schemes, you should first
+                    study memmgr.h and MEMMGR.CPP.
+
+                    MemBlocks is a noncontainer, instance class, providing
+                    fixed-block memory allocations. Large, dynamic lists
+                    and trees need to allocate and free their node blocks
+                    as quickly as possible. MemBlocks offers more efficient
+                    memory management than the standard heap manager for
+                    this kind of operation. The MemBlock constructor takes
+                    two arguments: block size and number of blocks. These
+                    determine the size of the internal blocks that are
+                    allocated as needed using the normal run-time library
+                    allocation functions. A free list of blocks is
+                    maintained and the internal blocks are not released
+                    until the MemBlock object is destroyed. The following
+                    example illustrates the use of MemBlocks with a
+                    simplified Node class:
+
+                     class Node
+                     {
+                       Node *next;
+                       Object *obj;
+                       static MemBlocks memBlocks;
+                       void *operator new( size_t sz ) { return
+                     memBlocks.allocate ( sz); }
+                       void operator delete( void * blk ) { memBlocks.free
+                     ( blk ); }
+                       ...
+                     };
+
+                    CAUTION: If you derive a class from a class that does
+                    its own memory management as in the  Node example
+                    above, then either the derived class must be the same
+                    size as the base class or you must override the new and
+                    delete operators.
+
+
+
+                                  - 82 -
+
+
+                                                                  MemBlocks
+
+
+
+                    See also: MemStack class.
+
+          allocate  void allocate( size_t sz, unsigned blks = 100 );
+
+                    Allocates blks blocks each of size sz
+
+              free  void free( void * ptr );
+
+                    Frees the memory blocks at ptr.
+
+
+
+===========================================================================
+MemStack                                                           memmgr.h
+===========================================================================
+
+                    ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    º  MemStack  º
+                    ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    MemStack is a noncontainer, instance class, providing
+                    fast mark-and-release style memory management. Although
+                    used internally by various container classes, MemStack
+                    is also available for general use. Memory allocations
+                    and deallocations are extremely fast since they
+                    "popped" and "pushed" on a stack of available blocks.
+                    Marking and releasing blocks is handled by objects of a
+                    helper marker class. When a marker is created it
+                    records the current location in the memory stack; when
+                    a marker is destroyed, the stack is returned to its
+                    original state, freeing any allocations made since the
+                    marker was created. For example:
+
+                     MemStack symbols;
+
+                     void handleLocals()
+                     {
+                       Marker locals( symbols );       // marks current
+                     state of symbols
+                       Sym *symbol1 = new(symbols)Sym; // add a Sym to the
+                     table
+                       Sym *symbol2 = new(symbols)Sym; // and another
+                     }
+
+                    When the function exits, the Marker destructor releases
+                    the memory allocated by the new(symbols) calls made in
+                    handleLocal and restores the memory stack.
+
+
+
+
+                                  - 83 -
+
+
+Object
+
+
+
+                    See also: MemBlocks
+
+
+
+===========================================================================
+Object                                                             object.h
+===========================================================================
+
+                                     ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                   ÚÄ´   Error    ³
+                                   ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                    ÉÍÍÍÍÍÍÍÍÍÍÍÍ» ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    º   Object   ÇÄÅÄ´  Sortable  ³
+                    ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼ ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                   ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                   ÃÄ´Association ³
+                                   ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                   ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                   ÀÄ´ Container  ³
+                                     ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                    Object is an abstract class providing the primordial
+                    base for the whole Object-based container hierarchy
+                    (with the exception of the iterator classes). The
+                    member functions provide the basic essentials for all
+                    derived classes and the objects they contain. Object
+                    has four immediate children: Error, Sortable,
+                    Association, and Container.
+
+
+       Data member  =======================================================
+
+
+              ZERO  static Object *ZERO;
+
+                    A static pointer to the unique instance of class Error.
+                    ZERO is used to define NOOBJECT.
+
+                    See also:   Error class
+
+
+  Member functions  =======================================================
+
+
+      constructors  Object();
+                    Object( Object& obj );
+
+                    Creates or copies an object.
+
+
+
+                                  - 84 -
+
+
+                                                                     Object
+
+
+
+         firstThat  virtual Object& firstThat( condFuncType testFuncPtr,
+                    void *paramList ) const;
+
+                    Returns *this if the object satisfies the condition
+                    specified by the BOOLEAN testFunc function, otherwise
+                    NOOBJECT is returned. You can pass arbitrary arguments
+                    via the paramList argument. Note that firstThat,
+                    lastThat, and forEach work for all Object-derived
+                    objects, both container and non-container objects,
+                    whether they are in containers or not. With container
+                    objects, you can get iteration through the contained
+                    objects. When used with objects outside containers, the
+                    three functions act only on the calling object, so
+                    firstThat and lastThat are equivalent. condFuncType is
+                    defined in clstypes.h as
+
+                    #typdef int ( *condFuncType )( const class Object&,
+                    void *);
+
+                    firstThat calls ( *testFuncPtr )( *this, paramList ).
+                    If 1 is returned, firstThat returns (Object &) *this,
+                    otherwise NOOBJECT is returned.
+
+                    See also:   Container::firstThat
+
+           forEach  virtual void forEach( iterFuncType actionFuncPtr, void
+                    *args );
+
+                    forEach executes the given action function on *this.
+                    The args argument lets you pass arbitrary data to the
+                    action function.
+
+                    See also:   firstThat
+
+         hashValue  virtual hashValueType hashValue() const = 0;
+
+                    A pure virtual function to be defined by derived
+                    classes to return the hash value of an object. See
+                    HashTable::hashValue for more details.
+
+               isA  virtual classType isA() const = 0;
+
+                    Pure virtual function for derived classes to return a
+                    class ID.
+
+     isAssociation  virtual int isAssociation() const;
+
+
+
+
+
+                                  - 85 -
+
+
+Object
+
+
+
+                    Returns 1  if the calling object is part of an
+                    Association object, otherwise returns 0. Must be
+                    overridden in classes providing associations.
+
+                    See also: Association class.
+
+           isEqual  virtual int isEqual( const Object& testObject ) const =
+                    0;
+
+                    Pure virtual function to be defined in derived classes
+                    to test for equality between testObject and the calling
+                    object (assumed to be of the same type). isEqual is
+                    really for internal use by the operator == which first
+                    applies isA to see if the compared objects are of the
+                    same type. If they are, == then uses isEqual.
+
+                    See also: operator ==
+
+       isSorttable  virtual int isSortable() const;
+
+                    Returns 1  if the calling object can be sorted; that
+                    is, if the class Sortable is an ancestor. Otherwise
+                    returns 0. Object::isSortable returns 0. Sortable
+                    classes must override isSortable to return true.
+
+                    See also: Sortable class
+
+          lastThat  virtual Object& lastThat( condFuncType testFuncPtr,
+                    void *paramList ) const;
+
+                    Returns *this if the object satisfies the condition
+                    specified by the BOOLEAN testFuncPtr function,
+                    otherwise NOOBJECT is returned. You can pass arbitrary
+                    arguments via the paramList argument. Note that
+                    firstThat, lastThat, and forEach work for all Object-
+                    derived objects, both container and non-container
+                    objects, whether they are in containers or not. With
+                    container objects, you get iteration through the
+                    contained objects. When used with objects outside
+                    containers, the three functions act only on the calling
+                    object, so firstThat and lastThat are equivalent.
+
+                    See also:   firstThat, Container::lastThat
+
+            nameOf  virtual char *nameOf() const = 0;
+
+                    Pure virtual function to be defined by derived classes
+                    to return their object ID string.
+
+
+
+                                  - 86 -
+
+
+                                                                     Object
+
+
+
+               new  void *operator new( size_t size );
+
+                    Overrides the C++ operator new. Allocates size bytes
+                    for an object. Returns ZERO if the allocation fails,
+                    otherwise returns a pointer to the new object.
+
+           printOn  virtual void printOn( ostream& outputStream ) const =
+                    0;
+
+                    Pure virtual function to be defined in derived classes
+                    to provide formatted output of objects on the given
+                    output stream. printOn is really for internal use by
+                    the overloaded operator <<.
+
+                    See also: operator <<
+
+          ptrToRef  static Object ptrToRef( Object *p );
+
+                    Returns *ZERO is p is 0, else returns *p
+
+
+           Friends  =======================================================
+
+       operator <<  ostream& operator <<( ostream& outputStream, const
+                    Object& anObject );
+
+                    Uses printOn to send a formatted representation of
+                    anObject to the given output stream. The stream is
+                    returned, allowing the usual chaining of the <<
+                    operator.
+
+                    operator << is a friend of Object.
+
+
+ Related functions  =======================================================
+
+                    The following overloaded operators are related to
+                    Object but are not member functions:
+
+       operator ==  int operator ==( const Object& test1, const Object&
+                    test2 );
+
+                    Returns 1  if the two objects are equal, otherwise
+                    returns 0. Equal means that isA and isEqual each return
+                    the same values for the two objects.
+
+
+
+
+
+
+                                  - 87 -
+
+
+Object
+
+
+
+                    Note that for sortable objects (derived from the class
+                    Sortable) there are also overloaded nonmember operators
+                    <, >, <=, and >=.
+
+                    See also: Object::isA, Object::isEqual, operator !=,
+                    Sortable class.
+
+       operator !=  int operator !=( const Object& test1, const Object&
+                    test2 );
+
+                    Returns 1  if the two objects are unequal, otherwise
+                    returns 0. Unequal means that either isA or isEqual
+                    each return the different values for the two objects.
+
+                    See also: Object::isA, Object::isEqual, operator ==
+
+
+
+===========================================================================
+PriorityQueue                                                    priortyq.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ Container  ÃÄÄ¶   PriorityQueue    º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The instance class Priority Queue, derived from
+                    Container, implements the traditional priority queue
+                    data structure. The objects in a priority queue must be
+                    sortable (see Sortable class for details). A priority
+                    queue is either a GIFO (greatest-in-first-out) or SIFO
+                    (smallest-in-first-out) container widely used in
+                    scheduling algorithms. The difference really depends on
+                    your ordering definition. In explaining this
+                    implementation, we'll assume a GIFO. You can picture
+                    sortable objects being added at the right, but each
+                    extraction from the left gives the "greatest" object in
+                    the queue. (For applications where you need to extract
+                    the smallest item, you need to adjust your definition
+                    of "less than.") A detailed discussion of priority
+                    queues can be found in Knuth's The Art of Computer
+                    Programming, Volume 3, 5.2.3.
+
+                    The member function put adds objects to the queue;
+                    peekLeft lets you examine the largest element in the
+                    queue; get removes and returns the largest element; you
+                    can also detach this item with detachLeft without
+
+
+
+
+                                  - 88 -
+
+
+                                                              PriorityQueue
+
+
+
+                    "getting" it. PriorityQueue is implemented internally
+                    using a private Btree object called tree.
+
+
+  Member functions  =======================================================
+
+
+        detachLeft  void detachLeft( Container::DeleteType dt =
+                    Container::DefDelete );
+
+                    Removes the smallest object from the priority queue.
+                    Whether this object is destroyed or not depends on the
+                    value of dt as explained in
+                    TShouldDelete::ownsElements.
+
+             flush  void flush( Container::DeleteType dt =
+                    Container::DefDelete );
+
+                    Flushes (empties) the priority queue. The fate of the
+                    removes objects depends on the value of dt as explained
+                    in TShouldDelete::ownsElements.
+
+               get  Object& get();
+
+                    Detaches the smallest object from the priority queue
+                    and returns it. The detached object is not itself
+                    destroyed.
+
+getItemsInContainer countType getItemsInContainer() const ;
+
+                    Returns the number of items in the priority queue.
+
+         hashValue  virtual hashValueType hashValue() const;
+
+                    Returns the hash value of the priority queue. See
+                    HashTable::hashValue for more details.
+
+         hasMember  int hasMember( const Object& obj ) const;
+
+                    Returns 1 if obj belongs to the priority queue,
+                    otherwise returns 0.
+
+      initIterator  virtual void ContainerIterator& initIterator() const;
+
+                    Creates and returns an iterator for this queue.
+
+                    See also: ContainerIterator
+
+
+
+
+                                  - 89 -
+
+
+PriorityQueue
+
+
+
+               isA  virtual classType isA() const;
+
+                    Returns priorityQueueClass, the PriorityQueue type ID.
+
+           isEmpty  int isEmpty();
+
+                    Returns 1 if the priority queue is empty, otherwise
+                    returns 0.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "PriorityQueue", the PriorityQueue type ID
+                    string.
+
+          peekLeft  Object& peekLeft();
+
+                    Returns the smallest object in the priority queue
+                    without removing it.
+
+               put  void put( Object& o );
+
+                    Add the given object to the priority queue.
+
+
+
+===========================================================================
+Queue                                                               queue.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ Deque  ÃÄÄ¶   Queue    º
+                    ÀÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The instance class Queue, derived from Deque,
+                    implements the traditional queue data structure. A
+                    queue is a FIFO (first-in-first-out) container where
+                    objects are inserted at the left (head) and removed
+                    from the right (tail). For a detailed discussion of
+                    queues, see Knuth's The Art of Computer Programming,
+                    Volume 1, 2.2.1.
+
+                    The member functions put and get insert and remove
+                    objects.
+                    Queue is implemented as a restricted-access version of
+                    Deque.
+
+
+
+
+
+
+                                  - 90 -
+
+
+                                                                      Queue
+
+
+
+           Example  =======================================================
+
+            Source   #include <queue.h>
+                     #include <strng.h>
+                     #include <assoc.h>
+
+                     main()
+                     {
+                         Queue q;
+                         String *s1 = new String("a string");
+                         String *s2 = new String("another string");
+                         Association *a1 = new Association(*s1,*s2);
+
+                         // Populate the queue
+                         q.put(*s1);
+                         q.put(*s2);
+                         q.put(*a1);
+
+                         // Print to cout as a Container
+                         cout << "As a container:\n" << q << endl;
+
+                         // Empty the queue to cout
+                         cout << "As a queue:\n";
+                         while (!q.isEmpty())
+                         {
+                             cout << q << endl;
+                         }
+                         cout << endl;
+
+                         // Queue should be empty
+                         cout << "Should be empty:\n" << q;
+                     }
+
+            Output   As a container:
+                     Queue {  Association { a string, another a string }
+                     ,
+                         another string,
+                         a string }
+
+                     As a queue:
+                     a string
+                     another string
+                      Association { a string, another string }
+
+                     Should be empty:
+                     Queue {  }
+
+
+
+
+
+                                  - 91 -
+
+
+Queue
+
+
+
+  Member functions  =======================================================
+
+
+               get  Object& get();
+
+                    Removes the object from the end (tail) of the queue. By
+                    default the removed object will not be destroyed. If
+                    the queue is empty, NOOBJECT is returned. Otherwise the
+                    removed object is returned.
+
+                    See also:   TShouldDelete class
+
+               isA  virtual classType isA() const;
+
+                    Returns queueClass, the Queue type ID.
+
+               put  void put( Object& o );
+
+                    Add an object to (the tail of) a queue.
+
+
+
+===========================================================================
+Set                                                                   set.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»  ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³    Bag     ÃÄÄ¶    Set     ÇÄÄ´ Dictionary ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼  ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                    The instance class Set is a collection that allows only
+                    one instance of any object. This restriction calls for
+                    a specialized add member function to trap any
+                    duplicates. Apart from this difference, the Set and Bag
+                    classes are essentially the same.
+
+
+  Member functions  =======================================================
+
+
+               add  virtual void add( Object& objectToAdd );
+
+                    Adds the given object to the set only if it is not
+                    already a member. If objectToAdd is found in the set,
+                    add does nothing.
+
+
+
+
+
+
+                                  - 92 -
+
+
+                                                                        Set
+
+
+
+                    See also: Collection::hasMember
+
+       constructor  Set( sizeType setSize = DEFAULT_SET_SIZE );
+
+                    Creates a set with the given size by calling the base
+                    Bag constructor.
+
+                    See also:   Bag::Bag
+
+               isA  virtual classType isA() const;
+
+                    Returns setClass, the Set class ID.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "Set", the Set class ID string.
+
+
+
+===========================================================================
+Sortable                                                         sortable.h
+===========================================================================
+
+                                                     ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                                   ÚÄ´   String   ³
+                                                   ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ» ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³   Object   ÃÄÄ¶  Sortable  ÇÄÅÄ´  BaseDate  ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼ ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                   ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                                   ÀÄ´  BaseTime  ³
+                                                     ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                    Sortable is an abstract class derived from Object. You
+                    can use it to build classes of sortable objects.
+                    Objects are said to be sortable when they can be placed
+                    in an order based on some useful and consistent
+                    definition of "less than", "equal", and "greater than."
+                    Any two of these conditions will suffice, in fact,
+                    since the remaining condition can be constructed with
+                    logical operators. Sortable uses the two primitives
+                    "less than" and "equal" via the pure virtual functions
+                    (pure virtual functions) isLessThan and isEqual. Both
+                    of these member functions are applicable only to
+                    objects of the same type (see operators == and < for
+                    more details). The isEqual member function is a pure
+                    virtual function inherited from Object (since unordered
+                    objects also need a test for equality), whereas
+
+
+
+                                  - 93 -
+
+
+Sortable
+
+
+
+                    isLessThan is a new pure virtual function for Sortable.
+                    Your derived classes must define these two member
+                    functions to provide an appropriate ordering of their
+                    objects.
+
+                    Once isLessThan and isEqual are defined, you can use
+                    the overloaded operators  ==, !=, <, <=, >, >= in the
+                    obvious way (see Related Functions section below). The
+                    < operator tests the objects' types first with isA and
+                    returns 0 if the objects are of different types. Then
+                    if the objects are of the same type, the isLessThan
+                    member is called, returning 0 or 1. If your application
+                    calls for the ordering of objects of different types,
+                    you would have to define your own comparison operators.
+
+                    The elements stored in ordered containers must clearly
+                    be sortable. For example, when adding elements to a
+                    SortedArray object, the add member function must
+                    compare the "size" of the incoming object against that
+                    of the existing elements. Similarly, Btree objects make
+                    use of magnitude for storage and access methods. Note,
+                    however, that an unordered container can hold either
+                    unsortable or sortable objects.
+
+                    The type of sortable objects available differs between
+                    the Object-based containers and the template-based
+                    containers. In the Object-based hierarchy you must use
+                    objects ultimately derived from Sortable, whereas the
+                    template containers let you store any object or
+                    predefined data type for which == and < is defined. If
+                    you want to store ints in an Object-based container,
+                    for example, you must invent a suitable class:
+
+                     class Integer : public Sortable
+                     {
+                        int data;
+                        ...
+                     public:
+
+                        virtual char *nameOf() const { return "Integer"; }
+                        virtual classType isA() const { return
+                     integerClass; }
+                        virtual int isLessThan( const Object& i ) const
+                                { return data < ((Integer&)i).data; }
+                        ...
+                     }
+
+
+
+
+
+                                  - 94 -
+
+
+                                                                   Sortable
+
+
+
+                    The Object-based container library already provides
+                    three useful instance classes derived from Sortable:
+                    String, Date, and Time with the natural ordering you
+                    would expect. Remember, though, that you are free to
+                    define your own orderings in derived classes to suit
+                    your application. You must make sure that your
+                    comparisons are logically consistent. For instance, >
+                    must be transitive: A > B and B > C must imply A > C.
+
+
+  Member functions  =======================================================
+
+
+         hashValue  virtual hashValueType hashValue() const = 0;
+
+                    A pure virtual function to be defined by derived
+                    classes to return the hash value of a sortable object.
+                    See HashTable::hashValue for more details.
+
+               isA  virtual classType isA() const = 0;
+
+                    Pure virtual function to be defined in derived classes
+                    to return their class ID.
+
+           isEqual  virtual int isEqual( const Object& testObject ) const =
+                    0;
+
+                    Pure virtual function to be defined in derived classes
+                    to test for equality. Equality means that the calling
+                    object is the same type as testObject and that their
+                    values (as defined by this member function) are equal.
+                    Returns 1 for equality, otherwise 0.
+
+        isLessThan  virtual int isLessThan( const Object& testObject )
+                    const = 0;
+
+                    Pure virtual function to be defined in derived classes
+                    to test for "less than." Returns 1 for "less than",
+                    otherwise 0.
+
+        isSortable  virtual int isSortable() const;
+
+                    Returns 1 for all objects derived from Sortable
+            

@@ -1,0 +1,1338 @@
+_fill; x_fill = _c; return _x; }
+inline int      _Cdecl ios::precision(int _p) 
+                        { int _x = x_precision; x_precision = _p; return _x; }
+inline          _Cdecl ios::operator void *() 
+                        { return fail() ? 0 : this; }
+inline int      _Cdecl ios::operator! () { return fail(); }
+
+
+class _CLASSTYPE streambuf {
+public:
+    // constructors and destructors
+        _Cdecl streambuf();                 // make empty streambuf
+        _Cdecl streambuf(char *, int); // make streambuf with 
+                                            // given char array
+virtual _Cdecl ~streambuf();
+
+    // use the provided char array for the buffer if possible
+virtual streambuf * _Cdecl setbuf(  signed char *, int);
+    // WARNING:  this function is not virtual; do not override
+    streambuf *  _Cdecl setbuf(unsigned char *, int);
+
+    // obsolete, for streams 1.2 compatibility
+    streambuf *  _Cdecl setbuf(char *, int, int);
+
+    // getting (extracting) characters
+    int     _Cdecl sgetc();         // peek at next char
+    int     _Cdecl snextc();        // advance to and return next char
+    int     _Cdecl sbumpc();        // return current char and advance
+    void    _Cdecl stossc();        // advance to next character
+    int     _Cdecl sgetn(char *, int);     // get next n chars
+virtual int _Cdecl do_sgetn(char *, int);  // implementation of sgetn
+virtual int _Cdecl underflow();     // fill empty buffer
+    int     _Cdecl sputbackc(char); // return char to input
+virtual int _Cdecl pbackfail(int);  // implementation of sputbackc
+    int     _Cdecl in_avail();      // number of avail chars in buffer
+
+    // putting (inserting) characters
+    int     _Cdecl sputc(int);          // put one char
+    int     _Cdecl sputn(const char *, int); // put n chars from string
+virtual int _Cdecl do_sputn(const char * s, int n); // implementation of sputn
+virtual int _Cdecl overflow(int = EOF); // flush buffer and make more room
+    int     _Cdecl out_waiting();       // number of unflushed chars
+
+    // moving around in stream
+virtual streampos _Cdecl seekoff(streamoff, ios::seek_dir, 
+                                 int = (ios::in | ios::out));
+virtual streampos _Cdecl seekpos(streampos, int = (ios::in | ios::out));
+virtual int _Cdecl sync();
+
+    void    _Cdecl dbp();       // for debugging streambuf implementations
+
+protected:
+    char * _Cdecl base();  // return start of buffer area
+    char * _Cdecl ebuf();  // return end+1 of buffer area
+    int     _Cdecl blen();      // return length of buffer area
+    char * _Cdecl pbase(); // return start of put area
+    char * _Cdecl pptr();  // return next location in put area
+    char * _Cdecl epptr(); // return end+1 of put area
+    char * _Cdecl eback(); // return base of putback section of get area
+    char * _Cdecl gptr();  // return next location in get area
+    char * _Cdecl egptr(); // return end+1 of get area
+    void    _Cdecl setp(char *, char *); // initialize the put pointers
+    void    _Cdecl setg(char *, char *, char *); // initialize the get pointers
+    void    _Cdecl pbump(int);  // advance the put pointer
+    void    _Cdecl gbump(int);  // advance the get pointer
+    void    _Cdecl setb(char *, char *, int = 0 );    // set the buffer area
+    void    _Cdecl unbuffered(int);// set the buffering state
+    int     _Cdecl unbuffered();    // non-zero if not buffered
+    int     _Cdecl allocate();  // set up a buffer area
+virtual int _Cdecl doallocate();    // implementation of allocate
+
+private:
+    short   alloc_;     // non-zero if buffer should be deleted
+    short   unbuf_;     // non-zero if unbuffered
+    char * base_;  // start of buffer area
+    char * ebuf_;  // end+1 of buffer area
+    char * pbase_; // start of put area
+    char * pptr_;  // next put location
+    char * epptr_; // end+1 of put area
+    char * eback_; // base of putback section of get area
+    char * gptr_;  // next get location
+    char * egptr_; // end+1 of get area
+
+    int     _Cdecl do_snextc(); // implementation of snextc
+
+    // these declarations prevent copying of a streambuf
+            _Cdecl streambuf(streambuf &);   // declared but not defined
+    void    _Cdecl operator= (streambuf &);  // declared but not defined
+};
+inline char * _Cdecl streambuf::base()  { return base_; }
+inline char * _Cdecl streambuf::pbase() { return pbase_; }
+inline char * _Cdecl streambuf::pptr()  { return pptr_; }
+inline char * _Cdecl streambuf::epptr() { return epptr_; }
+inline char * _Cdecl streambuf::gptr()  { return gptr_; }
+inline char * _Cdecl streambuf::egptr() { return egptr_; }
+inline char * _Cdecl streambuf::eback() { return eback_; }
+inline char * _Cdecl streambuf::ebuf()  { return ebuf_; }
+inline int   _Cdecl streambuf::unbuffered()  { return unbuf_; }
+inline int   _Cdecl streambuf::blen() { return (int)(ebuf_ - base_);}
+inline streambuf * 
+            _Cdecl streambuf::setbuf(unsigned char * _p, int _len) 
+                { // call the virtual function
+                    return setbuf((signed char *)_p, _len); }
+inline void _Cdecl streambuf::pbump(int _n) { pptr_ += _n; }
+inline void _Cdecl streambuf::gbump(int _n) { gptr_ += _n; }
+inline void _Cdecl streambuf::unbuffered(int _unb) { unbuf_ = (_unb != 0); }
+inline int  _Cdecl streambuf::in_avail() 
+                { return (egptr_ > gptr_) ? (int)(egptr_ - gptr_) : 0; }
+inline int  _Cdecl streambuf::out_waiting() 
+                { return pptr_ ? (int)(pptr_ - pbase_) : 0; }
+inline int  _Cdecl streambuf::allocate() {
+                return (base_ || unbuf_) ? 0 : doallocate();
+                }
+inline int  _Cdecl streambuf::sgetc() {
+                return (gptr_ >= egptr_) ? underflow() :
+                   (unsigned char)(*gptr_);
+                }
+inline int  _Cdecl streambuf::snextc() {
+                return (! gptr_ || (++gptr_ >= egptr_)) ?
+                    do_snextc() :
+                    (unsigned char)(*gptr_);
+                }
+inline int  _Cdecl streambuf::sbumpc() {
+                return (gptr_ >= egptr_ && underflow() == EOF) ?
+                    EOF :
+                    (unsigned char)(*gptr_++);
+                }
+inline void _Cdecl streambuf::stossc() {
+                if( gptr_ >= egptr_ ) underflow();
+                else ++gptr_;
+                }
+inline int  _Cdecl streambuf::sputbackc(char _c) {
+                return (gptr_ > eback_) ?
+                    (unsigned char)(*--gptr_ = _c) :
+                    pbackfail(_c);
+                }
+inline int  _Cdecl streambuf::sputc(int _c) {
+                return (pptr_ >= epptr_) ?
+                    overflow((unsigned char)_c) :
+                    (unsigned char)(*pptr_++ = _c);
+                }
+#ifdef _BIG_INLINE_
+inline int  _Cdecl streambuf::sputn(const char * _s, int _n) {
+                if( _n <= (epptr_ - pptr_) ) {
+                    memcpy(pptr_, _s, _n);
+                    pbump(_n);
+                    return _n;
+                }
+                return do_sputn(_s, _n);
+                }
+inline int  _Cdecl streambuf::sgetn(char * _s, int _n) {
+                if( _n <= (egptr_ - gptr_) ) {
+                    memcpy(_s, gptr_, _n);
+                    gbump(_n);
+                    return _n;
+                }
+                return do_sgetn(_s, _n);
+                }
+#endif
+
+
+class _CLASSTYPE istream : virtual public ios {
+public:
+    // constructor and destructor
+        _Cdecl istream(streambuf *);
+virtual _Cdecl ~istream();
+
+    // Obsolete constructors, for streams 1.2 compatibility
+        // obsolete: set skip via format, tie via tie() function
+        _Cdecl istream(streambuf *, int _sk, ostream * _t=0);
+        // obsolete: use strstream
+        _Cdecl istream(int _sz, char *, int _sk=1);
+        // obsolete: use fstream
+        _Cdecl istream(int _fd, int _sk=1, ostream * _t=0);
+
+    int _Cdecl ipfx(int = 0);       // input prefix function
+    int _Cdecl ipfx0();     // same as ipfx(0)
+    int _Cdecl ipfx1();     // same as ipfx(1)
+    void _Cdecl isfx()      { } // unused input suffix function
+
+    // set/read the get pointer's position
+    istream & _Cdecl seekg(streampos);
+    istream & _Cdecl seekg(streamoff, seek_dir);
+    streampos _Cdecl tellg();
+
+    int _Cdecl sync();
+
+    /*
+     * Unformatted extraction operations
+     */
+    // extract characters into an array
+    istream & _Cdecl get(  signed char *, int, char = '\n');
+    istream & _Cdecl get(unsigned char *, int, char = '\n');
+    istream & _Cdecl read(  signed char *, int);
+    istream & _Cdecl read(unsigned char *, int);
+
+    // extract characters into an array up to termination char
+    istream & _Cdecl getline(  signed char *, int, char = '\n');
+    istream & _Cdecl getline(unsigned char *, int, char = '\n');
+
+    // extract characters into a streambuf up to termination char
+    istream & _Cdecl get(streambuf &, char = '\n');
+
+    // extract a single character
+    istream & _Cdecl get(unsigned char &);
+    istream & _Cdecl get(  signed char &);
+    int      _Cdecl get();
+                     
+    int      _Cdecl peek();     // return next char without extraction
+    int      _Cdecl gcount();   // number of unformatted chars last extracted
+    istream & _Cdecl putback(char);  // push back char into input
+
+    // extract and discard chars but stop at delim
+    istream & _Cdecl ignore(int = 1, int = EOF);
+
+    /*
+     * Formatted extraction operations
+     */
+    istream & _Cdecl operator>> (istream & (_Cdecl *_f)(istream &));
+    istream & _Cdecl operator>> (ios & (_Cdecl *_f)(ios &) );
+    istream & _Cdecl operator>> (  signed char *);
+    istream & _Cdecl operator>> (unsigned char *);
+    istream & _Cdecl operator>> (unsigned char &);
+    istream & _Cdecl operator>> (  signed char &);
+    istream & _Cdecl operator>> (short &);
+    istream & _Cdecl operator>> (int &);
+    istream & _Cdecl operator>> (long &);
+    istream & _Cdecl operator>> (unsigned short &);
+    istream & _Cdecl operator>> (unsigned int &);
+    istream & _Cdecl operator>> (unsigned long &);
+    istream & _Cdecl operator>> (float &);
+    istream & _Cdecl operator>> (double &);
+    istream & _Cdecl operator>> (long double &);
+
+    // extract from this istream, insert into streambuf
+    istream & _Cdecl operator>> (streambuf *);
+
+protected:
+            _Cdecl istream();
+    void    _Cdecl eatwhite();      // extract consecutive whitespace
+
+private:
+    int gcount_;    // chars extracted by last unformatted operation
+    signed char _Cdecl do_get();    // implementation of get
+};
+inline int  _Cdecl istream::gcount() { return gcount_; }
+inline int  _Cdecl istream::ipfx0()  { return ipfx(0); }
+inline int  _Cdecl istream::ipfx1()  { return ipfx(1); }
+#ifdef _BIG_INLINE_
+inline istream & _Cdecl istream::operator>> (unsigned char & _c) {
+                if( ipfx0() )
+                    _c = bp->in_avail() ? bp->sbumpc() : do_get();
+                return *this;
+                }
+inline istream & _Cdecl istream::operator>> (signed char & _c) {
+                if( ipfx0() )
+                    _c = bp->in_avail() ? bp->sbumpc() : do_get();
+                return *this;
+                }
+#endif
+inline istream & _Cdecl istream::operator>> (unsigned char *_p) {
+                return *this >> (signed char *)_p;
+                }
+inline istream & _Cdecl istream::get(unsigned char *_p, int _l, char _t) {
+                return get((signed char *)_p, _l, _t);
+                }
+inline istream & _Cdecl istream::read(unsigned char *_p, int _l) {
+                return read((signed char *)_p, _l);
+                }
+inline istream & _Cdecl istream::getline(unsigned char *_p, int _l, char _t) {
+                return getline((signed char *) _p, _l, _t);
+                }
+inline int      _Cdecl istream::sync() { return bp->sync(); }
+inline istream & _Cdecl istream::operator>> (istream & (_Cdecl *_f)(istream &)) {
+                return (*_f)(*this);
+                }
+#ifdef _BIG_INLINE_
+inline istream & _Cdecl istream::get(unsigned char & _c) {
+                if( ipfx1() )
+                    if( bp->in_avail() ) {
+                        gcount_ = 1;
+                        _c = bp->sbumpc();
+                    }
+                else _c = do_get();
+                return *this;
+                }
+inline istream & _Cdecl istream::get(signed char & _c) {
+                if( ipfx1() )
+                    if( bp->in_avail()) {
+                        gcount_ = 1;
+                        _c = bp->sbumpc();
+                    }
+                else _c = do_get();
+                return *this;
+                }
+inline int      _Cdecl istream::get() {
+                if( ipfx1() ) {
+                    int _c = bp->sbumpc();
+                    if( _c == EOF ) setstate(eofbit);
+                    else gcount_ = 1;
+                    return _c;
+                }
+                else return EOF;
+                }
+#endif
+inline int  _Cdecl istream::peek() { return ipfx1() ? bp->sgetc() : EOF; }
+
+
+class _CLASSTYPE ostream : virtual public ios {
+public:
+    // constructors and destructor
+        _Cdecl ostream(streambuf *);
+virtual _Cdecl ~ostream();
+    // Obsolete constructors, for streams 1.2 compatibility
+        _Cdecl ostream(int _fd); // obsolete, use fstream
+        _Cdecl ostream(int _sz, char *); // obsolete, use strstream
+
+    int _Cdecl opfx();      // output prefix function
+    void _Cdecl osfx();     // output suffix function
+    ostream & _Cdecl flush();
+
+    // set/read the put pointer's position
+    ostream & _Cdecl seekp(streampos);
+    ostream & _Cdecl seekp(streamoff, seek_dir);
+    streampos _Cdecl tellp();
+
+    /*
+     * Unformatted insertion operations
+     */
+    ostream & _Cdecl put(char);  // insert the character
+    ostream & _Cdecl write(const   signed char *, int); // insert the string
+    ostream & _Cdecl write(const unsigned char *, int); // insert the string
+
+    /*
+     * Formatted insertion operations
+     */
+    // insert the character
+    ostream & _Cdecl operator<< (  signed char);
+    ostream & _Cdecl operator<< (unsigned char);
+
+    // for the following, insert character representation of numeric value
+    ostream & _Cdecl operator<< (short);
+    ostream & _Cdecl operator<< (unsigned short);
+    ostream & _Cdecl operator<< (int);
+    ostream & _Cdecl operator<< (unsigned int);
+    ostream & _Cdecl operator<< (long);
+    ostream & _Cdecl operator<< (unsigned long);
+    ostream & _Cdecl operator<< (float);
+    ostream & _Cdecl operator<< (double);
+    ostream & _Cdecl operator<< (long double);
+
+    // insert the null-terminated string
+    ostream & _Cdecl operator<< (const   signed char *);
+    ostream & _Cdecl operator<< (const unsigned char *);
+
+    // insert character representation of the value of the pointer
+    ostream & _Cdecl operator<< (void *);
+
+    // extract from streambuf, insert into this ostream
+    ostream & _Cdecl operator<< (streambuf *);
+
+    // manipulators
+    ostream & _Cdecl operator<< (ostream & (_Cdecl *_f)(ostream &));
+    ostream & _Cdecl operator<< (ios & (_Cdecl *_f)(ios &));
+
+protected:
+    int     _Cdecl do_opfx();   // implementation of opfx
+    void    _Cdecl do_osfx();   // implementation of osfx
+            _Cdecl ostream();
+
+private:
+    void    _Cdecl outstr(const signed char *, const signed char *);
+};
+inline int  _Cdecl ostream::opfx() { return ospecial ? do_opfx() : 1; }
+inline void _Cdecl ostream::osfx() { if( x_flags & (stdio | unitbuf) ) do_osfx(); }
+#ifdef _BIG_INLINE_
+inline ostream & _Cdecl ostream::operator<< (signed char _c) {
+                if( opfx() )
+                    if( bp->sputc(_c) == EOF ) setstate(badbit);
+                        osfx();
+                return *this;
+                }
+#endif
+inline ostream & _Cdecl ostream::operator<< (unsigned char _c) {
+                return *this << (signed char)_c;
+                }
+inline ostream & _Cdecl ostream::operator<< (const signed char * _s) {
+                outstr(_s, (const signed char *)0);
+                return *this;
+                }
+inline ostream & _Cdecl ostream::operator<< (const unsigned char * _s) {
+                outstr((const signed char *)_s, (const signed char *)0);
+                return *this;
+                }
+inline ostream & _Cdecl ostream::operator<< (short _i) 
+                { return *this << (long) _i; }
+inline ostream & _Cdecl ostream::operator<< (unsigned short _i) 
+                { return *this << (unsigned long) _i; }
+inline ostream & _Cdecl ostream::operator<< (int _i) 
+                { return *this << (long) _i; }
+inline ostream & _Cdecl ostream::operator<< (unsigned int _i) 
+                { return *this << (unsigned long) _i; }
+inline ostream & _Cdecl ostream::operator<< (float _f) 
+                { return *this << (long double) _f; }
+inline ostream & _Cdecl ostream::operator<< (double _d) 
+                { return *this << (long double) _d; }
+inline ostream & _Cdecl ostream::operator<< (ostream & (_Cdecl *_f)(ostream &)) 
+                { return (*_f)(*this); }
+inline ostream & _Cdecl ostream::write(const unsigned char * _s, int _n) 
+                { return write((const signed char *)_s, _n); }
+inline ostream & _Cdecl ostream::put(char _c) {
+                if( bp->sputc(_c) == EOF ) setstate(badbit);
+                return *this;
+                }
+#ifdef _BIG_INLINE_
+inline ostream & _Cdecl ostream::write(const signed char * _s, int _n) {
+                if( ! fail() )
+                    if( bp->sputn((const char *)_s, _n) != _n )
+                        setstate(badbit);
+                return *this;
+                }
+#endif
+
+
+class _CLASSTYPE iostream : public istream, public ostream {
+public:
+        _Cdecl iostream(streambuf *);
+virtual _Cdecl ~iostream();
+
+protected:
+        _Cdecl iostream();
+};
+
+
+class _CLASSTYPE istream_withassign : public istream {
+public:
+        // does no initialization
+        _Cdecl istream_withassign();
+
+virtual _Cdecl ~istream_withassign();
+
+    // gets buffer from istream and does entire initialization
+    istream_withassign & _Cdecl operator= (istream &);
+
+    // associates streambuf with stream and does entire initialization
+    istream_withassign & _Cdecl operator= (streambuf *);
+};
+
+
+class _CLASSTYPE ostream_withassign : public ostream {
+public:
+        // does no initialization
+        _Cdecl ostream_withassign();
+
+virtual _Cdecl ~ostream_withassign();
+
+    // gets buffer from istream and does entire initialization
+    ostream_withassign & _Cdecl operator= (ostream &);
+
+    // associates streambuf with stream and does entire initialization
+    ostream_withassign & _Cdecl operator= (streambuf *);
+};
+
+
+class _CLASSTYPE iostream_withassign : public iostream {
+public:
+        // does no initialization
+        _Cdecl iostream_withassign();
+
+virtual _Cdecl ~iostream_withassign();
+
+    // gets buffer from stream and does entire initialization
+    iostream_withassign & _Cdecl operator= (ios &);
+
+    // associates streambuf with stream and does entire initialization
+    iostream_withassign & _Cdecl operator= (streambuf *);
+};
+
+
+/*
+ * The predefined streams
+ */
+extern istream_withassign _Cdecl cin;
+extern ostream_withassign _Cdecl cout;
+extern ostream_withassign _Cdecl cerr;
+extern ostream_withassign _Cdecl clog;
+
+/*
+ * Manipulators
+ */
+ostream & _Cdecl endl(ostream &); // insert newline and flush
+ostream & _Cdecl ends(ostream &); // insert null to terminate string
+ostream & _Cdecl flush(ostream &);// flush the ostream
+ios &     _Cdecl dec(ios &);      // set conversion base to decimal
+ios &     _Cdecl hex(ios &);      // set conversion base to hexadecimal
+ios &     _Cdecl oct(ios &);      // set conversion base to octal
+istream & _Cdecl ws(istream &);   // extract whitespace characters
+
+#pragma option -Vo.
+
+#endif
+                                                                                                                                                                                                                                                                       /*  io.h
+
+    Definitions for low level I/O functions.
+
+    Copyright (c) 1987, 1991 by Borland International
+    All Rights Reserved.
+*/
+
+#ifndef __IO_H
+#define __IO_H
+
+#if !defined( __DEFS_H )
+#include <_defs.h>
+#endif
+
+#define HANDLE_MAX  20U
+
+extern  unsigned int    _Cdecl _nfile;
+
+struct  ftime   {
+    unsigned    ft_tsec  : 5;   /* Two second interval */
+    unsigned    ft_min   : 6;   /* Minutes */
+    unsigned    ft_hour  : 5;   /* Hours */
+    unsigned    ft_day   : 5;   /* Days */
+    unsigned    ft_month : 4;   /* Months */
+    unsigned    ft_year  : 7;   /* Year */
+};
+
+#define SEEK_CUR    1
+#define SEEK_END    2
+#define SEEK_SET    0
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+int  _Cdecl access   (const char *path, int amode);
+#ifdef __IN_CHMOD
+int  _Cdecl _chmod   ();
+#else
+int  _Cdecl _chmod   (const char *__pathname, int __func, ... );
+#endif
+int  _Cdecl chmod    (const char *__path, int __amode);
+int  _Cdecl chsize   (int __handle, long __size);
+int  _CType _close   (int __handle);
+int  _CType close    (int __handle);
+int  _CType _creat   (const char *__path, int __attribute);
+int  _CType creat    (const char *__path, int __amode);
+int  _Cdecl creatnew (const char *__path, int __mode); /* DOS 3.0 or later */
+int  _Cdecl creattemp(char *__path, int __amode); /* DOS 3.0 or later */
+int  _Cdecl dup      (int __handle);
+int  _Cdecl dup2     (int __oldhandle, int __newhandle);
+int  _Cdecl eof      (int __handle);
+long _Cdecl filelength   (int __handle);
+int  _Cdecl getftime     (int __handle, struct ftime *__ftimep);
+#ifdef __IN_IOCTL
+int  _Cdecl ioctl    ();
+#else
+int  _Cdecl ioctl    (int __handle, int __func, ...);
+        /* optional 3rd and 4th args are: void * __argdx, int argcx */
+#endif
+
+int  _Cdecl isatty   (int __handle);
+int  _Cdecl lock     (int __handle, long __offset, long __length);
+int  _Cdecl locking  (int __handle, int __mode, long __length);
+long _CType lseek    (int __handle, long __offset, int __fromwhere);
+char * _Cdecl mktemp( char *__template );
+#ifdef __IN_OPEN
+int  _Cdecl open();
+#else
+int _Cdecl open(const char *__path, int __access,... /*unsigned mode*/);
+#endif
+int  _CType _open    (const char *__path, int __oflags);
+int  _CType read     (int __handle, void *__buf, unsigned __len);
+int  _CType _read    (int __handle, void *__buf, unsigned __len);
+int  _CType remove   (const char *__path);
+int  _CType rename   (const char *__oldname,const char *__newname);
+int  _Cdecl setftime (int __handle, struct ftime *__ftimep);
+int  _Cdecl setmode  (int __handle, int __amode);
+
+#ifdef __IN_SOPEN
+int  _Cdecl sopen();
+#else
+int  _Cdecl sopen    (const char *__path, int __access, int __shflag,
+                      ... /* unsigned mode */);
+#endif
+long _Cdecl tell     (int __handle);
+unsigned _Cdecl umask    (unsigned __cmask);
+int  _CType unlink   (const char *__path);
+int  _Cdecl unlock   (int __handle, long __offset, long __length);
+int  _CType _write   (int __handle, const void *__buf, unsigned __len);
+int  _CType write    (int __handle, const void *__buf, unsigned __len);
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif  /* __IO_H */
+                                                                                                                                                                                                                                                                                                                                                                                               PROCESSOR_ICELAKE_SERVER PROCESSOR_INTEL PROCESSOR_GEODE PROCESSOR_K6 PROCESSOR_ATHLON PROCESSOR_K8 PROCESSOR_AMDFAM10 PROCESSOR_BDVER1 PROCESSOR_BDVER2 PROCESSOR_BDVER3 PROCESSOR_BDVER4 PROCESSOR_BTVER1 PROCESSOR_BTVER2  PROCESSOR_ZNVER1 !PROCESSOR_max " 
+ix86_tune 		  
+ix86_arch 		  
+ix86_preferred_stack_boundary 			ü  
+ix86_incoming_stack_boundary 	
+	ü  ®  o  	  P _  
+regclass_map 		o  signed char UQItype {ƒ  ô  __int128 __int128 unsigned /*  graphics.h
+
+    Definitions for Graphics Package.
+
+    Copyright (c) 1987, 1991 by Borland International
+    All Rights Reserved.
+*/
+
+#if !defined(__GRAPHICS_H)
+#define __GRAPHICS_H
+
+#if !defined( __DEFS_H )
+#include <_defs.h>
+#endif
+
+enum graphics_errors {      /* graphresult error return codes */
+    grOk                =   0,
+    grNoInitGraph       =  -1,
+    grNotDetected       =  -2,
+    grFileNotFound      =  -3,
+    grInvalidDriver     =  -4,
+    grNoLoadMem         =  -5,
+    grNoScanMem         =  -6,
+    grNoFloodMem        =  -7,
+    grFontNotFound      =  -8,
+    grNoFontMem         =  -9,
+    grInvalidMode       = -10,
+    grError             = -11,   /* generic error */
+    grIOerror           = -12,
+    grInvalidFont       = -13,
+    grInvalidFontNum    = -14,
+    grInvalidVersion    = -18
+};
+
+enum graphics_drivers {     /* define graphics drivers */
+    DETECT,         /* requests autodetection */
+    CGA, MCGA, EGA, EGA64, EGAMONO, IBM8514,    /* 1 - 6 */
+    HERCMONO, ATT400, VGA, PC3270,          /* 7 - 10 */
+    CURRENT_DRIVER = -1
+};
+
+enum graphics_modes {       /* graphics modes for each driver */
+    CGAC0      = 0,  /* 320x200 palette 0; 1 page   */
+    CGAC1      = 1,  /* 320x200 palette 1; 1 page   */
+    CGAC2      = 2,  /* 320x200 palette 2: 1 page   */
+    CGAC3      = 3,  /* 320x200 palette 3; 1 page   */
+    CGAHI      = 4,  /* 640x200 1 page          */
+    MCGAC0     = 0,  /* 320x200 palette 0; 1 page   */
+    MCGAC1     = 1,  /* 320x200 palette 1; 1 page   */
+    MCGAC2     = 2,  /* 320x200 palette 2; 1 page   */
+    MCGAC3     = 3,  /* 320x200 palette 3; 1 page   */
+    MCGAMED    = 4,  /* 640x200 1 page          */
+    MCGAHI     = 5,  /* 640x480 1 page          */
+    EGALO      = 0,  /* 640x200 16 color 4 pages    */
+    EGAHI      = 1,  /* 640x350 16 color 2 pages    */
+    EGA64LO    = 0,  /* 640x200 16 color 1 page     */
+    EGA64HI    = 1,  /* 640x350 4 color  1 page     */
+    EGAMONOHI  = 0,  /* 640x350 64K on card, 1 page - 256K on card, 4 pages */
+    HERCMONOHI = 0,  /* 720x348 2 pages         */
+    ATT400C0   = 0,  /* 320x200 palette 0; 1 page   */
+    ATT400C1   = 1,  /* 320x200 palette 1; 1 page   */
+    ATT400C2   = 2,  /* 320x200 palette 2; 1 page   */
+    ATT400C3   = 3,  /* 320x200 palette 3; 1 page   */
+    ATT400MED  = 4,  /* 640x200 1 page          */
+    ATT400HI   = 5,  /* 640x400 1 page          */
+    VGALO      = 0,  /* 640x200 16 color 4 pages    */
+    VGAMED     = 1,  /* 640x350 16 color 2 pages    */
+    VGAHI      = 2,  /* 640x480 16 color 1 page     */
+    PC3270HI   = 0,  /* 720x350 1 page          */
+    IBM8514LO  = 0,  /* 640x480 256 colors      */
+    IBM8514HI  = 1   /*1024x768 256 colors      */
+};
+
+/* Colors for setpalette and setallpalette */
+
+#if !defined(__COLORS)
+#define __COLORS
+
+enum COLORS {
+    BLACK,          /* dark colors */
+    BLUE,
+    GREEN,
+    CYAN,
+    RED,
+    MAGENTA,
+    BROWN,
+    LIGHTGRAY,
+    DARKGRAY,       /* light colors */
+    LIGHTBLUE,
+    LIGHTGREEN,
+    LIGHTCYAN,
+    LIGHTRED,
+    LIGHTMAGENTA,
+    YELLOW,
+    WHITE
+};
+#endif
+
+enum CGA_COLORS {
+    CGA_LIGHTGREEN     = 1,     /* Palette C0 Color Names   */
+    CGA_LIGHTRED       = 2,
+    CGA_YELLOW         = 3,
+
+    CGA_LIGHTCYAN      = 1,     /* Palette C1 Color Names   */
+    CGA_LIGHTMAGENTA   = 2,
+    CGA_WHITE          = 3,
+
+    CGA_GREEN          = 1,     /* Palette C2 Color Names   */
+    CGA_RED            = 2,
+    CGA_BROWN          = 3,
+
+    CGA_CYAN           = 1,     /* Palette C3 Color Names   */
+    CGA_MAGENTA        = 2,
+    CGA_LIGHTGRAY      = 3
+};
+
+
+enum EGA_COLORS {
+    EGA_BLACK        =  0,      /* dark colors */
+    EGA_BLUE         =  1,
+    EGA_GREEN        =  2,
+    EGA_CYAN         =  3,
+    EGA_RED          =  4,
+    EGA_MAGENTA      =  5,
+    EGA_BROWN        =  20,
+    EGA_LIGHTGRAY    =  7,
+    EGA_DARKGRAY     =  56,     /* light colors */
+    EGA_LIGHTBLUE    =  57,
+    EGA_LIGHTGREEN   =  58,
+    EGA_LIGHTCYAN    =  59,
+    EGA_LIGHTRED     =  60,
+    EGA_LIGHTMAGENTA =  61,
+    EGA_YELLOW       =  62,
+    EGA_WHITE        =  63
+};
+
+enum line_styles {      /* Line styles for get/setlinestyle */
+    SOLID_LINE   = 0,
+    DOTTED_LINE  = 1,
+    CENTER_LINE  = 2,
+    DASHED_LINE  = 3,
+    USERBIT_LINE = 4,   /* User defined line style */
+};
+
+enum line_widths {      /* Line widths for get/setlinestyle */
+    NORM_WIDTH  = 1,
+    THICK_WIDTH = 3,
+};
+
+enum font_names {
+    DEFAULT_FONT        = 0,    /* 8x8 bit mapped font */
+    TRIPLEX_FONT        = 1,    /* "Stroked" fonts */
+    SMALL_FONT          = 2,
+    SANS_SERIF_FONT     = 3,
+    GOTHIC_FONT         = 4,
+    SCRIPT_FONT         = 5,        
+    SIMPLEX_FONT        = 6,       
+    TRIPLEX_SCR_FONT    = 7,
+    COMPLEX_FONT        = 8,       
+    EUROPEAN_FONT       = 9,  
+    BOLD_FONT           = 10      
+};
+
+#define HORIZ_DIR   0   /* left to right */
+#define VERT_DIR    1   /* bottom to top */
+
+#define USER_CHAR_SIZE  0   /* user-defined char size */
+
+enum fill_patterns {    /* Fill patterns for get/setfillstyle */
+    EMPTY_FILL,         /* fills area in background color */
+    SOLID_FILL,         /* fills area in solid fill color */
+    LINE_FILL,          /* --- fill */
+    LTSLASH_FILL,       /* /// fill */
+    SLASH_FILL,         /* /// fill with thick lines */
+    BKSLASH_FILL,       /* \\\ fill with thick lines */
+    LTBKSLASH_FILL,     /* \\\ fill */
+    HATCH_FILL,         /* light hatch fill */
+    XHATCH_FILL,        /* heavy cross hatch fill */
+    INTERLEAVE_FILL,    /* interleaving line fill */
+    WIDE_DOT_FILL,      /* Widely spaced dot fill */
+    CLOSE_DOT_FILL,     /* Closely spaced dot fill */
+    USER_FILL           /* user defined fill */
+};
+
+enum putimage_ops {     /* BitBlt operators for putimage */
+    COPY_PUT,           /* MOV */
+    XOR_PUT,            /* XOR */
+    OR_PUT,             /* OR  */
+    AND_PUT,            /* AND */
+    NOT_PUT             /* NOT */
+};
+
+enum text_just {        /* Horizontal and vertical justification
+                           for settextjustify */
+    LEFT_TEXT   = 0,
+    CENTER_TEXT = 1,
+    RIGHT_TEXT  = 2,
+
+    BOTTOM_TEXT = 0,
+     /* CENTER_TEXT = 1,  already defined above */
+    TOP_TEXT    = 2
+};
+
+
+#define MAXCOLORS 15
+
+struct palettetype {
+    unsigned char size;
+    signed char colors[MAXCOLORS+1];
+};
+
+struct linesettingstype {
+    int linestyle;
+    unsigned upattern;
+    int thickness;
+};
+
+struct textsettingstype {
+    int font;
+    int direction;
+    int charsize;
+    int horiz;
+    int vert;
+};
+
+struct fillsettingstype {
+    int pattern;
+    int color;
+};
+
+struct pointtype {
+    int x, y;
+};
+
+struct viewporttype {
+    int left, top, right, bottom;
+    int clip;
+};
+
+struct arccoordstype {
+    int x, y;
+    int xstart, ystart, xend, yend;
+};
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+void       far _Cdecl arc(int __x, int __y, int __stangle, int __endangle,
+              int __radius);
+void       far _Cdecl bar(int __left, int __top, int __right, int __bottom);
+void       far _Cdecl bar3d(int __left, int __top, int __right, int __bottom,
+                int __depth, int __topflag);
+void       far _Cdecl circle(int __x, int __y, int __radius);
+void       far _Cdecl cleardevice(void);
+void       far _Cdecl clearviewport(void);
+void       far _Cdecl closegraph(void);
+void       far _Cdecl detectgraph(int far *__graphdriver,int far *__graphmode);
+void       far _Cdecl drawpoly(int __numpoints, const int far *__polypoints);
+void       far _Cdecl ellipse(int __x, int __y, int __stangle, int __endangle,
+                  int __xradius, int __yradius);
+void       far _Cdecl fillellipse( int __x, int __y, int __xradius, int __yradius );
+void       far _Cdecl fillpoly(int __numpoints, const int far *__polypoints);
+void       far _Cdecl floodfill(int __x, int __y, int __border);
+void       far _Cdecl getarccoords(struct arccoordstype far *__arccoords);
+void       far _Cdecl getaspectratio(int far *__xasp, int far *__yasp);
+int    far _Cdecl getbkcolor(void);
+int    far _Cdecl getcolor(void);
+struct palettetype far * far _Cdecl getdefaultpalette( void );
+char *     far _Cdecl getdrivername( void );
+void       far _Cdecl getfillpattern(char far *__pattern);
+void       far _Cdecl getfillsettings(struct fillsettingstype far *__fillinfo);
+int    far _Cdecl getgraphmode(void);
+void       far _Cdecl getimage(int __left, int __top, int __right, int __bottom,
+                   void far *__bitmap);
+void       far _Cdecl getlinesettings(struct linesettingstype far *__lineinfo);
+int    far _Cdecl getmaxcolor(void);
+int    far _Cdecl getmaxmode(void);
+int    far _Cdecl getmaxx(void);
+int    far _Cdecl getmaxy(void);
+char *     far _Cdecl getmodename( int __mode_number );
+void       far _Cdecl getmoderange(int __graphdriver, int far *__lomode,
+                   int far *__himode);
+unsigned   far _Cdecl getpixel(int __x, int __y);
+void       far _Cdecl getpalette(struct palettetype far *__palette);
+int    far _Cdecl getpalettesize( void );
+void       far _Cdecl gettextsettings(struct textsettingstype far *__texttypeinfo);
+void       far _Cdecl getviewsettings(struct viewporttype far *__viewport);
+int    far _Cdecl getx(void);
+int    far _Cdecl gety(void);
+void       far _Cdecl graphdefaults(void);
+char *     far _Cdecl grapherrormsg(int __errorcode);
+void       far _Cdecl _graphfreemem(void far *__ptr, unsigned __size);
+void far * far _Cdecl _graphgetmem(unsigned __size);
+int    far _Cdecl graphresult(void);
+unsigned   far _Cdecl imagesize(int __left, int __top, int __right, int __bottom);
+void       far _Cdecl initgraph(int  far *__graphdriver,
+                int  far *__graphmode,
+                const char far *__pathtodriver);
+int    far _Cdecl installuserdriver( const char far *__name,
+                int huge (*detect)(void) );
+int    far _Cdecl installuserfont( const char far *__name );
+void       far _Cdecl line(int __x1, int __y1, int __x2, int __y2);
+void       far _Cdecl linerel(int __dx, int __dy);
+void       far _Cdecl lineto(int __x, int __y);
+void       far _Cdecl moverel(int __dx, int __dy);
+void       far _Cdecl moveto(int __x, int __y);
+void       far _Cdecl outtext(const char far *__textstring);
+void       far _Cdecl outtextxy(int __x, int __y, const char far *__textstring);
+void       far _Cdecl pieslice(int __x, int __y, int __stangle, int __endangle,
+                   int __radius);
+void       far _Cdecl putimage(int __left, int __top, const void far *__bitmap,
+                int __op);
+void       far _Cdecl putpixel(int __x, int __y, int __color);
+void       far _Cdecl rectangle(int __left, int __top, int __right, int __bottom);
+void       far _Cdecl restorecrtmode(void);
+void       far _Cdecl sector( int __X, int __Y, int __StAngle, int __EndAngle,
+                  int __XRadius, int __YRadius );
+void       far _Cdecl setactivepage(int __page);
+void       far _Cdecl setallpalette(const struct palettetype far *__palette);
+void       far _Cdecl setaspectratio( int __xasp, int __yasp );
+void       far _Cdecl setbkcolor(int __color);
+void       far _Cdecl setcolor(int __color);
+void       far _Cdecl setfillpattern(const char far *__upattern, int __color);
+void       far _Cdecl setfillstyle(int __pattern, int __color);
+unsigned   far _Cdecl setgraphbufsize(unsigned __bufsize);
+void       far _Cdecl setgraphmode(int __mode);
+void       far _Cdecl setlinestyle(int __linestyle, unsigned __upattern,
+                   int __thickness);
+void       far _Cdecl setpalette(int __colornum, int __color);
+void       far _Cdecl setrgbpalette(int __colornum,
+                    int __red, int __green, int __blue);
+void       far _Cdecl settextjustify(int __horiz, int __vert);
+void       far _Cdecl settextstyle(int __font, int __direction, int __charsize);
+void       far _Cdecl setusercharsize(int __multx, int __divx,
+                      int __multy, int __divy);
+void       far _Cdecl setviewport(int __left, int __top, int __right, int __bottom,
+                  int __clip);
+void       far _Cdecl setvisualpage(int __page);
+void       far _Cdecl setwritemode( int __mode );
+int    far _Cdecl textheight(const char far *__textstring);
+int    far _Cdecl textwidth(const char far *__textstring);
+
+/***** graphics drivers *****/
+
+int        _Cdecl registerbgidriver(void (*driver)(void));
+int    far _Cdecl registerfarbgidriver(void far *__driver);
+
+/* !!        These "functions" are NOT user-callable          !! */
+/* !! They are there just so you can link in graphics drivers !! */
+
+void           _Cdecl CGA_driver(void);
+void           _Cdecl EGAVGA_driver(void);
+void           _Cdecl IBM8514_driver(void);
+void           _Cdecl Herc_driver(void);
+void           _Cdecl ATT_driver(void);
+void           _Cdecl PC3270_driver(void);
+
+extern int far _Cdecl CGA_driver_far[];
+extern int far _Cdecl EGAVGA_driver_far[];
+extern int far _Cdecl IBM8514_driver_far[];
+extern int far _Cdecl Herc_driver_far[];
+extern int far _Cdecl ATT_driver_far[];
+extern int far _Cdecl PC3270_driver_far[];
+
+
+/***** graphics fonts *****/
+
+int        _Cdecl registerbgifont(void (*font)(void));
+int    far _Cdecl registerfarbgifont(void far *__font);
+
+/* !!   These "functions" are NOT user-callable,   !! */
+/* !! they are there just so you can link in fonts !! */
+
+void           _Cdecl   triplex_font(void);
+void           _Cdecl     small_font(void);
+void           _Cdecl sansserif_font(void);
+void           _Cdecl    gothic_font(void);
+
+extern int far _Cdecl   triplex_font_far[];
+extern int far _Cdecl     small_font_far[];
+extern int far _Cdecl sansserif_font_far[];
+extern int far _Cdecl    gothic_font_far[];
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif
+                                                                                                                                                                                                                                                                                       .text   †      .data   p       .bss    P	      .idata$7h      .idata$50      .idata$4X      .idata$6x      .text   ®      .data   p       .bss    P	      .idata$7d      .idata$5(      .idata$4P      .idata$6j      .text   ∞      .data   p       .bss    P	      .idata$7\      .idata$5      .idata$4@      .idata$6L      .text   ∏      .data   p       .bss    P	      .idata$7X      .idata$5      .idata$48      .idata$6:      .text   ¿      .data   p       .bss    P	      .idata$7T      .idata$5      .idata$40      .idata$6*      .text   »      .data   p       .bss    P	      .idata$7L      .idata$5¯      .idata$4       .idata$6      .text   »      .data   p       .bss    P	      .idata$7H      .idata$5      .idata$4      .idata$6       .text   –      .data   p       .bss    P	      .idata$7D      .idata$5Ë      .idata$4      .idata$6Ë      .file   ∏  ˛ˇ  gacrt_iob_func.c       ã	  ‡                       .text   ‡                     .data   p                      .bss    P	                       .xdata                        .pdata  X                     .file      ˛ˇ  g    !
+                õ	                          handler P	          ø	             ﬁ	            
+        .text                         .data   Ä                      .bss    P	                      .xdata                        .pdata  d                     .file   ⁄  ˛ˇ  g__p__acmdln.c         =
+                              I
+  †                    .text                         .data   ê                      .bss    `	                       .xdata                        .pdata  |                     .file   Í  ˛ˇ  g__p__fmode.c          f
+  0                           q
+  ∞                    .text   0                     .data   †              /*  generic.h -- for faking generic class declarations
+
+    Copyright (c) 1990, 1991 by Borland International    
+    All rights reserved
+
+    When type templates are implemented in C++, this will probably go away.
+*/
+
+#ifndef __cplusplus
+#error Must use C++ for the generic types.
+#endif
+
+#ifndef __GENERIC_H
+#define __GENERIC_H
+
+#if !defined( __DEFS_H )
+#include <_defs.h>
+#endif
+
+// token-pasting macros; ANSI requires an extra level of indirection
+#define _Paste2(z, y)       _Paste2_x(z, y)
+#define _Paste2_x(z, y)     z##y
+#define _Paste3(z, y, x)    _Paste3_x(z, y, x)
+#define _Paste3_x(z, y, x)  z##y##x
+#define _Paste4(z, y, x, w) _Paste4_x(z, y, x, w)
+#define _Paste4_x(z, y, x, w)   z##y##x##w
+
+// macros for declaring and implementing classes
+#define name2 _Paste2
+#define declare(z, y) _Paste2(z, declare)(y)
+#define implement(z, y) _Paste2(z, implement)(y)
+#define declare2(z, y, x) _Paste2(z, declare2)(y, x)
+#define implement2(z, y, x) _Paste2(z, implement2)(y, x)
+
+// macros for declaring error-handling functions
+extern _Cdecl genericerror(int, char *);    // not implemented ***
+typedef int _Cdecl (*GPT)(int, char *);
+#define set_handler(gen, tp, z) _Paste4(set_, tp, gen, _handler)(z)
+#define errorhandler(gen, tp) _Paste3(tp, gen, handler)
+#define callerror(gen, tp, z, y) (*errorhandler(gen, tp))(z, y)
+
+/*
+ * function genericerror is not documented in the AT&T release, and
+ * is not supplied.  If you can document any expected behavior, we
+ * will try to adjust our implementation accordingly.
+ */
+
+#endif
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       `	      .idata$7      .idata$5ê      .idata$4∏       .idata$6       .text   †      .data   ∞       .bss    `	      .idata$7      .idata$5à      .idata$4∞       .idata$6
+      .text   ®      .data   ∞       .bss    `	      .idata$7      .idata$5Ä      .idata$4®       .idata$6      .text   ∞      .data   ∞       .bss    `	      .idata$7       .idata$5x      .idata$4†       .idata$6ÿ      .text   ∏      .data   ∞       .bss    `	      .idata$7¸      .idata$5p      .idata$4ò       .idata$6º      .text   ¿      .data   ∞       .bss    `	      .idata$7¯      .idata$5h      .idata$4ê       .idata$6¨      .text   »      .data   ∞       .bss    `	      .idata$7Ù      .idata$5`      .idata$4à       .idata$6í      .text   –      .data   ∞       .bss    `	      .idata$7      .idata$5X      .idata$4Ä       .idata$6Ä      .text   ÿ      .data   ∞       .bss    `	      .idata$7Ï      .idata$5P      .idata$4x       .idata$6p      .text   ‡      .data   ∞       .bss    `	      .idata$7Ë      .idata$5H      .idata$4p       .idata$6Z      .text   Ë      .data   ∞       .bss    `	      .idata$7‰      .idata$5@      .idata$4h       .idata$6D      .text         .data   ∞       .bss    `	      .idata$7‡      .idata$58      .idata$4`       .idata$60      .text   ¯      .data   ∞       .bss    `	      .idata$7‹      .idata$50      .idata$4X       .idata$6      .text          .data   ∞       .bss    `	      .idata$7ÿ      .idata$5(      .idata$4P       .idata$6       .file   √  ˛ˇ  gfake              hname   P       fthunk  (      .text                          .data   ∞                        .bss    `	                       .idata$2                       .idata$4P       .idata$5(      .file   ÿ  ˛ˇ  gfake              .text                          .d/*  fstream.h -- class filebuf and fstream declarations
+
+    Copyright (c) 1990, 1991 by Borland International    
+    All rights reserved
+*/
+
+#ifndef __cplusplus
+#error Must use C++ for the type fstream.
+#endif
+
+#ifndef __FSTREAM_H
+#define __FSTREAM_H
+
+#if !defined( __DEFS_H )
+#include <_defs.h>
+#endif
+
+#if !defined( __IOSTREAM_H )
+#include <iostream.h>
+#endif
+
+#pragma option -Vo-
+
+_CLASSDEF(filebuf)
+_CLASSDEF(fstreambase)
+_CLASSDEF(ifstream)
+_CLASSDEF(ofstream)
+_CLASSDEF(fstream)
+
+class  _CLASSTYPE filebuf : public streambuf {
+public:
+static const int openprot;  // default file protection
+
+    // constructors, destructor
+    _Cdecl filebuf();   // make a closed filebuf
+    _Cdecl filebuf(int);    // make a filebuf attached to fd
+    _Cdecl filebuf(int _f, char *, int); // same, with specified buffer
+    _Cdecl ~filebuf();
+
+    int _Cdecl is_open();   // is the file open
+    int _Cdecl fd();        // what is the file descriptor
+
+    // open named file with mode and protection, attach to this filebuf
+    filebuf * _Cdecl open( const char *, int,
+                                int = filebuf::openprot );
+
+    filebuf * _Cdecl close();      // flush and close file
+    filebuf * _Cdecl attach(int);  // attach this filebuf to opened
+                                        // file descriptor
+
+/*
+ * These perform the streambuf functions on a filebuf
+ * Get and Put pointers are kept together
+ */
+virtual int _Cdecl overflow(int = EOF);
+virtual int _Cdecl underflow();
+virtual int _Cdecl sync();
+virtual streampos  _Cdecl seekoff(streamoff, ios::seek_dir, int);
+virtual streambuf * _Cdecl setbuf(char *, int);
+
+protected:
+    int xfd;        // the file descriptor, EOF if closed
+    int mode;       // the opened mode
+    short   opened; // non-zero if file is open
+
+    streampos last_seek;    // unused           ***
+    char *   in_start; // unused           ***
+
+    int _Cdecl last_op();   // unused           ***
+    char    lahead[2];      // current input char if unbuffered ***
+};
+/*
+ * The data members marked with *** above are not documented in the AT&T
+ * release of streams, so we cannot guarantee compatibility with any
+ * other streams release in the use or values of these data members.
+ * If you can document any expected behavior of these data members, we
+ * will try to adjust our implementation accordingly.
+ */
+inline int  _Cdecl filebuf::is_open()   { return opened; }
+inline int  _Cdecl filebuf::fd()        { return xfd; }
+
+
+class _CLASSTYPE fstreambase : virtual public ios {
+public:
+    _Cdecl fstreambase();
+    _Cdecl fstreambase(const char *, int, int = filebuf::openprot);
+    _Cdecl fstreambase(int);
+    _Cdecl fstreambase(int _f, char *, int);
+    _Cdecl ~fstreambase();
+
+    void    _Cdecl open(const char *, int, int = filebuf::openprot);
+    void    _Cdecl attach(int);
+    void    _Cdecl close();
+    void    _Cdecl setbuf(char *, int);
+    filebuf * _Cdecl rdbuf();
+
+protected:
+    void    _Cdecl verify(int); // unimplemented    ***
+
+private:
+    filebuf buf;
+};
+/*
+ * The function member marked with *** above is not documented in the AT&T
+ * release of streams, so we cannot guarantee compatibility with any
+ * other streams release in its use.
+ * If you can document any expected behavior of this function member, we
+ * will try to adjust our implementation accordingly.
+ */
+inline filebuf * _Cdecl fstreambase::rdbuf() { return &buf; }
+
+
+class _CLASSTYPE ifstream : public fstreambase, public istream {
+public:
+    _Cdecl ifstream();
+    _Cdecl ifstream(const char *,int = ios::in,int = filebuf::openprot);
+    _Cdecl ifstream(int);
+    _Cdecl ifstream(int _f, char *, int);
+    _Cdecl ~ifstream();
+
+    filebuf * _Cdecl rdbuf();
+    void    _Cdecl open(const char *, int = ios::in,
+                        int = filebuf::openprot);
+};
+inline filebuf * _Cdecl ifstream::rdbuf() { return fstreambase::rdbuf(); }
+inline void _Cdecl ifstream::open(const char * name, int m, int prot) {
+                fstreambase::open(name, m | ios::in, prot);
+                }
+
+
+class _CLASSTYPE ofstream : public fstreambase, public ostream {
+public:
+    _Cdecl ofstream();
+    _Cdecl ofstream(const char *, int = ios::out,
+                    int = filebuf::openprot);
+    _Cdecl ofstream(int);
+    _Cdecl ofstream(int _f, char *, int);
+    _Cdecl ~ofstream();
+
+    filebuf * _Cdecl rdbuf();
+    void    _Cdecl open(const char *, int = ios::out,
+                        int = filebuf::openprot);
+};
+inline filebuf * _Cdecl ofstream::rdbuf() { return fstreambase::rdbuf(); }
+inline void _Cdecl ofstream::open(const char * name, int m, int prot) {
+                fstreambase::open(name, m | ios::out, prot);
+                }
+
+
+class _CLASSTYPE fstream : public fstreambase, public iostream {
+public:
+    _Cdecl fstream();
+    _Cdecl fstream(const char *, int, int = filebuf::openprot);
+    _Cdecl fstream(int);
+    _Cdecl fstream(int _f, char *, int);
+    _Cdecl ~fstream();
+
+    filebuf * _Cdecl rdbuf();
+    void    _Cdecl open(const char *, int, int = filebuf::openprot);
+};
+inline filebuf * _Cdecl fstream::rdbuf() {return fstreambase::rdbuf();}
+inline void _Cdecl fstream::open(const char * name, int m, int prot) {
+                fstreambase::open(name, m, prot);
+                }
+
+#pragma option -Vo.
+
+#endif
+                                                                                                                                                                                                       data$.refptr.__native_startup_state has_cctor .rdata$.refptr.__dyn_tls_init_callback .rdata$.refptr.__mingw_oldexcpt_handler .rdata$.refptr.__imp___initenv .rdata$.refptr.__xc_z .rdata$.refptr.__xc_a .rdata$.refptr.__xi_z .rdata$.refptr.__xi_a WinMainCRTStartup .l_startw mainCRTStartup .rdata$.refptr._gnu_exception_handler .rdata$.refptr._matherr .CRT$XCAA .CRT$XIAA __gcc_register_frame __gcc_deregister_frame _ZStL19piecewise_construct _ZStL8__ioinit _Z5solvei .rdata$.refptr._ZSt4cout .rdata$.refptr._ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ .rdata$.refptr._ZSt3cin _Z41__static_initialization_and_destruction_0ii _GLOBAL__sub_I__Z5solvei .rdata$zzz __do_global_dtors __do_global_ctors .rdata$.refptr.__CTOR_LIST__ initialized my_lconv_init __security_init_cookie .data$__security_cookie .data$__security_cookie_complement __report_gsfailure GS_ContextRecord GS_ExceptionRecord GS_ExceptionPointers __dyn_tls_dtor __dyn_tls_init .rdata$.refptr._CRT_MT __tlregdtor __mingw_raise_matherr stUserMathErr __mingw_setusermatherr _decode_pointer _encode_pointer __report_error __write_memory.part.0 maxSections _pei386_runtime_relocator was_init.95174 .rdata$.refptr.__RUNTIME_PSEUDO_RELOC_LIST_END__ .rdata$.refptr.__RUNTIME_PSEUDO_RELOC_LIST__ .text.unlikely .xdata.unlikely .pdata.unlikely __mingw_SEH_error_handler __mingw_init_ehandler was_here.95013 emu_pdata emu_xdata _gnu_exception_handler __mingwthr_run_key_dtors.part.0 __mingwthr_cs key_dtor_list ___w64_mingwthr_add_key_dtor __mingwthr_cs_init ___w64_mingwthr_remove_key_dtor __mingw_TLScallback pseudo-reloc-list.c _ValidateImageBase.part.0 _ValidateImageBase _FindPESection _FindPESectionByName __mingw_GetSectionForAddress __mingw_GetSectionCount _FindPESectionExec _GetPEImageBase _IsNonwritableInCurrentImage __mingw_enum_import_library_names .debug_info .debug_abbrev .debug_line .debug_aranges .debug_str .debug_frame __acrt_iob_func mingw_get_invalid_parameter_handler _get_invalid_parameter_handler mingw_set_invalid_parameter_handler _set_invalid_parameter_handler invalid_parameter_handler.c __p__acmdln .rdata$.refptr.__imp__acmdln __p__fmode .rdata$.refptr.__imp__fmode register_frame_ctor .text.startup .xdata.startup .pdata.startup .ctors.65535 .rdata_runtime_pseudo_reloc ___RUNTIME_PSEUDO_RELOC_LIST__ __imp_GetStartupInfoA __imp_abort __lib64_libkernel32_a_iname __data_start__ ___DTOR_LIST__ __imp__fmode .refptr._ZSt3cin __nm__ZSt3cin __imp_RtlVirtualUnwind SetUnhandledExceptionFilter __imp_calloc __imp___p__fmode ___tls_start__ .refptr.__native_startup_state /*  float.h
+
+    Defines implementation specific macros for dealing with
+    floating point.
+
+    Copyright (c) 1987, 1991 by Borland International
+    All Rights Reserved.
+*/
+
+#ifndef __FLOAT_H
+#define __FLOAT_H
+
+#if !defined( __DEFS_H )
+#include <_defs.h>
+#endif
+
+#define FLT_RADIX           2
+#define FLT_ROUNDS          1
+#define FLT_GUARD           1
+#define FLT_NORMALIZE       1
+
+#define DBL_DIG             15
+#define FLT_DIG             6
+#define LDBL_DIG            19
+
+#define DBL_MANT_DIG        53
+#define FLT_MANT_DIG        24
+#define LDBL_MANT_DIG       64
+
+#define DBL_EPSILON         2.2204460492503131E-16
+#define FLT_EPSILON         1.19209290E-07F
+#define LDBL_EPSILON        1.084202172485504E-19
+
+/* smallest positive IEEE normal numbers */
+#define DBL_MIN             2.2250738585072014E-308
+#define FLT_MIN             1.17549435E-38F
+#define LDBL_MIN            _tiny_ldble
+
+#define DBL_MAX             _huge_dble
+#define FLT_MAX             _huge_flt
+#define LDBL_MAX            _huge_ldble
+
+#define DBL_MAX_EXP         +1024
+#define FLT_MAX_EXP         +128
+#define LDBL_MAX_EXP        +16384
+
+#define DBL_MAX_10_EXP      +308
+#define FLT_MAX_10_EXP      +38
+#define LDBL_MAX_10_EXP     +4932
+
+#define DBL_MIN_10_EXP      -307
+#define FLT_MIN_10_EXP      -37
+#define LDBL_MIN_10_EXP     -4931
+
+#define DBL_MIN_EXP         -1021
+#define FLT_MIN_EXP         -125
+#define LDBL_MIN_EXP        -16381
+
+extern float        _Cdecl _huge_flt;
+extern double       _Cdecl _huge_dble;
+extern long double  _Cdecl _huge_ldble;
+extern long double  _Cdecl _tiny_ldble;
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+unsigned int _Cdecl _clear87(void);
+unsigned int _Cdecl _control87(unsigned int __newcw, unsigned int __mask);
+void         _Cdecl _fpreset(void);
+unsigned int _Cdecl _status87(void);
+#ifdef __cplusplus
+}
+#endif
+
+#if !__STDC__
+
+/* 8087/80287 Status Word format   */
+
+#define SW_INVALID      0x0001  /* Invalid operation            */
+#define SW_DENORMAL     0x0002  /* Denormalized operand         */
+#define SW_ZERODIVIDE   0x0004  /* Zero divide                  */
+#define SW_OVERFLOW     0x0008  /* Overflow                     */
+#define SW_UNDERFLOW    0x0010  /* Underflow                    */
+#define SW_INEXACT      0x0020  /* Precision (Inexact result)   */
+
+/* 8087/80287 Control Word format */
+
+#define MCW_EM              0x003f  /* interrupt Exception Masks*/
+#define     EM_INVALID      0x0001  /*   invalid                */
+#define     EM_DENORMAL     0x0002  /*   denormal               */
+#define     EM_ZERODIVIDE   0x0004  /*   zero divide            */
+#define     EM_OVERFLOW     0x0008  /*   overflow               */
+#define     EM_UNDERFLOW    0x0010  /*   underflow              */
+#define     EM_INEXACT      0x0020  /*   inexact (precision)    */
+
+#define MCW_IC              0x1000  /* Infinity Control */
+#define     IC_AFFINE       0x1000  /*   affine         */
+#define     IC_PROJECTIVE   0x0000  /*   projective     */
+
+#define MCW_RC          0x0c00  /* Rounding Control     */
+#define     RC_CHOP     0x0c00  /*   chop               */
+#define     RC_UP       0x0800  /*   up                 */
+#define     RC_DOWN     0x0400  /*   down               */
+#define     RC_NEAR     0x0000  /*   near               */
+
+#define MCW_PC          0x0300  /* Precision Control    */
+#define     PC_24       0x0000  /*    24 bits           */
+#define     PC_53       0x0200  /*    53 bits           */
+#define     PC_64       0x0300  /*    64 bits           */
+
+/* 8087/80287 Initial Control Word */
+/* use affine infinity, mask underflow and precision exceptions */
+
+#define CW_DEFAULT  _default87
+extern unsigned int _Cdecl _default87;
+
+/* 
+    SIGFPE signal error types (for integer & float exceptions). 
+*/
+#define FPE_INTOVFLOW       126 /* 80x86 Interrupt on overflow  */
+#define FPE_INTDIV0         127 /* 80x86 Integer divide by zero */
+
+#define FPE_INVALID         129

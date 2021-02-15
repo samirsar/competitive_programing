@@ -1,0 +1,16 @@
+ummary>
+            <returns>A <see cref="T:Newtonsoft.Json.Linq.JValue"/> null value.</returns>
+        </member>
+        <member name="P:Newtonsoft.Json.Linq.JValue.Type">
+            <summary>
+            Gets the node type for this <see cref="T:Newtonsoft.Json.Linq.JToken"/>.
+            </summary>
+            <value>The type.</value>
+        </member>
+        <member name="P:Newtonsoft.Json.Linq.JValue.Value">
+            <summary>
+            Gets or sets the underlying token value.
+            </summary>
+            <value>The underlying token value.</value>
+        </member>
+        <member name="M:Newtonsoft.Json.Linq.JValue.WriteTo(Newtonsoft.Json.JsonWriter,Newtonsoft.Json.JsonConverter[])

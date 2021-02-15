@@ -1,0 +1,1142 @@
+ill be the case for
+                    objects ultimately derived from Sortable (see the
+                    Related Functions section of the Sortable class
+                    reference) as well as for the standard C integral
+                    types.
+
+                    Array and SortedArray are identical in many areas (they
+                    have the same base, AbstractArray). One difference is
+                    that SortedArray::detach "squeezes" the array to
+                    maintain ascending order, while Array::detach leaves
+                    "holes" in the array.
+
+
+
+===========================================================================
+Stack                                                               stack.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ Container  ÃÄÄ¶   Stack    º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+
+                    The instance class Stack, derived from Container, is
+                    one of the sequence classes like Queue and Deque. A
+                    stack is a LIFO (last-in-first-out) linear list for
+                    which all insertions (pushes) and removals (pops) take
+                    place at one end (the top or head) of the list (see D.
+                    E Knuth's The Art of Computer Programming, Volume 1,
+                    2.2). In addition to the traditional pop and push
+                    member functions, Stack provides top, a member function
+                    for examining the object at the top of the stack
+                    without affecting the stack's contents. top must be
+
+
+
+                                  - 97 -
+
+
+Stack
+
+
+
+                    used with care since it returns a reference to an
+                    object that may be owned by the stack. Destroying the
+                    object returned by top can disrupt the internal
+                    mechanism for storing the stack. The correct way to
+                    dispose of the top element is to use pop followed by
+                    delete. Stack is implemented internally as a List via a
+                    private data member theStack of type List.
+
+                    See also: Stacks templates and classes
+
+
+           Example  =======================================================
+
+            Source   #include <stack.h>
+                     #include <strng.h>
+                     #include <assoc.h>
+
+                     main()
+                     {
+                         Stack s;
+                         String *s1 = new String("a string");
+                         String *s2 = new String("another string");
+                         Association *a1 = new Association(*s1,*s2);
+
+                         s.push(*s1);
+                         s.push(*s2);
+                         s.push(*a1);
+
+                         // Print the Stack
+                         cout << "As a Container:\n" << s << endl;
+
+                         // Empty the stack to cout
+                         cout << "As a Stack:\n";
+                         while (!s.isEmpty())
+                         {
+                             Object& obj = s.pop();
+                             cout << obj << endl;
+                             delete &obj;
+                         }
+                     }
+
+            Output   As a Container:
+                     Stack {  Association { a string, another string }
+                     ,
+                         another string,
+                         a string }
+
+                     As a Stack:
+
+
+
+                                  - 98 -
+
+
+                                                                      Stack
+
+
+
+                      Association { a string, another string }
+
+                     another string
+                     a string
+
+
+  Member functions  =======================================================
+
+
+             flush  virtual void flush( DeleteType dt = DefDelete );
+
+                    Flushes (empties) the stack. The fate of the removed
+                    objects depends on the argument dt. See TShouldDelete
+                    for details.
+
+getItemsInContainer virtual countType getItemsInContainer() const;
+
+                    Returns the number of items in the stack.
+
+      initIterator  virtual ContainerIterator& initIterator() const;
+
+                    Creates and returns a stack iterator for the stack.
+
+                    See also: ContainerIterator class
+
+               isA  virtual classType isA() const;
+
+                    Returns stackClass, the Stack type ID.
+
+           isEmpty  virtual int isEmpty() const;
+
+                    Returns 1 if the stack is empty, otherwise returns 0.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "Stack", the Stack type ID string.
+
+               pop  Object& pop();
+
+                    Removes the object from the top of the stack and
+                    returns the object. The fate of the popped object is
+                    determined by ownership as explained in TShouldDelete.
+
+              push  void push( Object& toPush );
+
+                    Adds (pushes) the object toPush to the top of the
+                    stack.
+
+
+
+
+                                  - 99 -
+
+
+Stack
+
+
+
+               top  Object& top();
+
+                    Returns but does not remove the object at the top of
+                    the stack.
+
+
+
+===========================================================================
+String                                                              strng.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³  Sortable  ÃÄÄ¶   String   º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    String is an instance class, derived from Sortable, to
+                    implement null-terminated, character strings. String
+                    objects are ordered in the usual lexicographic way
+                    using strcmp from the standard C string.h. Note that
+                    the String class include file is spelled strng.h. See
+                    Sortable for a discussion on ordered classes.
+
+
+  Member functions  =======================================================
+
+
+       constructor  String( const char *aPtr = "" );
+
+                    Constructs a String object from the given C string.
+
+       constructor  String(const String& sourceString );
+
+                    Copy constructor.
+
+         hashValue  virtual hashValueType hashValue() const;
+
+                    Returns the hash value of this string. See
+                    HashTable::hashValue for more details.
+
+               isA  virtual classType isA() const;
+
+                    Returns stringClass, the Stack type ID.
+
+           isEqual  virtual int isEqual( const Object& testString ) const;
+
+                    Returns 1 if the calling string is equal to testString,
+                    otherwise returns 0. You can also use the overloaded
+
+
+
+
+                                  - 100 -
+
+
+                                                                     String
+
+
+
+                    operators == and != as explained in the Related
+                    functions section of the Object class.
+
+        isLessThan  virtual int isLessThan( const Object& testString )
+                    const;
+
+                    Returns 1  if the calling string lexically precedes
+                    testString, otherwise returns 0. You can also use the
+                    overloaded operators <, <=, >, and >=, as explained in
+                    the Related functions section of the Storable class.
+
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns the Stack type ID string.
+
+           printOn  virtual void printOn( ostream& outputString ) const;
+
+  operator << is a  Prints this string on the given stream. printOn is
+ friend of Object.  really for internal use by the overloaded operator <<.
+      See page 87.
+        operator =  String& operator =( const String& sourceString );
+
+                    Overloads the assignment operator for string objects.
+
+   operator char *  operator const char *() const;
+
+                    Returns a pointer to this string.
+
+
+           Example  =======================================================
+
+            Source   // File TSTRNG.CPP:    Test the String class
+
+                     #include <strng.h>
+
+                     void identify(String&);
+
+                     main()
+                     {
+                         char s1[21], s2[21];
+
+                         cout << "Enter a string: ";        // Read a
+                     string
+                         cin >> s1;
+                         String str1(s1);
+                         identify(str1);
+
+
+
+
+                                  - 101 -
+
+
+String
+
+
+
+                         cout << "Enter another string: ";    // Read
+                     another
+                         cin >> s2;
+                         String str2(s2);
+                         identify(str2);
+
+                         // Do some relational tests:
+                         cout << "Equal: " << str1.isEqual(str2) << endl
+                              << "Less than: " << str1.isLessThan(str2) <<
+                     endl;
+
+                         // String assignment:
+                         str2 = str1;
+                         cout << "After assignment:\n" << "Equal: "
+                              << str1.isEqual(str2);
+                     }
+
+                     void identify(String& str)
+                     {
+                         // Echo a String's value and type
+                         cout << "Value: " << str
+                              << ", Object type: " << str.nameOf() << endl
+                     << endl;
+                     }
+
+            Output   Enter a string: hello
+                     Value: hello, Object type: String
+
+                     Enter another string: goodbye
+                     Value: goodbye, Object type: String
+
+                     Equal: 0
+                     Less than: 0
+                     After assignment:
+                     Equal: 1
+
+
+
+===========================================================================
+Time                                                                ltime.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³  BaseTime  ÃÄÄ¶    Time    º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    Time is a sortable instance class derived from
+                    BaseTime. Time adds a printOn member. You can override
+
+
+
+                                  - 102 -
+
+
+                                                                       Time
+
+
+
+                    this in derived classes to cope with international
+                    formatting variations.
+
+
+  Member functions  =======================================================
+
+
+       constructor  Time();
+
+                    Calls the BaseTime constructor to create a Time object
+                    with the current time.
+
+                    See also: BaseTime constructor
+
+       constructor  Time( const Time& T );
+
+                    Copy constructor.
+
+       constructor  Time( unsigned char H, unsigned char M = 0, unsigned
+                          char S = 0, unsigned char D = 0 );
+
+                    Creates a Time object with the given hour, minutes,
+                    seconds, and hundredths of seconds.
+
+               isA  virtual classType isA() const;
+
+                    Returns timeClass, the Time class ID.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "Time", the Time class ID string.
+
+           printOn  virtual void printOn( ostream& outputStream ) const;
+
+  operator << is a  Sends a formatted Time object to the given output
+ friend of Object.  stream. The default format is hh:mm:ss:dd a/pm with
+      See page 87.  nonmilitary hours. printOn is for internal use by the
+                    overloaded operator <<.
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 103 -
+
+
+Timer
+
+
+
+===========================================================================
+Timer                                                               timer.h
+===========================================================================
+
+                    ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    º   Timer    Ç
+                    ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    Timer is an instance class implementing a stop watch.
+                    You can use Timer objects to time program execution by
+                    calling the member functions start and stop within your
+                    program, and then using time to return the elapsed
+                    time. The reset member function resets the elapsed time
+                    to zero. Successive starts and stops will accumulate
+                    elapsed time until a reset.
+
+
+  Member functions  =======================================================
+
+
+       constructor  Timer();
+
+                    Creates a Timer object.
+
+             reset  void reset();
+
+                    Clears the elapsed time accumulated from previous
+                    start/stop sequences.
+
+        resolution  static double resolution();
+
+                    Determines the timer resolution for all timer objects.
+                    This value is hardware and OS dependent. For example:
+
+                        if( elapsedTime < timer.resolution() )
+                           cout << "Measured time not meaningful." << endl;
+
+             start  void start();
+
+                    Ignored if the timer is running, otherwise starts the
+                    timer. The elapsed times from any previous start/stop
+                    sequences are accumulated until reset is called.
+
+            status  int status();
+
+                    Returns 1 if the timer is running, otherwise 0.
+
+              stop  void stop();
+
+
+
+                                  - 104 -
+
+
+                                                                      Timer
+
+
+
+                    Stops the timer. The accumulated elapsed time is
+                    preserved until a reset call.
+
+              time  double time();
+
+                    Returns the elapsed time. The precision is given by the
+                    value returned by the member function resolution.
+
+
+
+===========================================================================
+TShouldDelete                                                      shddel.h
+===========================================================================
+
+Figure 3: Class hierarchies in CLASSLIB
+
+ 
+    TShouldDeleteÄÄÄÄÄÄÄÂÄÄAssociation
+                        ÀÄÄContainer
+
+                    TShouldDelete maintains the ownership state of a
+                    container. The fate of objects that are removed from a
+                    container can be made to depend on whether the
+                    container owns its elements or not. Similarly, when a
+                    container is destroyed, ownership can dictate the fate
+                    of contained objects that are still in scope. As a
+                    virtual base class for Container and Association,
+                    TShouldDelete provides ownership control for all
+                    containers and associations. The member function
+                    ownsElements can be used either to report or to change
+                    the ownership status of a container. delObj is used to
+                    determine if objects in containers or associations
+                    should be deleted or not.
+
+
+  Member functions  =======================================================
+
+
+       constructor  TShouldDelete( DeleteType dt = Delete );
+
+                    Creates a TShouldDelete object. By default, containers
+                    and associations own their elements. DeleteType is an
+                    enumeration declared within the class as follows:
+
+                    enum DeleteType { NoDelete, DefDelete, Delete };
+
+      ownsElements  int ownsElements();
+                    void ownsElements( int del );
+
+
+
+                                  - 105 -
+
+
+TShouldDelete
+
+
+
+                    The first form returns 1 if the container owns its
+                    elements, otherwise it returns 0. The second form
+                    changes the ownership status as follows: if del is 0,
+                    ownership is turned off; otherwise ownership is turned
+                    on.
+
+            delObj  int delObj( DeleteType dt );
+
+                    Tests the state of ownership and returns 1 if the
+                    contained objects should be deleted or 0 if the
+                    contained elements should not be deleted. The factors
+                    determining this are (i) the current ownership state
+                    and (ii) the value of dt, as shown in the following
+                    table.
+                    delObj returns 1 if (dt is Delete) or (dt is DefDelete
+                    and the container currently owns its elements). Thus a
+                    dt of NoDelete returns 0 (don't delete) regardless of
+                    ownership; a dt of Delete return 1 (do delete)
+                    regardless of ownership; and a dt of DefDelete returns
+                    1 (do delete) if the elements are owned, but a 0 (don't
+                    delete) if the objects are not owned.
+
+
+                    -------------------------------------------------------
+                                      delObj
+                      ownsElements  no    yes
+                    -------------------------------------------------------
+
+                      NoDelete      no    no
+                      DefDelete     no    yes
+                      Delete        yes   yes
+
+                    -------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 106 -
+
+
+
+
+
+
+INDEX
+___________________________________________________________________________
+
+
+
+
+
+A                                      B
+abbreviations                          Bag class 47
+  CLASSLIB names and 19                BaseDate class 49
+abstract classes 4                     BaseTime class 51
+abstract data types                    BI_ prefix
+  BIDS class names 19                    class names 19
+  class library and 13                 BIDS template library 13
+AbstractArray class 37                 Borland International Data
+add                                      Structures (BIDS) 13
+  Array member function 42             Btree class 53
+  Bag member function 47               BtreeIterator class 55
+  Btree member function 53
+  Collection member function 58
+  Dictionary member function 69        C
+  DoubleList member function 71        C prefix
+  HashTable member function 76           class names 19
+  List member function 79              CHECK macro 35
+  Sets member function 92              class templates 17
+addAt                                  classes
+  Array member function 42               abstract vs instance 4
+addAtHead                                arrays
+  DoubleList member function 71            sorted 97
+addAtTail                                collections 12
+  DoubleList member function 71          date and time 65, 102
+ADT                                      debugging modes 35
+  header files 22                        hierarchies 4
+ADT (abstract data types) 13               object-based 6
+Array class 41                             traversing 43
+ArrayInterator                           lists 70
+  AbstractArray friend 40                priority queues 88
+ArrayIterator class 43                   queue 90
+arrays                                   queues
+  classes for 37, 41                       double-ended 66
+  classes for sorted 97                  sequence 12, 66, 90, 97
+arraySize                                  rules for 12
+  AbstractArray member function 38       sortable objects 93
+ascending sort 97                        stack 97
+assertion macros 35                      string 100
+Association class 7, 44                CLASSLIB naming conventions 19
+  example program 34                   Collection class 12, 57
+
+
+
+
+Index                                                                   107
+
+
+
+
+
+
+collections                              reference section 36
+  ordered 13                           container classes 6, 8, 59
+  random access to 37                    functions of 59
+  unordered 13                         container hierarchy
+    Bag class 47                         object-based 4
+    Dictionary class 69                ContainerIterator class 64
+    DoubleList class 70                  containers and 64
+    HashTable class 75                   hierarchy 11
+    List class 79                      containers
+    Set class 92                         basics 4
+condFuncType definition 84               ContainerIterator class and 64
+constructors                             direct 19
+  AbstractArray member function 38       elements of 59
+  Array member function 42               equality testing 60
+  ArrayIterator member function 43       flushing 10, 59
+  Association member function 44         implementation 14
+  Bag member function 47                 indirect 19
+  Basedate member function 49          current
+  Basetime member function 51            ArrayIterator member function 43
+  Btree member function 53               BtreeIterator member function 56
+  BtreeIterator member function 56       ContainerIterator member function
+  Collection member function 58          64
+  Container member function 60           DoubleListIterator member
+  Date member function 65                function 73
+  Dictionary member function 70          HashTableIterator member function
+  DoubleList member function 71          78
+  DoubleListIterator member              ListIterator member function 81
+  function 73
+  HashTable member function 76
+  HashTableIterator member function    D
+  78                                   Date class 65
+  List member function 79              dates
+  ListIterator member function 81        class 65
+  Object member function 84            Day
+  Sets member function 93                Basedate member function 49
+  String member function 100           __DEBUG macro 35
+  Time member function 103             decrNofKeys
+  Timer member function 104              Btree member function 53
+  TShouldDelete member function 105    delete
+container class library                  Error member function 75
+  directories 31                       delObj
+    examples 34                          TShouldDelete member function 106
+    INCLUDE 32                         delta
+    lib 34                               AbstractArray data member 37
+    source 32                          Deque class 66
+  example programs 34                  destroy
+  memory models and 32                   AbstractArray member function 38
+  project files and 32                   Collection member function 58
+
+
+
+                                  - 108 -
+
+
+
+
+
+
+destroyFromHead                          HashTable member function 77
+  DoubleList member function 71        firstThat
+destroyFromTail                          Bag member function 47
+  DoubleList member function 71          Container member function 60
+detach                                   Object member function 84
+  AbstractArray member function 38     flush
+  Bag member function 47                 Bag member function 47
+  Btree member function 53               Btree member function 54
+  Collection member function 58          Container member function 61
+  DoubleList member function 71          Deque member function 68
+  HashTable member function 76           DoubleList member function 72
+  List member function 79                HashTable member function 77
+  SortedArray member function 97         List member function 80
+detachFromHead                           PriorityQueue member function 89
+  DoubleList member function 71          Stacks member function 99
+detachFromTail                         forEach
+  DoubleList member function 71          Bag member function 48
+detachLeft                               Container member function 61
+  PriorityQueue member function 89       Object member function 85
+Dictionary class 69                    free
+  example program 34                     MemBlocks member function 83
+direct and indirect data structures    fundamental data structure
+  14                                     class templates 17
+directories                            fundamental data structures
+  container class library 31             class library and 13
+DIRECTRY (container class library        Object-based classes 20
+  example program) 34
+DoubleList class 70
+DoubleListIterator class 73            G
+                                       get
+                                         PriorityQueue member function 89
+E                                        Queue member function 92
+elements                               getItemsInContainer
+  ordering definition 19                 Bag member function 48
+Error class 7, 74                        Container member function 61
+examples directory                       Deques member function 68
+  container class library 34             PriorityQueue member function 89
+                                         Stacks member function 99
+                                       getLeft
+F                                        Deque member function 68
+FDS                                    getRight
+  header files 22                        Deque member function 68
+FDS (fundamental data structures)
+  13
+findmember                             H
+  Bag member function 47               hash table
+  Btree member function 54               iterators 78
+  Collection member function 58        HashTable class 75
+
+
+
+Index                                                                   109
+
+
+
+
+
+
+HashTableIterator class 78             instance classes 4
+hashValue                              isA
+  Association member function 44         Array member function 43
+  Basedate member function 49            Association member function 44
+  Basetime member function 51            Bag member function 48
+  Btree member function 54               Basedate member function 50
+  Container member function 61           Basetime member function 52
+  HashTable member function 77           Btree member function 54
+  List member function 80                Container member function 62
+  Object member function 85              Date member function 66
+  PriorityQueue member function 89       Deque member function 68
+  Sortable member function 95            Dictionary member function 70
+  String member function 100             DoubleList member function 72
+hasMember                                Error member function 75
+  Bag member function 48                 HashTable member function 78
+  Btree member function 54               List member function 80
+  Collection member function 59          Object member function 85
+  PriorityQueue member function 89       PriorityQueue member function 89
+hour                                     Queue member function 92
+  Basetime member function 51            Set member function 93
+hundredths                               Sortable member function 95
+  Basetime member function 51            Stack member function 99
+                                         String member function 100
+                                         Time member function 103
+I                                      isAssociation
+i_add                                    Association member function 44
+  Btree member function 54               Object member function 85
+I prefix                               isEmpty
+  class names 19                         Bag member function 48
+Imp suffix                               Container member function 62
+  class names 19                         Deques member function 68
+INCLUDE directory                        PriorityQueue member function 90
+  container class library 32             Stack member function 99
+incrNofKeys                            isEqual
+  Btree member function 54               AbstractArray member function 39
+initIterator                             Association member function 45
+  AbstractArray member function 39       Basedate member function 50
+  Bag member function 48                 Basetime member function 52
+  Btree member function 54               Btree member function 54
+  Container member function 61           Container member function 62
+  Deque member function 68               Error member function 75
+  DoubleList member function 72          Object member function 86
+  HashTable member function 77           Sortable member function 95
+  List member function 80                String member function 100
+  PriorityQueue member function 89     isLessThan
+  Stacks member function 99              Basedate member function 50
+InnerNode                                Basetime member function 52
+  Btree friend class 53                  Sortable member function 95
+
+
+
+                                  - 110 -
+
+
+
+
+
+
+  String member function 101           M
+isSortable                             member functions
+  Object member function 86              virtual
+  Sortable member function 95              pure 4
+Item                                   MemBlocks class 82
+  Btree friend class 53                memory models
+itemsInContainer                         container class library and 32
+  Container data member 60             MemStack class 83
+iterators                              minute
+  DoubleList 73                          Basetime member function 52
+  internal and external 11             Month
+iterFuncType definition 61               Basedate member function 50
+
+
+K                                      N
+key                                    nameOf
+  Association class 44                   Arrays member function 43
+  Association member function 45         Association member function 45
+                                         Bag member function 49
+                                         Basedate member function 50
+L                                        Basetime member function 52
+Last-In-First-Out (LIFO) 14              Btree member function 54
+lastElementIndex                         Container member function 62
+  AbstractArray data member 37           Date member function 66
+lastThat                                 Deque member function 68
+  Bag member function 48                 Dictionary member function 70
+  Container member function 62           DoubleList member function 72
+  Object member function 86              Error member function 75
+LeafNode                                 HashTable member function 78
+  Btree friend class 53                  List member function 80
+lib directory                            Object member function 86
+  container class library 34             PriorityQueue member function 90
+List class 79                            Set member function 93
+  iterators 81                           Sortable member function 95
+ListElement class 79                     Stacks member function 99
+ListIterator class 81                    String member function 101
+lists                                    Time member function 103
+  classes for 70                       new
+  linked                                 Object member function 86
+    traversing 81                      Node
+lookup                                   Btree friend 55
+  Dictionary member function 70          Btree friend class 53
+LOOKUP (container class library        non-container classes 6
+  example program) 34
+lowerBound
+  AbstractArray member function 39     O
+lowerbound                             O prefix 21
+  AbstractArray data member 37           class names 19
+
+
+
+Index                                                                   111
+
+
+
+
+
+
+Object class 4, 84                     operator char *
+Object container class library           String member function 101
+  version 3.0 changes to 1             operator int
+objectAt                                 ArrayIterator member function 43
+  AbstractArray member function 39       BtreeIterator member function 56
+objects                                  ContainerIterator member function
+  automatic 11                           64
+  detaching 10                           DoubleListIterator member
+  heap 11                                function 74
+  in containers                          HashTableIterator member function
+    counting 59                          78
+    displaying 60                        ListIterator member function 81
+    iterating 60                       order
+    ownership 59                         Btree member function 55
+  ownership 9                          ordered collections 7, 13
+  sortable 93                          ownsElements 9
+operator <                               Bag member function 49
+  overloaded 96                          TShouldDelete member function 105
+operator =
+  String member function 101
+operator >                             P
+  overloaded 96                        peekAtHead
+operator !=                              DoubleList member function 72
+  overloaded 88                        peekAtTail
+operator ++                              DoubleList member function 72
+  ArrayIterator member function 43     peekHead
+  BtreeIterator member function 56       List member function 80
+  ContainerIterator member function    peekLeft
+  64                                     Deque member function 69
+  DoubleListIterator member              PriorityQueue member function 90
+  function 73                          peekRight
+  HashTableIterator member function      Deque member function 69
+  79                                   pop
+  ListIterator member function 81        Stacks member function 99
+operator <<                            PRECONDITION macro 35
+  Object friends 87                    printContentsOn
+operator <=                              AbstractArray member function 39
+  overloaded 96                        printHeader
+operator ==                              Container member function 62
+  overloaded 87                        printOn
+operator >=                              Association member function 45
+  overloaded 96                          Basedate member function 50
+operator []                              Basetime member function 52
+  AbstractArray member function 39       Btree member function 55
+  Btree member function 55               Container member function 62
+operator - -                             Date member function 66
+  DoubleListIterator member              Error member function 75
+  function 73                            Object member function 87
+
+
+
+                                  - 112 -
+
+
+
+
+
+
+  Sortable member function 96          restart
+  String member function 101             ArrayIterator member function 44
+  Time member function 103               BtreeIterator member function 56
+printSeparator                           ContainerIterator member function
+  Container member function 63           65
+printTrailer                             DoubleListIterator member
+  Container member function 63           function 74
+priority queues 88                       HashTableIterator member function
+PriorityQueue class 88                   79
+project files                            ListIterator member function 81
+  container class libraries and 32     REVERSE (container class library
+ptrAt                                    example program) 34
+  AbstractArray member function 40
+ptrToRef
+  Object member function 87            S
+push                                   S prefix
+  Stacks member function 99              class names 19
+put                                    second
+  PriorityQueue member function 90       Basetime member function 52
+  Queue member function 92             Set class 92
+putLeft                                setData
+  Deque member function 69               AbstractArray member function 40
+putRight                               SetDay
+  Deque member function 69               Basedate member function 50
+                                       setHour
+                                         Basetime member function 52
+Q                                      setHundredths
+Queue class 90                           Basetime member function 52
+  example program 34                   setMinute
+queues 90                                Basetime member function 52
+  double-ended 66                      SetMonth
+QUEUETST (container class library        Basedate member function 50
+  example program) 34                  setSecond
+                                         Basetime member function 52
+                                       SetYear
+R                                        Basedate member function 50
+rank                                   Sortable class 7, 93
+  Btree member function 55               ordered collections 13
+reallocate                             SortedArray class 97
+  AbstractArray member function 40       example program 34
+  MemBlocks member function 83         sorts
+removeEntry                              ascending 97
+  AbstractArray member function 40     source directory
+reset                                    container class library 32
+  Timer member function 104            squeezeEntry
+resolution                               AbstractArray member function 40
+  Timer member function 104            Stack class 97
+                                         example program 34
+
+
+
+Index                                                                   113
+
+
+
+
+
+
+start                                  top
+  Timer member function 104              Stacks member function 99
+status                                 TShouldDelete class 105
+  Timer member function 104
+stdtempl.h 22
+stop                                   U
+  Timer member function 104            unordered collections 13
+String class 100                         Bag class 47
+  example program 34                     Dictionary class 69
+strings                                  DoubleList class 70
+  classes for 100                        HashTable class 75
+STRNGMAX (container class library        List class 79
+  example program) 34                    Set class 92
+                                       upperBound
+                                         AbstractArray member function 40
+T                                      upperbound
+TC prefix 21                             AbstractArray data member 38
+  class names 19
+template-based container library 13
+TEMPLATES                              V
+  conditional compilation 32           value
+Templates                                Association class 44
+  Arrays example 30                      Association member function 45
+  Deques example 30
+templates
+  approach to class library 3, 15      Y
+  container classes and 14             Year
+  instantiating 19                       Basedate member function 50
+time
+  Timer member function 105
+Time class 102                         Z
+  example program 34                   ZERO
+Timer class 104                          Object data member 84
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 114 -
+
+                                                                                                                                                                                                                                                                         MZš 	      ÿÿ  È   ¸	 @    û0jr                             À ¹	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   QRVW‹ğTX;Ät¸ ëè _^ZYËÈ,  SQWŒÈØºÂ¸ =Í!s¸ é	‹ØVÜ¹ ´?Í!s
+´>Í!¸ éï °3É3Ò´BÍ!s
+´>Í!¸ éÙ ‰Fø‰Vú´>Í!‹FÜ=MZt¸ éÁ ‹Fä‹ĞÁàÁê‰FÔ‰VÖ‹~Ş‹Fàƒÿ tH‹ĞÁà	ÁêÇƒÒ +FÔVÖ‰Fü‰Vş‹Fø‹Vú+FÔVÖ ƒÒ S‹ÚÁèÁêÁãÃ[@‹Ø´HÍ!s¸ ë\‰FØ‰FÚFòŒÈØºÂŒĞÀ^Ø¸KÍ!s¸ ë9‹Fü‹Vş ƒÒ S‹ÚÁèÁêÁãÃ[@‹ØFØ´JÍ!‹Æÿ^ğƒÄ=  tP´IÍ!X_Y[ÉÃ                                                                                                                                                                                                                               
+DOS SETBLOCK (4Ah) error     $
+DOS EXEC (4Bh) error     $
+DPMI server initialization complete$
+DPMI server initialization error->$
+Application load & execute error     $$:Yqˆ¯Ü4Rk—½âò7Xydies trying to shrink memory$v86 task without vcpi$this kernel requires 386 (386)$machine not in database$bad environment params$unable to initialize page tables (386)$bad info in machine database - A20 off param$bad info in machine database - A20 on param$bad info in machine database - switch param$not enough memory for PM init$cannot create fret (386)$unable to create linear address space (386)$unable to init sys linear space (386)$unable to copy kernel to high memory$undefined error$unable to copy DOSX to high memory$unable to copy IDT to high memory$unable to create int chain table$unable to create PM locked stack$unable to init swapping (386+)$¹ñƒÁÁéŒÀŒË+ØÙ¸ JÍ!séØ ƒ>( t¡&š
+  =  téš ºlè× ƒ>*uëwƒ>* t"ŒØÀ»Pº^¸ KÍ!sé¤ ¸ MÍ!= tëF¸Bû»
+ ‹,‹&‹6.Í/=  u‹Â=Ûÿt»Úº·è˜ ë¸ÿ ƒ>* tP¸Bû» ‹,Í/X%ÿ €ÌLÍ!ôŒØÀ»Pº^¸ KÍ!såë5Pº’èJ X=@vºâë%ÿHÑà¾ßğ‹è/ ¸ïÿë¼»Kº0è/ ¸ğÿë®»gºPè! ¸ñÿë ÷& u¸ 	Í!Ã÷& u¸ 	Í!ÃU`P‹ì‹û¹ ‹F % 0 =9 ~ ‹ĞˆUÁn OâãXa]èÅÿÃ                                                                                                    PATH=          dpmi16bi.ovl dpmi32bi.ovl dpmi32vm.ovl dpmiload.exe dosload.exe       
+BOSS Stub Version 3.2  Copyright (c) 1990, 1991 Borland International(****)
+$ $*$*$* !BOSS STUB 
+Failed to locate real mode loader (DOSLOAD.EXE)$
+Failed to locate protected mode loader (DPMILOAD.EXE)$
+EXE file read error$
+DPMI services resident$
+Failed to locate DPMI server (DPMI16BI.OVL)$
+Failed to locate DPMI server (DPMI32BI.OVL)$
+Failed to locate DPMI server (DPMI32VM.OVL)$
+Hardware does not support protected mode$
+EXE runs in protected mode only$
+Running real mode EXE$
+Failed to locate real mode EXE$¸  Ğ¸È ‹àŒØÀ¡% ÿ£.èöºªèÍüèŸ èú sëEèsè.së9ÿ(¿Âè©Ç, è³s"¾‹ècsÇ* Ç(  ë¿^è‚Ç* ëMèsƒ>*u	ºAèzüé	üº¨èqüé üƒ>*t(Ç,  è_s¾˜ès	ºèNüéİû¿^è3Ç* è(éûTX;ÄtÇ¤  ëÇ¤ è f3Àë	Ç¤ ƒÄè# Ã¸ 5 Í!Œ¨‰¦¸ % º˜
+Í!Ã¸ % ‹¦¨Í!Ãƒ>¤ uº2	èÀûùÃ¸Cû» Í/=Cûtëï÷& tëåøÃ¸‡Í/=  uºè‘ûøÃùÃƒ>¤t2÷&@ uë¾~è= s:º	ènûù÷&  uë¾qè$ s!ºÖèUûù÷& uùë¾dè
+ sº¨è;ûùÃ‰6`ƒ>^ uèY èu è¸ =ºñÍ!rë<¿ñèû ¸ =ºñÍ!rë*ƒ>Z uèz ŒÀ&¡, ¡Z£\è› rèÑ ¸ =ºñÍ!sëì‹Ø¸ >Í!øÃùÃ&‹, Â+ö&‹=  tFëõFFFF‰6^Ã&‹, Â‹6^¿ñ¹ &Š< tˆFGAëòOŠ<\t</tâóGÃŒÀ&‹, Â+ÿ¾U¹ ó¦t&€= tGë÷G&€= uæùÃ‰>ZøÃ&‹, Â‹6\¿ñ&€< t#&Š<;t
+< tˆFGëïF€}ÿ\tÆ\G‰6\øÃùÃ‹6`Š< tˆFGëôÆ Ã¾ñ3ÀŠˆ=  tGFëóÃ¸Bû» ‹,Í/ÛtùÃøÃ÷& tëèH èu r?¡b© uøÃ÷&€ t+‹6Çèyşsº]	è¸ùº—	è²ùë¿^è˜ÿÇ* º	èùøÃùÃ¸ÿÿÃ&‹, Â+ö&‹=  tFëõFFFF¿ñ&Š< tˆFGşÁëñÆ Ãºñ¸ =Í!r@‹Ø¹@ ºñ¸ ?Í!r,‹/‹-ƒÂƒÑ ¸ BÍ!r¹ ºb¸ ?Í!r
+¸ >Í!¡bøÃ¸ >Í!ºyèùùÃ&¡, £PŒTÇR€ ŒXÇV\ Œ\ÇZl ÃÉ ƒ&ƒ&ƒ&Ã      NE
+N            „“ ;    @ $  á	             w@w ƒD@ƒD= +G@+Ge R DR f @n à6@à6Š G DG ‹ „“A„“Ø y Ay Ù ) A) Ú  A â  E ã  E ä O@Oî Z0@Z0
+À@À_!@_!!w@w"ı#ı#56F6F\Ì:Ì:~ÂÂ„”««™Ã"Ã"¯¡¡±åDåDÚeeê+s+s/;[[K;;Xş"ş"kÓÓ}†&&˜xx¦­a­aİRRéı• • ´´È-È-5;;E¦¦T€€X0@0jYY|~~‹ğğ˜Ç&Ç&¯ˆˆ¾qqĞÓÓÛÌÌë°°ûII	‹‹TCC   ÿÿ Í?$ï Í?$Ñ Í?"   Í?  Í?$ª Í? 7 Í?a Í?FD Í?2c Í?9D Í?Ô Í?j Í?t! Í?t" Í?}" Í?²" Í?# Í?# Í?« Í?Ã Í?X Í? Í? Í?   Í?— Í?§ Í?· Í?³ Í?¿ Í? Í?» Í?¯ Í?Ÿ Í?£ Í?Ë Í?Ã Í?Ç Í?› Í?« Í?Ï Í?> Í?€" Í?c+ Í?#] Í?¾D Í?"F Í?77 Í? 7 Í?
+; Í?ô2 Í?<$ Í?ÄE Í?²E Í?–# Í?$¼ Í?$E Í?  Í?c Í? Í?"Ù Í?#G Í?#ö Í?2ƒ Í?2¥ Í?2 Í?0  Í?9r Í?$Ï Í?É, Í?º! Í?! Í?N  Í?   Í?š Í?˜ Í?è Í?, Í?ã Í?j Í? Í?{ Í?ˆ Í?¨ Í?~ Í?H Í?Í Í? Í?   Í?ö  Í?õ Í?Â Í?­ Í? Í?‚ Í?h  Í?! Í?$f Í?j$ Í?½( Í?
+/ Í?i; Í?; Í?, Í?2F Í?"/ Í?ŞD Í?-Q Í?+E Í?+9 Í?M Í?+K Í?*G Í?*ş Í?)Z Í?)¾	 Í?&s. Í?&8F Í?&F Í?& Í?#z Í?#Õ Í?%ş  Í?%Å Í?-2
+ Í?-U Í?-ç Í? – Í? ´
+ Í? … Í? f Í? L Í? - Í?ğ Í?3 Í?µ Í? Í?Ë
+ Í?  Í?Ò Í?s  Í? Í?g Í?ê Í?ƒ Í?H Í? Í?
+ Í?˜ Í?“	 Í?* Í?   Í??  Í?!u Í?– Í?#£  Í?"N Í?"Z Í?"¢ Í?"E Í?"ï Í?"$ Í?"¨
+ Í?"O	 Í?"\ Í?0û
+ Í?0I
+ Í?0—	 Í?0j	 Í?0u Í?0ü Í?0; Í?0º Í?01 Í?1º Í?9) Í?¼' Í?T& Í?t% Í?;! Í?   Í?-  Í?   Í?( Í?«+ Í?º Í?2- Í?} Í?¬ Í?Š! Í? Í?Î Í?ô Í?B Í?¬ Í?+   Í?3> Í?¢7 Í?u] Í?”? Í?3 Í?*   Í? Í?) Í?µ Í?0 Í?â  Í?w Í?ƒ Í?¼  Í?^ Í? Í? Í?) Í?ü Í?   Í? Í?x Í?9  Í?2| Í?0(  Í?0   Í?ö Í?İ Í?u Í?ä Í? Í?   Í?` Í?( Í?{ Í?, Í?5r Í?pS Í?,W Í?,R  Í?#  Í? w Í?š Í?9: Í?![" Í?õ Í?" Í?#ò Í?#£ Í?03
+ Í?0‚	 Í?0ä Í?0¡ Í?0. Í?0/ Í?d Í?\ Í? Í?M  Í?Úÿÿ Í?™ Í?   Í?Ü Í?; Í?x Í?   Í? Í?^N Í?ÂT Í?T Í?;] Í?B% Í?:Q Í?½S Í?ÌX Í? Í?! Í?ßY Í?1 Í?á! Í?® Í? Í?, Í?&— Í?%= Í?-}
+ Í?-°
+ Í? ö Í?0 Í?m Í?Ü
+ Í?  Í? q  Í?Ã Í?? Í?± Í?> Í?ƒ Í?a Í?Ş Í?- Í?SD Í?•8 Í?Ö Í?Ì> Í?µ Í?: Í?v Í?,Y Í?¦V Í?'\ Í?P Í?õ Í?- Í?-¶ Í? × Í? v Í? Œ Í?  Í?è Í?Ø Í?÷ Í?*±
+ Í?à Í?!ã! Í?*+ Í?*¦ Í?"× Í?;" Í?‚ Í?l Í?Ê Í?" Í?5 Í?â Í?] Í?ù Í?Z Í?*™ Í?] Í?!³" Í?X Í?– Í?İ Í?·  Í?   Í?.p Í?s Í?)ù Í?÷ Í?ˆ	 Í? O Í?    Í? â Í? 
+ Í?c  Í?1  Í?   Í?Ñf Í?(í Í?%  Í?%   Í?#   Í? ] Í? Ÿ Í? ö Í? µ Í? Ô Í? è	 Í? ¦	 Í? 0 Í?0ó Í?1 Í?!¥	 Í?$³ Í?$• Í?Ï Í?"= Í?9ô Í?9Œ Í?0R Í?7Â Í?$Ï Í?9É Í?9ë Í?9Ç Í?&õD Í?*A Í?"ı Í?"_ Í?"w Í?9­ Í?#M Í?#u Í?#à Í?#W Í?#¸	 Í?#Œ	 Í?#t Í?0²  Í?0” Í?0` Í?0   Í?0† Í?$   Í?$§ Í?$ Í?O[ Í?&¶8 Í?,Ï Í?-Í
+ Í?*ä Í?%P Í?% Í?&¹ Í?&T Í?%‡ Í?&   Í?%Ö Í?&1 Í?'„ Í?'\ Í?'D Í?'8 Í?' Í?'à Í?'Ô Í?'  Í?' Í?'Y Í?'1 Í?' Í?'È Í?' Í?'u Í?'J Í?'; Í?'ş  Í?'ñ  Í?'s  Í?'c  Í?'S  Í?'/  Í?'  Í?'
+  Í?'   Í?( Í?(% Í?'¬
+ Í?:   Í?9j Í?:Ú Í?7„ Í?:R Í?:/ Í?7` Í?'B
+ Í?'x Í?' Í?( Í?(‡ Í?9˜  Í?9~  Í?9S  Í?9H  Í?9  Í?9  Í?9   Í?9\ Í?9 Í?'* Í?'` Í?(M
+ Í?(  Í?(Ä Í?.w Í?.; Í?®4 Í?ê7 Í?Y Í?)Ó Í?&Ö Í?*A
+ Í?+-) Í?+å" Í?&P Í?)  Í?*x
+ Í?*H Í?*J  Í?*	
+ Í?*› Í?h` Í?&iS Í?&S@ Í?&"R Í?&	 Í?&	 Í?,Y Í?,	 Í?,¿ Í?-c Í?-×	 Í?t Í?öM Í?İf Í?o4 Í? 7 Í? Í?= Í?Ø` Í?W Í?k# Í?,Œ Í?,Nãÿ Í?-t Í?.` Í?9p Í?4' Í?2v Í?3º Í?3L Í?3 Í?2û Í?3$ Í?3   Í?2t Í?0 Í?0j Í?0Ú Í?0Í Í?0 Í?6ê Í?6Ó Í?7Í Í?4¯ Í?2c Í?7û Í?5ú Í?0 Í?0û Í?0 Í?6   Í?6µ Í?5z Í?7ì Í?5   Í?5‚ Í?54 Í?2r	 Í?08 Í?5d Í?19 Í?1   Í?1» Í?0e Í?0Å Í?0- Í?6 Í?4 Í?4† Í?4 Í?6 Í?6' Í?6N Í?6j Í?25 Í?6> Í?6! Í?1Ä  Í?1© Í?1. Í?1*	 Í?6ş Í?6F Í?2 Í?2ï Í?2ø Í?2 Í?2v Í?2J Í?8l Í?: Í?2ù Í?3ã Í?3Û Í?3U Í?4% Í?4¥ Í?4Š Í?4Ÿ Í?9µ Í?4< Í?4ó Í?4¼ Í?4   Í?4I Í?4- Í?4 Í?3Ÿ Í?3$ Í?3 Í?3Û# Í?4‹ Í?;â  Í?4½ Í?8Z  Í?8H Í?8y  Í?8   Í?4† Í?4D Í?4ü Í?4[ Í?42 Í?4< Í?4š Í?4 Í?8Ù Í?8•  Í?8è  Í?8# Í?8j Í?8« Í?8‰ Í?8  Í?5q Í?7  Í?9 Í?9ò  Í?9â Í?8Ñ	 Í?9ë Í?9 Í?7 Í?72 Í?7c Í?7€ Í?7Ø Í?7< Í?7 Í?7Ş Í?7T Í?9!	 Í?9» Í?9' Í?9e Í?9S Í?9• Í?9 Í?9v Í?9÷ Í?9@ Í?9u Í?9± Í?8! Í?8K Í?8œ Í?8Ş Í?8Í Í?8¾ Í?8> Í?8- Í?8.
+ Í?8á	 Í?8 Í?8- Í?8
+ Í?8ø Í?9­ Í?9G Í?:c Í?: Í?:~ Í?:% Í?:; Í?:ò Í?: Í?:î Í?:½ Í?:Î Í?:§ Í?:¶ Í?:Ø Í?:W Í?:š  Í?:• Í?:ƒ Í?:b Í?:t	 Í?:[  Í?:M  Í?:ñ Í?:v  Í?:…  Í?:µ
+ Í?:° Í?:½ Í?:> Í?:c Í?:ñ Í?;   Í?   Í?   Í?   Í?   Í?   Í?   Í?   Í?   Í?   Í?   Í?   Í?   Í?   Í?    Í?!   Í?"   Í?#   Í?$   Í?%   Í?&   Í?'   Í?(   Í?)   Í?*   Í?+   Í?,   Í?-   Í?.   Í?0   Í?1   Í?2   Í?3   Í?4   Í?5   Í?6   Í?7   Í?8   Í?9   Í?:   Í?;    BOSS application                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                  º  Â¿şÿ&Œ S´/Í!‰' Œ) [W3À¹æ¿ÄY+Ïóª_SR» ¸BûÍ/Z[&ˆ &Œ ‹, &‰ µ ¾ Š€ ‹Á+ùOƒçş‹çüó¤‹ïÚÂ‹È3À» PPˆF ã!M€~  t
+€~ 	t´ë
+äˆF tEUMC3Àâß
+ätCUUS´0Í![<rXX 3À‹ø‹ÈIò®G&8Eÿu÷GGW‹ÄPS3íšÿÿ  PPPº  Ú‹' ) ´Í!‹ìŠF´LÍ!ûSU‹ì‹^‡^‡^‡^‰^Ä^ÿF&Š· Ñã÷Û.‹Ÿ"‡^]Ã3Éë¹ ë¹ ë¹ UVW‹ì‹ù‹F
+‹V‹^‹NÉuÒtiÛte÷Ç uÒy
+÷Ú÷ØƒÚ ƒÏÉy
+÷Ù÷ÛƒÙ ƒ÷‹é¹  W3ÿ3öÑàÑÒÑÖÑ×;ırw;ór+óı@âç[÷Ã t‹Æ‹×Ñë÷Ã t÷Ú÷ØƒÚ _^]Ê ÷ó÷Ç t‹Â3Òëì€ùs‹ØÓàÓâöÙ€ÁÓëÓË€é‹Ğ3ÀÓâË€ùs‹ÚÓèÓúöÙ€ÁÓãÃË€é‹Â™ÓøËV–’…Àt÷ã‘…Àt÷æÈ–÷ãÑ^ËW‹ùŠî±ÓâÒíĞ€Õ ‹ÇÓçÒìß€Ô +ÓìŠÅ˜’_Ë€ùs‹ÚÓèÓêöÙ€ÁÓãÃË€é‹Â3ÒÓèËU‹ìWVÅvÄ~
+üó¤^_]Ê       Ò  ñ Ú                                                                                                                   EU‹ì€> tÿvÿvÿvšÿÿ  ëPRŒØ‹V^ŠF´%Í!XØZX]MÂ EU‹ì€> t
+ÿvšÿÿ  ëŠF´5Í!‹ÃŒÂ]MÂ U‹ì¸  Øjÿ6ÊYÿ6ÈYèÿšÿÿ  ù]ËU‹ìj j šÿÿ  ƒÄj j šÿÿ  ƒÄšÿÿ  €>¦  tšÿÿ  jÿ6ÊYÿ6ÈYèLÿÿvšÿÿ  ƒÄ]Ê U‹ìjšÿÿ  RPè•è„ÿh èœÿ]ËU‹ìètÿh èŒÿ]ËU‹ìƒìjšÿÿ  RPèdh| è[jšÿÿ  RPèMƒ~uèbjèÿ‰ÊY£ÈYjh  hÿÿèÂşh«zšÿÿ  h§zšÿÿ  j j šÿÿ  ƒÄj j šÿÿ  ƒÄšÿÿ  ÿvÿv
+ÿvšÿÿ  FPFPšÿÿ  ÿvÿv
+ÿvšÿÿ  ƒ>¥ |j j ÿ6¥šÿÿ  ¡‰‹t3 H´ Àu€>G t¸ ë¸† ‰Fòÿ6‹ÿ6‰ÿvòšÿÿ  ‰‹£‰€>¯ t <´ ÀuÆ<šÿÿ  ÿNƒFëƒFÿNƒ~ ~$Ä^&Ä&€?-tçÄ^&Ä&€?/tÛÄ^&Ä&€?+tÏƒ~ uhĞ šÿÿ  ‹F‰Fş‹F
+‹V‰Fü‰Vú 3ˆFùëPÄ^&Ä&€?-tÄ^&Ä&€?/tÄ^&ÿw&ÿ7šÿÿ  ë Ä^&Ä&€vuÄ^&‹@&ÿwPj šÿÿ  ƒFÿNƒ~ ªŠFù¢3šÿÿ  ‰Vö‰Fô¡¤ ‹¢ ;Förw;Vôv‹Fö‹Vô£¤ ‰¢ ë ÿvşÿvüÿvúšÿÿ  Àt.šÿÿ  h‹ h• èP ‰Fòh— šÿÿ  ƒ~ò|Ç¥z ëëšÿÿ  ÿ6¤ ÿ6¢ jšÿÿ  RPšÿÿ  ƒÄƒ>¥z t¸ ë3ÀPèıÉËU‹ìƒìV‹F@ÿvPšÿÿ  Ä^&ˆFîPj jšÿÿ  ¡ ‰Fî‹F‹V‰Fò‰VğÇFö  ÇFô  ÇFú  ÇFø  ÿvÿv
+šÿÿ  ‰Vş‰Fü‹FüFşu° ¢,¢-ÿvÿv
+jfšÿÿ  ƒÄjè–üšÿÿ  jÿ6ÊYÿ6ÈYè	üÿvşÿvüj FîPšÿÿ  ‹ğjh  hÿÿèêûšÿÿ  ‹Æ% ÿ= t
+‹Æ% ÿ= ušÿÿ  jèAüö}#° ¢,¢-ÿvÿv
+jfšÿÿ  ƒÄšÿÿ  jèü‹Æ^ÉÊ U‹ìjÿvÿvÿvÿvšÿÿ  Pšÿÿ  ]Ê U‹ìj!šÿÿ  RPèĞÿj šÿÿ  ƒÄ]ËU‹ì‹FFuë"ëÄ^&Š´ Pšÿÿ  Ä^&ˆÿFÄ^&€? uà]Ê U‹ìƒì,ÿvÿvFÔPj šÿÿ  Àu¸ ë3ÀÉÊ U‹ìƒì,ÿvÿvFÔPj šÿÿ  Àu‹Fê‹Vìë3Ò3ÀÉÊ U‹ìSQ‹N¸Bû» Í/ƒú÷tƒú u‹Ñ‹FY[]Ê ‹V‹FY[]Ê ÌÍ EU‹ì€> t ‹F+ ‹Ø´JÍ!s‹Ã ë93Àë5‹F‹ +Â3Ò¹ ÷á‹Ê‹Ğ‹ ¸éÍ!sÑéÑÚÑéÑÚÑéÑÚÑéÑÚ‹Âë3À]MÂ U‹ì€>¦  tšÿÿ  ]ËU‹ì€>¦  tšÿÿ  ]ËU‹ì¸  Ø€>3 uÆ, jšÿÿ  ƒÄjènúë
+jšÿÿ  ƒÄ]ËU‹ìƒìVW‹~
+Ç­@ Ç«  ¾ é7‹ÆÁàÄ^Ø&Ä&€?-t‹ÆÁàÄ^Ø&Ä&€?/té‹ÆÁàÄ^Ø&Ä&€Qtéö ‹ÆÁàÄ^Ø&Ä&€xtéß ‹ÆÁàÄ^Ø&Ä&ŠGˆFù€~ù uÇ­ÿÿÇ«ÿÿé¾ €~ù=té‡ ‹ÆÁàÄ^Ø&Ä&ŠG´ ‹Øö‡XtkFúP‹ÆÁàÄ^Ø&‹ &ÿwPjšÿÿ  ÆFÿ FúŒVö‰FôëÄ^ô&Š´ ‹ØŠ‡X´ © t&ÿFôÄ^ô&€? ußFúPšÿÿ  ±
+šÿÿ  ‰­£«ë.‹ÆÁàÄ^Ø&ÿw&ÿ7h¨ jAšÿÿ  ƒÄ
+jèùF;÷}éÂş_^ÉÊ EU‹ìƒìÿvÿvÿvè‹şÿ6­ÿ6«jÿjÿ€>  tº 3Àëº 3ÀRPjhş hÿÿhÿÿj j šÿÿ  ‰Fş‹FşÀt/= Ptëë&hµ j
+šÿÿ  ƒÄjèøjšÿÿ  ƒÄjè|ø¸  À&¡! &‹ £ ‰ ¸  À&¡! &‹ £ ‰
+ Ç   Ç   Æ¦ ƒ>
+  t¡ @£ Ç
+   ŒüYÇúYòYÇôY  ÇòY  ÉMÂ EU‹ìVW‹NÅ6úYŒØ;Lvƒ| uÀ‹şÅ4ŒØÀuéŒĞØë`;Lu%ƒ| u‹&‰‹D&‰E‹ÆŒÚë;±ÓèŒÙÈÙë)Lƒ\ ‹Dt  uâ‹Æ% ±ÓîŒÚÖÚ‹ğ‹N‰LÇD  ŒÑÙ _^]MÂ EU‹ìƒì
+WƒFƒføšÿÿ  ˆF÷j šÿÿ  ÿvšÿÿ  ‰Vş‰Fü€> tÿvşÿvüšÿÿ  ŠF÷Pšÿÿ  Ä^ü&‹‰FúÇFø  Ä^ø‹Fş‹Vü&‰G&‰‹Vú‹Fø ëd¡òYôYtÿvèìşuR‹F‹ 
+ r3‹ÈÑéÑéÑéÑéÑ% ; s$‡
+ ‡ Â‹ø‹^&‰]&ÇE   ëÂ ëÇjšÿÿ  ƒÄë _ÉMÂ EU‹ìƒìVWƒnÄ^&ÿw&ÿ7šÿÿ  éÓÄ^ü&‹G‰FøÇFú  ‰FòŒÂÃsÂ ‹Øƒã‰^ô±ÓèÂ‰Fö¡üY‹úY‰Fğ‰VîÄ^î&‹G&‹‰Fì‰Vêƒ~ì ué” ‹Fì;Fşw‹Fì‹Vê‰Fğ‰VîëÑ‹Fì‹Vê;Fötëq;VôtëiÄ^ê&‹G&‹W‰Fè‰Væ‹Fæ‹Vè‹^öFôƒÒ t±ÓâÚ‹Ğƒâ±ÓèÃ‰Vô‰FöÄ^ü‹Fè‹Væ&W&‹W&G&‹G‰Fú‰VøÄ^ê&‹G&‹‰Fì‰VêÄ^ü‹Fì‹Vê&‰G&‰Ä^î&‹W&_ƒÒ ‹Ãƒã±ÓèŒÁÁ#Òt
+±&‹WÓâÂ;FşuD;^üu?Ä^î‹Fú‹Vø&W&GÄ^ü&‹G&‹Ä^î&‰G&‰‹Fö‹Vô; tëv;
+ t@ëmë;‹Fö‹Vô; u;
+ u‹Fş‹Vü£ ‰
+ ÇFş  ÇFü  Ä^î‹Fş‹Vü&‰G&‰ë/‹^î‹VğÅ6úYŒØÀ‹şÅ4ŒØ;Âuò;óuî3À&‰&‰E‰
+ ‰ _^ÉMÂ U‹ìšÿÿ  ]ËU‹ìƒìVW‹~¡îYÇ‰Fş‹Fş;ìYv ¾ ;÷s‹÷Vjè÷ü‰ğY£îY¡îYÆ£ìYëÏ‹Fş£îY‹ğY¡îY+Ç_^ÉÊ EU‹ì¡ìY@ŒğY£îYj èšÿ]MÃU‹ìVW‹Fšÿÿ  ‹ÇŒÂ_^]Ê U‹ìVWÄ~šÿÿ  _^]Ê U‹ìƒì‰Fşÿvşj è~üÉËU‹ìWWèNı_]ËEU‹ìšÿÿ  ]MÃEU‹ìšÿÿ  ]MÃEU‹ìÇZ  ÇZ  ÇZ  3À3Ò£æY‰äY£êY‰èYÇâY  ]MÃEU‹ìƒìVW‹FC ‹ğƒæğ‹Æ Pj èü‰Vş‰FüÿvşÿvüèÅ‰Vş‰Fü‹Fü‰FúÇFü  Ä^ü‹Fú&‰GÄ^ü‹F&‰GÄ^ü&‰wÿâYÄ^ü¡âY&‰G¡äYæYtNÄäY¡Z&‰G
+ÄäY¡Z&‰GÄäY‹Fş‹Vü&‰G&‰Ä^ü¡æY‹äY&‰G&‰W¡Z;Zs(ÄZ&ÆëëÄ^ü&ÇG  &ÇG  ‹Fş‹Vü£êY‰èYÄ^ü&ÇG  &Ç  ‹Fş‹Vü£æY‰äY‹Fş‹VüƒÂ£Z‰Z‹FúÆ£Z3ÀÄ>Z‹Z+ÏÑéó«Éóª_^ÉMÂ U‹ìWÄ>ZÏr;Zw‰Züª‹ÇŒÂë+ÏPQh è¯şYXëØ_]ËU‹ìV‹vş s¾ Vè”ş‹æY¡äY^]Ê U‹ìƒìVW‹v‹~ÇFü€ ¡Z+Z‰Fş‹ÇÁà‹ÖĞ;VşvÇFş ‹Fş+Æ3Ò÷÷‰FüÄ^&‰‹Fü÷ï‹ÖĞB‹ÊŠF
+è\ÿ_^ÉÊ
+ U‹ìƒìÄ^&‹G&‹‰Fş‰Vü‹FüFştÇFü  Ä^ü&‹GÄ^&‰GÉÊ EU‹ìƒìVW¡ÖYØYt'¡ØY‹ÖY‰Fş‰VüÄ^ü&‹G&‹£ØY‰ÖYÄ^ü&‹wë&¡ŞYàYu¸ ë¸ ‹ğVj èÍù‰Vş‰FüÄ^ü&‰w‹Fş‹VüƒÂ£ÔY‰ÒY‹FüÆ£ĞY3ÀÄ>ÒY‹ĞY+ÏÑéó«Éóª¡ŞYàYu‹Fş‹Vü£ÜY‰ÚYÄ^ü¡àY‹ŞY&‰G&‰‹Fş‹Vü£àY‰ŞYÿZ_^ÉMÃU‹ì‘ÄÒYÈr;ĞYw‰ÒYŒÂë	+ÈQèÿYëá]ËU‹ìƒìèüû‰Vş‰Fü‹Fş‹Vü;¤ wr;¢ s‹Fş‹Vü£¤ ‰¢ ÇĞY  ÇÔY  ÇÒY  ÄÚY¡ØY‹ÖY&‰G&‰¡àY‹ŞY£ØY‰ÖY3À3Ò£ÜY‰ÚY£àY‰ŞYÇZ  ÉËEU‹ìÇÔY  ÇÒY  ÇĞY  ÇZ  3À3Ò£ÜY‰ÚY£àY‰ŞY]MÃEU‹ìƒìë,¡àY‹ŞY‰Fş‰VüÄŞY&‹G&‹£àY‰ŞYÿvşÿvüè.ùÿZƒ>Z uÍÇÜY  ÇÚY  ÇĞY  ÇÔY  ÇÒY  ë(¡ØY‹ÖY‰Fş‰VüÄÖY&‹G&‹£ØY‰ÖYÿvşÿvüèÛø¡ÖYØYuÏÉMÃU‹ìÄ^
+3À3Ò&‰G&‰WÄ^
+&‰G&‰Ä^
+‹F&‰GÄ^
+ŠF&ˆGÄ^
+&‹GÄ^
+&‰G]Ê U‹ìƒìè|ú‰Vú‰Fø‹Fú‹Vø;¤ wr;¢ s‹Fú‹Vø£¤ ‰¢ Ä^&‹G&‹‰Fş‰Vüë%Ä^ü&‹G&‹‰Fú‰Vøÿvşÿvüè1ø‹Fú‹Vø‰Fş‰Vü‹FüFşuÓÄ^&ÇG  &Ç  ÉÊ U‹ìƒìWèùù‰Vú‰Fø‹Fú‹Vø;¤ wr;¢ s‹Fú‹Vø£¤ ‰¢ Ä^&‹G&‹‰Fş‰Vü‹FüFşué Ä^ü&‹G&‹‰Fú‰Vø‹FøFútÄ^ø&‹G&‹Ä^ü&‰G&‰ÿvúÿvøè‰÷ëÉ‹Fş‹VüƒÂÄ^&‰G
+&‰WÄ^‹Fü&GÄ^&‰GÄ^‹Fş‹Vü&‰G&‰WÄ^&‰G&‰Ä~&‹M&Ä}+Ï3ÀÑéó«Éóª_ÉÊ EU‹ìƒìWÄ^&€ t'Ä^&‹G Pj è.ö‰Vş‰Füÿvşÿvüèë ‰Vş‰FüëÄ^&ÿwj èö‰Vş‰FüÄ^ü&ÇG  &Ç  Ä^&‹GÄ^ü&‰GÄ^&‹&GtÄ^&Ä_‹Fş‹Vü&‰G&‰ëÄ^‹Fş‹Vü&‰G&‰Ä^‹Fş‹Vü&‰G&‰W‹Fş‹VüƒÂÄ^&‰G
+&‰WÄ^‹Fü&GÄ^&‰GÄ~&‹M&Ä}+Ï3ÀÑéó«Éóª_ÉMÂ U‹ìWÄ~&‹E‹NÈ&;Mw
+&‹U
+&‰Mëÿv
+ÿvèëşëÙ_]Ê EU‹ìÄ^¡ Z‹şY&‰G&‰‹F‹V£ Z‰şY‹V‹F ]MÂ U‹ìÇ Z  ÇşY  ]ËU‹ìƒìè†øècüèŒøë(¡ Z‹şY‰Fş‰VüÄşY&‹G&‹£ Z‰şYÿvşÿvüè•õ¡şY ZuÏÉËU‹ìÇ Z  ÇşY  ÿv
+ÿvÿvèóèÀ÷è6øèÖûèø]Ê U‹ìÆ¦  šÿÿ  ]ËU‹ì‹êY¡èY]ËU‹ì‹F‹VƒÂÄ^&‰G&‰Ä^&‹GÄ^&GÄ^
+&‰‹F‹V;æYu;äYu	Ä^
+¡Z&‰Ä^&‹GÄ^&‰]Ê U‹ì‹F‹VƒÂÄ^&‰G&‰Ä^&‹GÄ^&GÄ^
+&‰Ä^&‹GÄ^&‰]Ê U‹ìÄ^&‹W&‹]Ê U‹ìƒìV¡êY‹èY‰Fş‰VüëS‹Fş‹VüƒÂ‰Fú‰VøÄ^ü&‹GÄ^ü&G‹ğ‹Fş‹Vü;æYu
+;äYu‹6ZÿvúÿvøVjšÿÿ  Ä^ü&‹G&‹‰Fş‰Vü‹FüFşu¥^ÉËU‹ìƒìV¡êY‹èY‰Fş‰VüëS‹Fş‹VüƒÂ‰Fú‰VøÄ^ü&‹GÄ^ü&G‹ğ‹Fş‹Vü;æYu
+;äYu‹6ZÿvúÿvøVj šÿÿ  Ä^ü&‹G&‹‰Fş‰Vü‹FüFşu¥^ÉËU‹ìƒì VWÄ^&ƒ?;uÿvÿvè¨é7Ä^&ƒ?~aÄ^&ƒ?.XÄ^&€ }2Ä^&ÿw&ÿwjšÿÿ  ‰Vö‰FôÄ^&ÿw&ÿwjšÿÿ  ‰Vò‰FğëFÄ^&ÿw&ÿwjšÿÿ  ‰Vò‰Fğëë*Ä^&ƒ?.~!Ä^&ƒ?6Ä^&ÿw&ÿwjšÿÿ  ‰Vö‰Fô3À‰Fê‰FèÄ^&‹kÀÄ^&G‹ØŠ‡|5´ - ‹Øƒû3wÑã.ÿ§w"jšÿÿ  YÄ^&ƒt
+Ä^&ƒuXÄ^&ÿw&ÿwšÿÿ  ‰Væ‰Fäÿvæÿväšÿÿ  ‹øö…Ì	të'ö…Ì	uƒÿu ÿvæÿväšÿÿ  RPšÿÿ  ‹Øö‡Ì	tƒÊ{Ä^&÷G tdjÄ^&ÿw&ÿwÄ^&ÿwÄ^&ŠGPšÿÿ  ‰FîjÄ^&ÿw&ÿwj Ä^&ŠGPšÿÿ  ‹ğÄ^&‹_Š‡¨L´  Pj ÿvîVšÿÿ  ‰Fèé‰
+ÿvÿvšÿÿ  PÄ^&ÿw&ÿwÄ^&ÿwÄ^&ŠGPšÿÿ  ëÍéY
+Ä^&ƒt
+Ä^&ƒuXÄ^&ÿw&ÿwšÿÿ  ‰Væ‰Fäÿvæÿväšÿÿ  ‹øö…Ì	të'ö…Ì	uƒÿu ÿvæÿväšÿÿ  RPšÿÿ  ‹Øö‡Ì	tƒÊ{Ä^&÷G tWjÄ^&ÿw&ÿwÄ^&ÿwÄ^&ŠGPšÿÿ  ‰FîjÄ^&ÿw&ÿwj Ä^&ŠGPšÿÿ  ‹ğjj ÿvîVšÿÿ  ‰FêjéñşjÄ^&ÿw&ÿwÄ^&‹G PÄ^&ŠGPšÿÿ  ‰Fêj‹^êÑãj{&ÿ7Ä^&ÿwšÿÿ  é¿ éC	Ä^&ÿw&ÿwšÿÿ  ‰Fî¸ ŠNîÓà	ù{ƒ~îÿu	jvj j éúÄ^&ƒjéæjéáéşjÄ^&ÿw&ÿwÄ^&ÿwÄ^&ŠGPšÿÿ  ‰FèjÄ^&ÿw&ÿwj Ä^&ŠGPšÿÿ  éJÿvÿvšÿÿ  Pëj
+Ä^&‹G™RPšÿÿ  ‰Fêj
+Ä^&ÿw&ÿwšÿÿ  éõıÿvÿvšÿÿ  é$jÄ^&ÿw&ÿwÄ^&ÿwÄ^&ŠGPšÿÿ  ‰Fèjj jéÑÿvÿvšÿÿ  PéŠjjÿvôÿvğšÿÿ  ‰Fèj&j ÿvöÿvòé¥ÿvÿvÿvôÿvğšÿÿ  éxıÿvÿvšÿÿ  PjéHÿvÿvšÿÿ  Pj ÿvôÿvğšÿÿ  ‰Fèƒ~ö téâ‹FòéZéÈÄ^&Ä_&ƒu‹Fö‹Vô‰Fæ‰Vä‹Fò‹Vğë"Ä^&ŠGöØÄ^&ˆG‹Fò‹Vğ‰Fæ‰Vä‹Fö‹Vô‰Fâ‰VàÄ^&€ }hº j ÿvàÿvâšÿÿ  h¹ j ÿväÿvæëh¹ j ÿväÿvæšÿÿ  hº j ÿvàÿvâšÿÿ  Ä^&ƒ?	uh;ëh£;hUšÿÿ  éÖj(jÿvôÿvğšÿÿ  ‰Fèj2éŞş€># uÄ^&€ ~‹Fô‰Fî‹Fğ‰Fô‹Fî‰Fğj4é,Ä^&€ }h¹ j ÿvğÿvòšÿÿ  hº j ÿvôÿvöëh¹ j ÿvôÿvöšÿÿ  hº j ÿvğÿvòšÿÿ  ÿvÿvšÿÿ  éBh® jÿvôj šÿÿ  ÿvÿvšÿÿ  Pëah­ jÿvôj šÿÿ  ‰Fîÿvÿvšÿÿ  Pj ÿvîé™h¯ ë»h¹ jj j
+j j šÿÿ  Pšÿÿ  jBëh¹ jj j
+j j šÿÿ  Pšÿÿ  jDj éVÄ^&€ }h¹ j ÿvôÿvöšÿÿ  hÁ j ÿvğj ëhÁ j ÿvğj šÿÿ  h¹ j ÿvôÿvöšÿÿ  é'ÿé$ÿÄ^&‹_Š‡¾L´ K éhıÿvÿvšÿÿ  Pj ÿvôÿvğšÿÿ  ‰Fèÿvÿvšÿÿ  Pj éUıéoıhŸ jÿvöÿvòšÿÿ  ‰FêhŸ ébıÿvôÿvğšÿÿ  éÀújjÿvôÿvğšÿÿ  ‰Fèj&éÛ ÿvÿvšÿÿ  Pjÿvôÿvğšÿÿ  ‰Fèÿvÿvšÿÿ  Pjéçüÿvÿvšÿÿ  Pjÿvôÿvğšÿÿ  ‰Fè‹Föéxƒ~ö ujj jj šÿÿ  ‰FöÄ^&€ }hº j ÿvğÿvòšÿÿ  h¹ j ÿvôÿvöëh¹ j ÿvôÿvöšÿÿ  hº j ÿvğÿvòšÿÿ  Ä^&ƒ?uh©;é0h¯;é*é'é,j(jÿvôÿvğšÿÿ  ‰Fèj2j"é4ühš j ÿvôj šÿÿ  ‰Fîÿvÿvšÿÿ  Pj ÿvîÿvğéh› j ÿvôj šÿÿ  ‰Fî‹^ôÑã|& ÿvÿvšÿÿ  Pj ÿvîÿvğšÿÿ  ‰FğhŸ éİ hš j ÿvôj šÿÿ  ‰Fîh® jÿvîj šÿÿ  ‰Fîÿvÿvšÿÿ  Pj ëé~ÿhš j ÿvôj šÿÿ  ‰Fîh® jÿvîj šÿÿ  ‰Fîÿvÿvšÿÿ  Pj0ëQhš j ÿvôj šÿÿ  ‰Fîh­ j ÿvîj šÿÿ  ‰FîjAéÿhš j ÿvôj šÿÿ  ‰Fîh­ j ÿvîj šÿÿ  ‰FîjAj ÿvîÿvğšÿÿ  ‰Fğjj jj šÿÿ  ‰Fğh jÿvôÿvğšÿÿ  ‰Fè‹^ôÑã|&ƒ'û‹^ôÑã|& éâÄ^&‹_Š‡¾L´ K éÓúéĞúéÎú‹Fö‹Vôë‹Fò‹Vğ‰Fê‰Vèé²j*j ÿvôÿvğéøÄ^&Ä_&ƒupÄ^&€ }h¹ j ÿvôÿvöšÿÿ  hº j ÿvğÿvòëhº j ÿvğÿvòšÿÿ  h¹ j ÿvôÿvöšÿÿ  hµ;hUšÿÿ  hÆ j j šÿÿ  ‰FèhÇ j j šÿÿ  é¶ j
+j j šÿÿ  ‰Fîj
+j j šÿÿ  ‰Fìj(jÿvôÿvğšÿÿ  ‰Fèj2j ÿvîÿvìëwéê‹Fô‰Fê‹FğéO÷ÿvÿvšÿÿ  Pj ÿvôé¯ jTj ÿvöj šÿÿ  ‹ğjTjÿvôj šÿÿ  ‰Fèj
+j j šÿÿ  ‰Fìj2j Vë¢jUë¾jWj ÿvôj šÿÿ  ‰FèjWj ÿvöj šÿÿ  ‰Fêék‹Fô‰FîÄ^&Ä_&ƒh® j ÿvîj šÿÿ  ‰FîjTjÿvôj šÿÿ  ‰Fîj2j ÿvîÿvîšÿÿ  ‰Fîj\j ÿvîj é‚öÄ^&‹G&‹W‰Fş‰Vüh— j jj jj šÿÿ  Pj šÿÿ  Ä^ü&‹G&‹W‰Fú‰VøjÄ^ø&ÿw&ÿwÄ^ø&ÿwÄ^ø&ŠGPšÿÿ  ‰Fôh— j ÿvôj šÿÿ  h— j jj jj šÿÿ  Pj šÿÿ  Ä^ü&‹G&‹W‰Fş‰VüjÄ^ü&ÿw&ÿwÄ^ü&ÿwÄ^ü&ŠGPšÿÿ  ‰Fğh— j ÿvğj šÿÿ  j
+Ä^&Ä_&ÿw&ÿwšÿÿ  ‰Fîhº j j ÿvîšÿÿ  h»;h@šÿÿ  h± j jšÿÿ  ëjšÿÿ  Y‹Vê‹Fè_^ÉÊ (m°¾çõ"1Pdu£Pgä',Hg²Åòõ3`‚ú<~µé‰¢ª¹Æ  ¡ × Û  !U

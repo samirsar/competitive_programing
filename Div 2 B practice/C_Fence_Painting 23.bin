@@ -1,0 +1,3284 @@
+           You can replace a module by first removing it, then
+                    adding the replacement module.
+
+
+                    File and module names
+                    =======================================================
+
+                    TLIB finds the name of a module by taking the given
+                    file name and stripping any drive, path, and extension
+                    information from it. (Typically, drive, path, and
+                    extension are not given.)
+
+                    Note that TLIB always assumes reasonable defaults. For
+                    example, to add a module that has an .OBJ extension
+                    from the current directory, you only need to supply the
+                    module name, not the path and .OBJ extension.
+
+                    Wildcards are never allowed in file or module names.
+
+
+                    TLIB operations
+                    =======================================================
+
+                    TLIB recognizes three action symbols (*, +, *), which
+                    you can use singly or combined in pairs for a total of
+                    five distinct operations. The order of the characters
+
+
+
+
+
+                                  - 46 -
+
+
+
+
+
+
+                    is not important for operations that use a pair of
+                    characters. The action symbols and what they do are
+                    listed here:
+
+
+                    -------------------------------------------------------
+     TLIB action      Action
+         symbols      symbol  Name           Description
+                    -------------------------------------------------------
+
+       To create a      +     Add            TLIB adds the named file to
+      library, add                           the library. If the file has
+      modules to a                           no extension given, TLIB
+ library that does                           assumes an extension of .OBJ.
+    not yet exist.                           If the file is itself a
+                                             library (with a .LIB exten-
+                                             sion), then the operation adds
+                                             all of the modules in the
+                                             named library to the target
+                                             library.
+
+                                             If a module being added
+                                             already exists, TLIB displays
+                                             a message and does not add the
+                                             new module.
+
+                        -     Remove         TLIB removes the named module
+                                             from the library. If the
+                                             module does not exist in the
+                                             library, TLIB displays a
+                                             message.
+
+                                             A remove operation only needs
+                                             a module name. TLIB allows you
+                                             to enter a full path name with
+                                             drive and extension included,
+                                             but ignores everything except
+                                             the module name.
+
+                        *     Extract        TLIB creates the named file by
+                                             copying the corresponding
+                                             module from the library to the
+                                             file. If the module does not
+                                             exist, TLIB displays a message
+                                             and does not create a file. If
+                                             the named file already exists,
+                                             it is overwritten.
+
+
+
+
+                                  - 47 -
+
+
+
+
+
+
+                    Table 1.3: TLIB action symbols (continued)_____________
+
+You can't directly      -*    Extract &      TLIB copies the named module
+ rename modules in      *-    Remove         to the corresponding file name
+     a library. To                           and then removes it from the
+  rename a module,                           library. This is just
+extract and remove                           shorthand for an extract
+    it, rename the                           followed by a remove
+file just created,                           operation.
+  then add it back
+ into the library.      -+    Replace        TLIB replaces the named module
+                        +-                   with the corresponding file.
+                                             This is just shorthand for a
+                                             remove followed by an add
+                                             operation.
+
+                    -------------------------------------------------------
+
+
+    Using response  =======================================================
+             files
+                    When you are dealing with a large number of operations,
+                    or if you find yourself repeating certain sets of
+                    operations over and over, you will probably want to
+                    start using response files. A response file is simply
+                    an ASCII text file (which can be created with the Turbo
+                    C++ editor) that contains all or part of a TLIB com-
+                    mand. Using response files, you can build TLIB commands
+                    larger than would fit on one DOS command line.
+
+See "Examples" for  To use a response file pathname, specify @pathname at
+ a sample response  any position on the TLIB command line.
+   file and a TLIB
+      command line  o More than one line of text can make up a response
+ incorporating it.    file; you use the "and" character (&) at the end of a
+                      line to indicate that another line follows.
+
+                    o You don't need to put the entire TLIB command in the
+                      response file; the file can provide a portion of the
+                      TLIB command line, and you can type in the rest.
+
+                    o You can use more than one response file in a single
+                      TLIB command line.
+
+
+
+
+
+
+
+
+                                  - 48 -
+
+
+
+
+
+
+       Creating an  =======================================================
+          extended
+dictionary: The /E  To speed up linking with large library files (such as
+            option  the standard Cx.LIB library), you can direct TLIB to
+                    create an extended dictionary and append it to the
+                    library file. This dictionary contains, in a very
+                    compact form, information that is not included in the
+                    standard library dictionary. This information enables
+                    TLINK to process library files faster.
+
+                    To create an extended dictionary for a library that is
+                    being modified, use the /E option when you invoke TLIB
+                    to add, remove, or replace modules in the library. To
+                    create an extended dictionary for an existing library
+                    that you don't want to modify, use the /E option and
+                    ask TLIB to remove a nonexistent module from the
+                    library. TLIB will display a warning that the specified
+                    module was not found in the library, but it will also
+                    create an extended dictionary for the specified
+                    library. For example, if you enter
+
+                       tlib /E mylib -bogus
+
+                    TLINK will ignore the debugging information in a
+                    library that has an extended dictionary, unless the /e
+                    option is used on the TLINK command line.
+
+
+  Setting the page  =======================================================
+      size: The /P
+            option  Every DOS library file contains a dictionary (which
+                    appears at the end of the .LIB file, following all of
+                    the object modules). For each module in the library,
+                    this dictionary contains a 16-bit address of that
+                    particular module within the .LIB file; this address is
+                    given in terms of the library page size (it defaults to
+                    16 bytes).
+
+                    The library page size determines the maximum combined
+                    size of all object modules in the library--it cannot
+                    exceed 65,536 pages. The default (and minimum) page
+                    size of 16 bytes allows a library of about 1 MB in
+                    size. To create a larger library, the page size must be
+                    increased using the /P option; the page size must be a
+
+
+
+
+
+
+
+                                  - 49 -
+
+
+
+
+
+
+                    power of 2, and it may not be smaller than 16 or larger
+                    than 32,768.
+
+                    All modules in the library must start on a page
+                    boundary. For example, in a library with a page size of
+                    32 (the lowest possible page size higher than the
+                    default 16), on the average 16 bytes will be lost per
+                    object module in padding. If you attempt to create a
+                    library that is too large for the given page size, TLIB
+                    will issue an error message and suggest that you use /P
+                    with the next available higher page size.
+
+
+          Advanced  =======================================================
+ operation: The /C
+            option  When you add a module to a library, TLIB maintains a
+                    dictionary of all public symbols defined in the modules
+                    of the library. All symbols in the library must be
+                    distinct. If you try to add a module to the library
+                    that would cause a duplicate symbol, TLIB displays a
+                    message and won't add the module.
+
+                    Normally, when TLIB checks for duplicate symbols in the
+                    library, uppercase and lowercase letters are not
+                    considered as distinct. For example, the symbols lookup
+                    and LOOKUP are treated as duplicates. Since C and C++
+                    do treat uppercase and lowercase letters as distinct,
+                    use the /C option to add a module to a library that
+                    includes a symbol differing only in case from one
+                    already in the library. The /C option tells TLIB to
+                    accept a module with symbols in it that differ only in
+                    case from symbols already in the library.
+
+If you want to use  It may seem odd that, without the /C option, TLIB
+  the library with  rejects symbols that differ only in case, especially
+ other linkers (or  since C and C++ are case-sensitive languages. The
+allow other people  reason is that some linkers fail to distinguish between
+to use the library  symbols in a library that differ only in case. Such
+        with other  linkers, for example, will treat stars, Stars, and
+linkers), for your  STARS as the same identifier. TLINK, on the other hand,
+own protection you  has no problem distinguishing uppercase and lowercase
+should not use the  symbols, and it will properly accept a library contain-
+        /C option.  ing symbols that differ only in case. In this example,
+                    then, Turbo C++ would treat stars, Stars, and STARS as
+                    three separate identifiers. As long as you use the
+                    library only with TLINK, you can use the TLIB /C option
+                    without any problems.
+
+
+
+
+                                  - 50 -
+
+
+
+
+
+
+          Examples  =======================================================
+
+                    Here are some simple examples demonstrating the
+                    different things you can do with TLIB.
+
+                    1. To create a library named MYLIB.LIB with modules
+                       X.OBJ, Y.OBJ, and Z.OBJ, type
+                        tlib mylib +x +y +z
+
+                    2. To create a library as in #1 and get a listing in
+                       MYLIB.LST too, type
+                        tlib mylib +x +y +z, mylib.lst
+
+                    3. To get a listing in CS.LST of an existing library
+                       CS.LIB, type
+                        tlib cs, cs.lst
+
+                    4. To replace module X.OBJ with a new copy, add A.OBJ
+                       and delete Z.OBJ from MYLIB.LIB, type
+                        tlib mylib -+x +a -z
+
+                    5. To extract module Y.OBJ from MYLIB.LIB and get a
+                       listing in MYLIB.LST, type
+                        tlib mylib *y, mylib.lst
+
+                    6. To create a new library named ALPHA, with modules
+                       A.OBJ, B.OBJ, ..., G.OBJ using a response file:
+                        
+                       First create a text file, ALPHA.RSP, with
+                        +a.obj +b.obj +c.obj &
+                               +d.obj +e.obj +f.obj &
+                               +g.obj
+                        
+                       Then use the TLIB command, which produces a listing
+                       file named ALPHA.LST:
+                        tlib alpha @alpha.rsp, alpha.lst
+
+
+
+===========================================================================
+TOUCH
+===========================================================================
+
+                    There are times when you want to force a particular
+                    target file to be recompiled or rebuilt, even though no
+                    changes have been made to its sources. One way to do
+
+
+
+
+
+                                  - 51 -
+
+
+
+
+
+
+                    this is to use the TOUCH utility. TOUCH changes the
+                    date and time of one or more files to the current date
+                    and time, making it "newer" than the files that depend
+                    on it.
+
+                    You can force MAKE to rebuild a target file by touching
+                    one of the files that target depends on. To touch a
+                    file (or files), type
+
+   You can use the    touch filename [filename ...]
+   DOS wildcards *
+ and ? with TOUCH.  at the DOS prompt. TOUCH will then update the file's
+                    creation date(s). Once you do this, you can invoke MAKE
+                    to rebuild the touched target file(s).
+
+        Important!  Before you use the TOUCH utility, it's vitally
+                    important to set your system's internal clock to the
+                    proper date and time. If you're using an IBM PC, XT, or
+                    compatible that doesn't have a battery-powered clock,
+                    don't forget to set the time and date using the DOS
+                    TIME and DATE commands. Failing to do this will keep
+                    both TOUCH and MAKE from working properly.
+
+
+
+===========================================================================
+TRANCOPY: A project transfer item utility
+===========================================================================
+
+                    TRANCOPY copies transfer items from one project to
+                    another. The syntax is
+
+                     TRANCOPY [-r] Source[.PRJ] Dest[.PRJ]
+
+                    TRANCOPY merges the transfer items in Source with the
+                    transfer in Dest; Dest gets the new transfer items.
+
+                    If the -r option is used, the set of the transfer items
+                    in Dest is replaced by the set of transfer items in
+                    Source.
+
+
+
+
+
+
+
+
+
+
+
+                                  - 52 -
+
+
+
+
+
+
+===========================================================================
+TRIGRAPH: A character-conversion utility
+===========================================================================
+
+                    Trigraphs are three-character sequences that replace
+                    certain characters used in the C language that are not
+                    available on some keyboards. Translating trigraphs in
+                    the compiler would slow compilation down considerably,
+                    so Turbo C++ provides a filter named TRIGRAPH.EXE to
+                    handle trigraph sequences when you need to. The syntax
+                    for invoking this program is as follows:
+
+                       TRIGRAPH [-u] file(s) [file(s) ...]
+
+                    The following table shows the trigraph sequences that
+                    TRIGRAPH.EXE recognizes:
+
+
+                    -------------------------------------------------------
+                      Trigraph  Character
+                    -------------------------------------------------------
+
+
+                       ??=        #
+                       ??(        [
+                       ??/        \
+                       ??)        ]
+                       ??'        ^
+                       ??<        {
+                       ??!        |
+                       ??>        }
+                       ??-        ~
+
+                    -------------------------------------------------------
+
+                    TRIGRAPH.EXE works in two directions: It can convert
+                    all trigraphs to their single-character representation,
+                    and it can convert single characters to their trigraph
+                    representation. Ordinarily, TRIGRAPH.EXE converts
+                    trigraphs to single characters. You can specify the
+                    inverse conversion with the -u (UNDO) command-line
+                    option, which must come before any file names on the
+                    command line.
+
+                    TRIGRAPH.EXE takes any number of file specifiers,
+                    including wildcards, on the command line. For each file
+                    specified, it creates a backup copy of the file with
+                    the original file name and an extension of .BAK, and
+
+
+
+                                  - 53 -
+
+
+
+
+
+
+                    creates a new file with the original file name and the
+                    appropriate conversions performed. For example,
+
+                       trigraph test.c test1.c
+
+                    removes all trigraphs from the two files TEST.C and
+                    TEST1.C, creating backup files TEST.BAK and TEST1.BAK.
+
+                    As another example, the following command inserts
+                    trigraphs into all the files with the extension .C, and
+                    makes backup copies of all those files, giving them the
+                    extension .BAK.
+
+                       trigraph -u *.c
+
+
+
+===========================================================================
+Transfer macros
+===========================================================================
+
+                    The IDE recognizes certain strings of characters called
+                    transfer macros in the parameter string of the
+                    Modify/New Transfer Item dialog box. There are three
+                    kinds of macros: state, file name, and instruction.
+
+
+      The transfer  State macros
+ macros are listed  =======================================================
+alphabetically and
+ described in more  State macros are expanded according to the state of the
+detail starting on  IDE. The state macros are
+          page 55.
+                    $COL                          $ERRNAME
+                    $CONFIG                       $INC
+                    $DEF                          $LIB
+                    $ERRCOL                       $LINE
+                    $ERRLINE                      $PRJNAME
+
+
+                    File name macros
+                    =======================================================
+
+                    File name macros are actually functions that take file
+                    names as arguments and return various parts of the file
+                    name. They allow you to build up new file name
+                    specifications from existing file names. For example,
+                    you can pass TDUMP a macro like this:
+
+
+
+                                  - 54 -
+
+
+
+
+
+
+                       $DIR($EXENAME)$NAME($EDNAME).OBJ
+
+                    This macro gives you the output directory path, the
+                    file name only in the active Edit window, and an
+                    explicit extension. If your current directory is
+                    C:\WORK, your output directory is TEST, and the active
+                    editor contains MYPROG.C, then TDUMP receives the
+                    parameter
+
+                       C:\WORK\TEST\MYPROG.OBJ
+
+                    The file name macros are
+
+                    $DIR                          $EXT()
+                    $DRIVE()                      $NAME()
+                    $EDNAME                       $OUTNAME
+                    $EXENAME
+
+
+                    Instruction macros
+                    =======================================================
+
+                    Instruction macros tell the IDE to perform some action
+                    or make some setting. The instruction macros are
+
+                    $CAP EDIT                     $PROMPT
+                    $CAP MSG(filter)              $SAVE ALL
+                    $DEP()                        $SAVE CUR
+                    $MEM(kb to reserve)           $SAVE PROMPT
+                    $NOSWAP                       $TASM
+                    
+
+                    $CAP EDIT: This macro tells the IDE to redirect program
+                    output into a standard file. After the transfer program
+                    is completed, a new editor window is created, and the
+                    captured output is displayed. The captured output
+                    resides in a special Edit window titled Transfer
+                    Output.
+
+                    For $CAP EDIT to work correctly, the transfer program
+                    must write to DOS standard output.
+
+
+
+
+
+
+
+
+
+
+                                  - 55 -
+
+
+
+
+
+
+   You can use any  $CAP MSG(filter): Captures program output into the
+  program that has  Message window, using filter as a DOS filter for
+     line-oriented  converting program output into Message window format.
+   messages output
+    (file and line  We've provided several filters for this macro:
+ number) with this  GREP2MSG.EXE for GREP and TASM2MSG.EXE for Turbo
+            macro.  Assembler (TASM). We've included the source code for
+                    these filters so you can write your own filters for
+                    other transfer programs you install.
+
+                    $COL: Column number of current editor. If the active
+                    window is not an editor, then the string is set to 0.
+
+                    $CONFIG: Complete file name of the current
+                    configuration file. This is a null string if no
+                    configuration file is defined. This macro is intended
+                    for use by programs that access or modify the
+                    configuration file. Besides providing the name of the
+                    file, this macro causes the current configuration to be
+                    saved (if modified) and reloaded when control returns
+                    to the IDE.
+
+ TEML is a Pascal-  Use this macro with the Turbo Editor Macro Language
+like language that  (TEML) compiler. With it, you can edit the TEML script
+ has many built-in  file in an editor and then invoke the Turbo Editor
+  primitive editor  Macro Compiler (TEMC) to process the script. When the
+ commands. Its use  configuration file is reloaded, your new or modified
+  is documented in  editor commands will be in effect. When installing TEMC
+        this file.  as a transfer item, use the following command line:
+
+                       $EDNAME $CONFIG
+
+                    This assumes the current Edit window contains the TEML
+                    script file to be processed.
+
+                    $DEF: Pulls in the contents of the Options|Compiler|
+                    Code Generation "Defines" type-in box. Use this macro
+                    to specify define directives to an external translator.
+
+This macro is only  $DEP(): This macro provides the ability to
+       used by the  automatically rebuild resources as part of a project
+  project manager.  make if one of the resource components has been
+                    modified.
+
+                    $DIR(): Directory of the file argument, full path.
+
+                    $DRIVE(): Drive of the file argument, in the form D:.
+
+
+
+
+                                  - 56 -
+
+
+
+
+
+
+                    $EDNAME: Complete file name of file in active editor.
+                    This is a null string if the active window is not an
+                    editor.
+
+                    $ERRCOL: Column number of current error in file
+                    $ERRNAME. If there are no messages, then string is
+                    expanded to null string.
+
+                    $ERRLINE: Line number of current error in file
+                    $ERRNAME. If there are no messages, then string is
+                    expanded to null string.
+
+                    $ERRNAME: Complete file name of file referred to by the
+                    selected messages in the Message window. This is a null
+                    string if there are no messages or the currently
+                    selected message does not refer to a file.
+
+                    $EXENAME: Program's file name (including output path),
+                    based on the project name or, if there is no project
+                    defined, then the name of the .EXE that would be
+                    produced from the active editor window.
+
+                    $EXT(): Extension of the file argument; this includes
+                    the dot (for example, .CPP).
+
+                    $INC: Pulls in the contents of the Options|Directories|
+                    Include Directories type-in box.
+
+                    $LIB: Pulls in the contents of the Options|Directories|
+                    Library Directories type-in box.
+
+                    $LINE: Line number of current editor. If the active
+                    window is not an editor, then the string is set to 0.
+
+                    $MEM(Kb to reserve): This macro tells the IDE how much
+                    memory to try to give the transfer program. The IDE
+                    gives up as much memory as possible, to either the
+                    amount specified or the maximum available, whichever is
+                    smaller. You'll get an error if no memory is specified.
+
+                    $NAME(): Name part of the file argument; does not
+                    include the dot.
+
+                    $NOSWAP: This macro tells the IDE not to swap to the
+                    User Screen when running the program. It pops up a box
+                    that indicates which transfer program is running. Use
+                    this macro in conjunction with $CAP.
+
+
+
+
+                                  - 57 -
+
+
+
+
+
+
+                    $OUTNAME: This macro expands to the path and file name
+                    that appear in the Project|Local Options Output Path
+                    type-in box (in the active edit window). For example,
+                    if the project contains STARS.C, the default Output
+                    Path type-in is STARS.OBJ. So if STARS.C is in the
+                    active edit window, $OUTNAME expands to STARS.OBJ. If
+                    you've edited the type-in box so it says ..\MOON.XYZ,
+                    $OUTNAME will expand to ..\MOON.XYZ. This macro is
+                    useful when you are specifying modules for your user-
+                    defined translators. For example, you could define a
+                    TLIB translator and set the command line to
+
+                    TLIB MYLIB +$OUTNAME
+
+                    which adds the object module of the file in the active
+                    edit window to the library MYLIB.
+
+                    $PRJNAME: The current project file. Null string if no
+                    project is defined.
+
+                    $PROMPT: This macro tells the IDE to display the
+                    expanded parameter string before calling the transfer
+                    program. The command line that will be passed is
+                    displayed in a dialog box. This allows you to change or
+                    add to the string before it is passed.The position of
+                    $PROMPT command in the command line determines what is
+                    shown in the dialog prompt box. You can place constant
+                    parameters in the command line by placing them before
+                    $PROMPT. For example, the /c in
+
+                       /c $PROMPT dir
+
+                    is constant and doesn't show in the dialog box, but dir
+                    can be edited before the command is run.
+
+                    $SAVE ALL: This macro tells the IDE to save all
+                    modified files in all Edit windows that have been
+                    modified, without prompting.
+
+                    $SAVE CUR: This macro tells the IDE to save the file in
+                    the current editor if it has been modified. This
+                    ensures that the invoked program will use the latest
+                    version of the source file.
+
+                    $SAVE PROMPT: This macro tells the IDE to prompt when
+                    there are unsaved files in editor windows. You will be
+                    asked if you want to save any unsaved files.
+
+
+
+
+                                  - 58 -
+
+
+
+
+
+
+                    $TASM: This macro is predefined for use with Turbo
+                    Assembler. It uses the TASM2MSG filter to trap TASM
+                    messages. $TASM is essentially shorthand for this:
+
+                     $NOSWAP $SAVE CUR $CAP MSG(TASM2MSG) $EDNAME,$OUTNAME
+
+                    $WRITEMSG(filename): This macro copies the contents of
+                    the Message window to the specified ASCII file. The
+                    translator can parse the file and act on the messages
+                    so desired. For example, $WRITEMSG(C:\MESSAGES.TXT)
+                    writes to the file MESSAGES.TXT on your root directory.
+
+
+       Running DOS  =======================================================
+          commands
+                    If you want to run DOS commands from within the
+                    integrated environment, you can set up a simple
+                    transfer macro that will let you do so. Just add this
+                    transfer item:
+
+                       command /c $MEM(128) $PROMPT
+
+                    When you invoke this transfer item, a dialog box
+                    appears and prompts you for DOS input. Since the
+                    $PROMPT command appears later in the string, the text
+                    command /c won't show up in the dialog's input box.
+                    This lets you just type dir, chkdsk, del *.*, or
+                    whatever DOS command you want to run.
+
+
+   Transfer memory  =======================================================
+          settings
+                    Different programs have different memory needs. For
+                    example, GREP can run in very little memory, where many
+                    popular editors require 200-300K to work well.
+
+                    If you use the $MEM() macro, you can specify (on a
+                    program-by-program basis) how much memory the IDE
+                    should give to the transfer programs. The less memory
+                    you devote to a transfer program, the quicker the
+                    transfer to and from the program occurs.
+
+                    There may be some cases where the IDE cannot give up as
+                    much memory as you requested. When this happens, the
+                    IDE gives up as much as it can. There are certain
+                    states in the IDE that require more memory than others;
+                    for example, while debugging a program, the IDE will
+
+
+
+
+                                  - 59 -
+
+
+
+
+
+
+                    tie up more resources than when not debugging. Use
+                    Program Reset (Ctrl-F2) to free up debugging memory.
+
+                    In those cases where you want the IDE to give up all
+                    its memory, give it a large number, like 640K. How much
+                    memory is actually given up is dependent on how much
+                    you have when you start Turbo C++.
+
+
+
+===========================================================================
+Turbo Editor macros
+===========================================================================
+
+                    TEMC.EXE is an editor macro compiler for the IDE. It
+                    processes a script file that defines editor macros and
+                    key bindings, and produces a configuration file that is
+                    read by the IDE to define the effects of keyboard
+                    commands in the editor.
+
+                    The file DEFAULTS.TEM contains the default macro
+                    definitions and key bindings built into the IDE editor.
+                    It serves as an example script, as well as a base from
+                    which to customize the editor.
+
+
+
+===========================================================================
+TEMC command line
+===========================================================================
+
+                    TEMC is invoked from the DOS command line. Type
+
+                     temc [-c] [-u] <script file> <config file>
+
+                    The script file extension is .TEM if not specified
+                    otherwise. The configuration file extensions is assumed
+                    to be .TC.
+
+                    The configuration file need not exist. If it does not
+                    exist, it is created. The optional -c switch can also
+                    be specified as /c, and can appear in any argument
+                    position on the command line. If you use this option,
+                    any existing command table in your configuration file
+                    is thrown away before TEMC processes the script file.
+                    When -c is not used, the key bindings in the script
+                    file are merged with those already defined in the
+                    configuration file.
+
+
+
+                                  - 60 -
+
+
+
+
+
+
+                    TEMC by default modifies the commands used by the IDE
+                    when the Alternate command set is specified in Options|
+                    Environment|Preferences. The optional -u switch, which
+                    can also be specified as /u, causes TEMC to modify the
+                    CUA command set instead.
+
+                    You can use DEFAULTS.TEM to re-create exactly the
+                    default settings of the Alternate command set.  This
+                    file is included as both a sample script file and as
+                    the default command table. You can copy it and modify
+                    it for your own use. A file named CMACROS.TEM is
+                    provided with Turbo C++; this file contains many useful
+                    enhancements to the IDE for C and C++ programming that
+                    you may wish to install.
+
+
+
+===========================================================================
+Syntax
+===========================================================================
+
+                    The syntax to define a macro is
+
+                     MACRO <macroname>
+                       <command1>;
+                       [ <command2>; ... ]
+                     END;
+
+                    <macroname> can consist of anything that is a legal C
+                    symbol, and <command> can be either the name of another
+                    predefined macro or a predefined TEMC editor command. A
+                    list of editor commands and what they do follows.
+
+                    When you define your macro, the following points are
+                    valid:
+
+                    1. A statement defines either a named macro or a key
+                       binding.
+
+                    2. Spaces and new lines are optional.
+
+                    3. Comments are in C-style /* ... */ pairs.
+
+                    4. Unlike C, TEMC's language is case insensitive.
+
+                    5. Some of the predefined editor commands have a syntax
+                       that looks like a C function call with one argument.
+                       For example,
+
+
+
+                                  - 61 -
+
+
+
+
+
+
+                        
+                        SetMark(5);
+                        
+                       Depending on the command, the argumment is either a
+                       decimal integer constant, a character constant, or a
+                       string literal. All are specified using C syntax.
+
+                    Here's an example of a macro definition from
+                    DEFAULTS.TEM:
+
+                     MACRO MacScrollUp
+                       ScrollScreenUp; FixCursorPos;
+                     END;
+
+                    The syntax to define a key binding is
+
+                     <key-sequence>: <command>;
+
+                    or
+
+                     <key-sequence>: BEGIN <command1>; [ <command2>; ... ]
+                     END;
+
+                    The <key-sequence> is either a key (a character
+                    optionally preceded by Ctrl or Alt), or a series of
+                    keys separated by a plus sign (+). Note that the
+                    specification of the key characters themselves is case
+                    sensitive. For example, Ctrl-k+B is different than
+                    Ctrl-k+b, even though the latter is the same as CTRL-
+                    K+b.
+
+                    Whitespace is allowed between the key-sequence and the
+                    colon, and each <command> can be either the name of a
+                    previously defined macro, or one of the predefined
+                    editor commands listed in Table 1.1.
+
+
+
+===========================================================================
+Key codes
+===========================================================================
+
+                    The IDE editor makes use of an extended character set
+                    that includes key combinations not normally available
+                    to DOS programs. Key codes can be specified in a script
+                    through any combination of the symbols "Ctrl-",
+                    "Shift-" "Alt-" and a character.
+
+
+
+
+                                  - 62 -
+
+
+
+
+
+
+                    Some keys cannot be entered directly into a TEMC
+                    script. Those keys can be referred to by their names,
+                    as described in the following table.
+
+                    Any key in a sequence--except the first key--can be
+                    preceded by one of the characters ^ or @. The caret (^)
+                    indicates that any combination of case and "Ctrl" can
+                    be used to type the key; that is, lowercase, uppercase,
+                    or control characters. The @ sign is used to indicate
+                    that case is insignificant for the following character,
+                    although "Ctrl" is not accepted. For example,
+
+                    o Ctrl-k+b specifies a Ctrl-K followed by a lowercase
+                      b.
+
+                    o Ctrl-k+^b specifies a Ctrl-K followed by any of b, B,
+                      or Ctrl-B.
+
+                    o Ctrl-k+@B specifies Ctrl-K followed by either b or B.
+
+
+        Named keys  =======================================================
+
+                    Key are specified as letters, numbers, or characters,
+                    optionally preceded by one or more of Ctrl-, Alt- or
+                    Shift-. The following names specify keys that cannot be
+                    typed as themselves in the TEMC syntax.
+
+
+                    -------------------------------------------------------
+                       Key name    Notes
+                    -------------------------------------------------------
+
+                       Home
+                       End
+                       PgUp
+                       PgDn
+                       LfAr        Left arrow
+                       RgAr        Right arrow
+                       UpAr        Up arrow
+                       DnAr        Down arrow
+                       Ins
+                       Del
+                       Enter
+                       Return      Same as Enter
+                       BkSp        Backspace
+                       Tab
+                       BkTab       No longer available, use Shift-Tab
+
+
+
+                                  - 63 -
+
+
+
+
+
+
+                       Esc
+                       Star        * key on the numeric keypad
+                       Minus       - key on the numeric keypad
+                       Plus        + key on the numeric keypad
+                       Space       Spacebar
+                       PrtSc
+                       F1 to F10   Function keys
+
+                    -------------------------------------------------------
+
+
+
+===========================================================================
+Predefined editor commands
+===========================================================================
+
+                    TEMC lets you use built-in editor commands and user-
+                    defined macros as commands within macros
+                    interchangeably, as long as you don't create any loops
+                    by having two macros calling each other, even via
+                    intermediate macros. Note that some commands cause an
+                    escape from the editor to the surrounding IDE, for
+                    example, by bringing up a dialog box. Your macro will
+                    "pause" until control returns to the editor.
+
+                    A list of all predefined TEMC editor commands is shown
+                    next. Commands that cause an escape from the editor
+                    follow.
+
+
+
+                    -------------------------------------------------------
+     TEMC editor    Command name                What the editor does
+        commands    -------------------------------------------------------
+
+                    BackspaceDelete             Deletes character before
+                                                the cursor.
+
+                    BottomOfScreen              Moves cursor to the bottom
+                                                line of the current window,
+                                                leaving column unchanged.
+
+                    CenterFixScreenPos          Adjusts the screen display
+                                                to ensure the cursor is
+                                                visible. If any adjustment
+                                                is necessary, adjust the
+                                                display so the cursor is
+
+
+
+
+                                  - 64 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                                                close to being centered in
+                                                the window.
+
+                    CopyBlock                   If there is a valid and
+                                                highlighted (selected)
+                                                text block, then at the
+                                                cursor location, inserts a
+                                                copy of the characters that
+                                                are selected and makes that
+                                                the new selected text
+                                                location.
+
+                    CursorCharLeft              Moves cursor left over one
+                                                character. This command
+                                                will skip over tab
+                                                characters and move to the
+                                                end of the previous line.
+
+                    CursorCharRight             Moves cursor right over one
+                                                character. This  command
+                                                will skip over tab
+                                                characters and advance to
+                                                the beginning of the next
+                                                line.
+
+                    CursorDown                  Moves cursor down one row.
+
+                    CursorLeft                  Moves cursor left one
+                                                screen column.
+
+                    CursorRight                 Moves cursor right one
+                                                screen column.
+
+                    CursorSwitchedLeft          Like CursorLeft, but pays
+                                                attention to cursor through
+                                                tab option setting (see
+                                                SetCursorThroughTabMode).
+
+                    CursorSwitchedRight         Like CursorRight, but pays
+                                                attention to cursor
+                                                through tab option setting
+                                                (see
+                                                SetCursorThroughTabMode).
+
+                    CursorUp                    Moves cursor up one row.
+
+
+
+
+                                  - 65 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                    DeleteBlock                 If there is a valid and
+                                                highlighted (selected) text
+                                                block, deletes the
+                                                characters that are in it.
+
+                    DeleteChar                  Deletes the character at
+                                                the current cursor
+                                                location.
+
+                    DeleteLine                  Deletes the current line.
+
+                    DeleteToEOL                 Deletes all characters in
+                                                the current line, leaving a
+                                                zero-length line.
+
+                    DeleteWord                  Deletes from cursor to
+                                                beginning of next word.
+
+                    EndCursor                   Moves cursor to end of file
+                                                buffer.
+
+                    ExtendBlockBeg              Initiates a series of
+                                                commands that will select a
+                                                block of text between the
+                                                initial and ending
+                                                positions of the cursor.
+
+                    ExtendBlockEnd              Ends a series of commands
+                                                begun by ExtendBlockBeg.
+
+                    FixCursorPos                Ensures that the cursor
+                                                value specifies a row
+                                                between 1 and the number of
+                                                lines in the buffer, a
+                                                column greater than 0. If
+                                                the cursor through tab
+                                                option is not set, the
+                                                cursor is not placed in the
+                                                middle of a tab character
+                                                (see
+                                                SetCursorThroughTabMode).
+
+                    FixScreenPos                Adjusts the screen display
+                                                to ensure the cursor is
+                                                visible.
+
+
+
+
+                                  - 66 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                    FullPaintScreen             Redraws the entire window,
+                                                making no assumptions about
+                                                what is onscreen.
+
+                    HideBlock                   Sets a flag indicating that
+                                                the selected text should
+                                                not be highlighted.
+
+                    HighlightBlock              Sets a flag indicating that
+                                                if the beginning and end
+                                                selected text markers are
+                                                valid, the selected text
+                                                should be highlighted.
+
+                    HomeCursor                  Moves cursor to beginning
+                                                of the file buffer.
+
+                    IndentBlock                 Inserts a space at the
+                                                beginning of each line in
+                                                the highlighted (selected)
+                                                text.
+
+                    InsertText                  Inserts the literal
+                                                "string" in the buffer at
+                                                the current cursor
+                                                location. Use the syntax
+                                                InsertText(string) to call
+                                                this command.
+
+                    LeftOfLine                  Moves cursor to beginning
+                                                of the current line.
+
+                    LiteralChar                 Inserts the character at
+                                                the current cursor
+                                                location, without doing any
+                                                special processing for
+                                                newline, tab characters,
+                                                etc. Use the syntax
+                                                LiteralChar(c), where c is
+                                                a character or integer
+                                                value.
+
+                    MarkBufModified             Sets a flag indicating that
+                                                the contents of the buffer
+                                                are different than what is
+
+
+
+
+                                  - 67 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                                                in the corresponding disk
+                                                file.
+
+                    MarkBufUnModified           Clears a flag, thus
+                                                indicating that the
+                                                contents of the buffer can
+                                                be assumed to be identical
+                                                to what is in the disk
+                                                file.
+
+                    MatchPairBackward           Same as MatchPairForward
+                                                except if the cursor is on
+                                                a ' or ", searches backward
+                                                for the matching character.
+
+                    MatchPairForward            If the cursor is on one of
+                                                the characters (, ), {, },
+                                                [, ], or on the first
+                                                character of one of the
+                                                pairs /* or */, searches in
+                                                the appropriate direction
+                                                for the closest instance of
+                                                the matching delimiter. If
+                                                the cursor is on the
+                                                character ' or ", searches
+                                                forward for the matching
+                                                character. If a match is
+                                                found, places the cursor
+                                                there.
+
+                    MoveBlock                   Like CopyBlock, but also
+                                                deletes the original
+                                                selected text.
+
+                    MoveToBlockBeg              Moves cursor to the
+                                                location marked as the
+                                                beginning of the selected
+                                                text.
+
+                    MoveToBlockEnd              Moves cursor to the
+                                                location marked as the end
+                                                of the selected text.
+
+                    MoveToMark                  Moves the cursor to the
+                                                location saved with
+                                                SetMark(n) command. Use the
+
+
+
+                                  - 68 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                                                syntax MoveToMark(n), where
+                                                n is a one-digit number,
+                                                0-9.
+
+                    MoveToPrevPos               Moves the cursor to the
+                                                location specified by the
+                                                "previous position marker."
+
+                    MoveToTempPos               Moves the cursor to the
+                                                saved temporary marker.
+
+                    NullCmd                     No operation. Calls the
+                                                editor, but performs no
+                                                function. Can be used to
+                                                cause a keystroke to have
+                                                no effect.
+
+                    OutdentBlock                Deletes a leading space, if
+                                                any, from the beginning of
+                                                each line in the
+                                                highlighted (selected)
+                                                text.
+
+                    PageDown                    Moves cursor down by number
+                                                of lines in the window.
+
+                    PageScreenDown              Scrolls screen down by
+                                                numer of lines in the
+                                                window, leaving cursor
+                                                position unchanged.
+
+                    PageScreenUp                Scrolls screen up by numer
+                                                of lines in the window,
+                                                leaving cursor position
+                                                unchanged.
+
+                    PageUp                      Moves cursor up by number
+                                                of lines in the window.
+
+                    PaintScreen                 Redraws the entire window,
+                                                assuming that the screen
+                                                still correctly displays
+                                                what the editor last drew
+                                                on it.
+
+
+
+
+
+                                  - 69 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                    ReDo                        Performs an Redo operation.
+                                                Exactly what happens
+                                                depends on the option
+                                                settings.
+
+                    RightOfLine                 Moves cursor to end of
+                                                current line.
+
+                    RightOfWord                 Moves cursor to the next
+                                                column that follows the end
+                                                of a word.
+
+                    ScrollScreenDown            Scrolls screen down one
+                                                line, leaving cursor
+                                                position unchanged.
+
+                    ScrollScreenUp              Scrolls screen up one line,
+                                                leaving cursor position
+                                                unchanged.
+
+                    SetAutoIndent               Sets the Auto Indent option
+                                                On.
+
+                    SetAutoOutdent              Sets the Backspace
+                                                Unindents option On.
+
+                    SetBlockBeg                 Sets the beginning of the
+                                                selected text to be the
+                                                character at the current
+                                                cursor location.
+
+                    SetBlockEnd                 Sets the end of the
+                                                selected text to be the
+                                                character at the current
+                                                cursor location.
+
+                    SetCursorThroughTabMode     Sets the Cursor Through
+                                                Tabs option On.
+
+                    SetInsertMode               Sets Insert/Overwrite
+                                                option to Insert.
+
+                    SetMark                     Sets a marker to point to
+                                                the character at the
+                                                current cursor location, so
+                                                a later MoveToMark(n)
+
+
+
+                                  - 70 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                                                comand can restore the
+                                                cursor. Use the syntax
+                                                SetMark(n), where n is a
+                                                one digit number, 0-9.
+
+                    SetOptimalFillMode          Sets Optimal Fill option
+                                                On.
+
+                    SetPrevPos                  Sets a marker (the previous
+                                                position marker) to point
+                                                to the character at the
+                                                current cursor location.
+                                                This marker location
+                                                changes only by a call to
+                                                SetPrevPos or SwapPrevPos.
+
+                    SetTabbingMode              Sets Use Tab Char option
+                                                On.
+
+                    SetTempPos                  Saves the cursor location
+                                                in a temporary marker that
+                                                can be used by some
+                                                internal editor commands.
+                                                This is not a practical
+                                                application in user-defined
+                                                macros. Use SetMark
+                                                instead.
+
+                    SmartRefreshScreen          Redraws the window,
+                                                skipping any portions that
+                                                the editor is sure are
+                                                unmodified since the last
+                                                redraw.
+
+                    SmartTab                    Inserts space or tab
+                                                characters in accordance
+                                                with the current settings
+                                                of the Use Tab Char option,
+                                                Tab Width.
+
+                    SwapPrevPos                 Exchanges the values of the
+                                                cursor and the "previous
+                                                position marker."
+
+                    ToggleAutoIndent            Toggles the state of the
+                                                Auto Indent option.
+
+
+
+                                  - 71 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                    ToggleAutoOutdent           Toggles the state of the
+                                                Backspace Unindents option.
+
+                    ToggleCursorThroughTabMode  Toggles the state of the
+                                                Cursor Through Tabs option.
+
+                    ToggleHideBlock             Toggles the state of the
+                                                highlight (selected) text
+                                                flag (see HighlightBlock).
+
+                    ToggleInsert                Toggles state of
+                                                Insert/Overwrite option.
+
+                    ToggleOptimalFillMode       Toggles state of Optimal
+                                                Fill option.
+
+                    ToggleTabbingMode           Toggles state of Use Tab
+                                                Char option.
+
+                    TopOfScreen                 Moves cursor to the top
+                                                line currently displayed in
+                                                the window, leaving column
+                                                unchanged.
+
+                    UnDo                        Performs an Undo operation.
+                                                Exactly what happens
+                                                depends on the option
+                                                settings.
+
+                    WordLeft                    Moves cursor to beginning
+                                                of previous word, or to end
+                                                of previous line, whichever
+                                                is first.
+
+                    WordRight                   Moves cursor to beginning
+                                                of next word, or to the end
+                                                of a line, whichever is
+                                                first.
+
+                    -------------------------------------------------------
+
+
+                    The following commands cause an exit from the editor,
+                    for example, by bringing up a dialog box. The macro
+                    resumes when the editor window regains the focus.
+
+
+
+
+                                  - 72 -
+
+
+
+
+
+
+                    The keys listed next to some of the commands below are
+                    the ones used by default when the Alternate mode of the
+                    IDE is selected.
+
+                    AddWatch            Adds a watch item (Ctrl-F7).
+                    ChangeDirectory     Opens a dialog box for changing the
+                                        current directory.
+                    ChangeModeFlags     Used after a command such as
+                                        ToggleInsert which changes the
+                                        state of an editor option switch.
+                                        Causes the IDE to update various
+                                        menu items and/or icons.
+                    ClipCopy            Copys selected text to Clipboard
+                                        (Ctrl-Ins).
+                    ClipCut             Cuts selected text to Clipboard
+                                        (Shift-Del).
+                    ClipPaste           Pastes Clipboard into buffer at
+                                        cursor (Shift-Ins).
+                    ClipShow            Shows Clipboard (no hot key
+                                        defined).
+                    CloseWindow         Closes editor window (Alt-F3).
+                    CompileFile         Compiles current buffer (Alt-F9).
+                    CompileMenu         Selects Compile menu (Alt-C).
+                    CompilerOptions     Selects the Options Compiler menu
+                    DebugMenu           Selects Debug menu (Alt-D).
+                    EditMenu            elects Edit menu (Alt-E).
+                    FileMenu            Selects File menu (Alt-F).
+                    GetFindString       Opens a dialog box for the Search
+                                        operation. (Alt-S F)
+                    GotoWindow1         Selects window #1 (Alt-1).
+                    GotoWindow2         Selects window #2 (Alt-2).
+                    GotoWindow3         Selects window #3 (Alt-3).
+                    GotoWindow4         Selects window #4 (Alt-4).
+                    GotoWindow5         Selects window #5 (Alt-5).
+                    GotoWindow6         Selects window #6 (Alt-6).
+                    GotoWindow7         Selects window #7 (Alt-7).
+                    GotoWindow8         Selects window #8 (Alt-8).
+                    GotoWindow9         Selects window #9 (Alt-9).
+                    Help                Opens the Help window (F1).
+                    HelpMenu            Selects Help menu (Alt-H).
+                    HelpIndex           Display the Help system't index
+                                        (Shift-F1)
+                    Inspect             Inspects item (Alt-F4).
+                    LastHelp            Opens previous help window (Alt-
+                                        F1).
+                    MakeProject         Makes project (F9).
+                    Menu                Highlights top menu bar.
+
+
+
+
+                                  - 73 -
+
+
+
+
+
+
+                    Modify              Evaluates expression/modify
+                                        variable (Ctrl-F4).
+                    NextError           Moves to next item in message
+                                        window (Alt-F8).
+                    NextWindow          Selects next window in IDE (F6).
+                    OpenFile            Opens dialog box for File Open
+                                        (F3).
+                    OptionsMenu         Selects Options menu (Alt-O).
+                    PrevError           Moves to previous item in message
+                                        window (Alt-F7).
+                    PrintBlock          Writes selected text to the
+                                        printer.
+                    ProjectMenu         Selects Project menu (Alt-P).
+                    Quit                Exits the IDE (Alt-X).
+                    ReadBlock           Opens dialog box requesting a file
+                                        name to be read into the buffer at
+                                        the cursor location and marked as
+                                        selected text.
+                    RepeatSearch        Searches again, using previous
+                                        parameters.
+                    Replace             Opens an dialog box for the Replace
+                                        operation.
+                    ResetProgram        Resets program being debugged
+                                        (Ctrl-F2).
+                    RunMenu             Selects Run menu (Alt-R).
+                    RunProgram          Makes and runs current executable
+                                        (Ctrl-F9).
+                    RunToHere           Runs program until statement at
+                                        cursor (F4).
+                    SaveFile            Saves current editor buffer (F2).
+                    SaveFileAs          Opens dialog for File SaveAs.
+                    SearchMenu          Selects Search menu (Alt-S).
+                    Step                Step over (F8).
+                    SystemMenu          Selects Sytem menu (Alt-Spacebar).
+                    ToggleBreakpoint    Sets/Clears a breakpoint at the
+                                        cursor location
+                    Trace               Trace into (F7).
+                    Transfer0           Selects nth item from transfer menu
+                    Transfer1           .
+                    Transfer2           .
+                    Transfer3           .
+                    Transfer4           .
+                    Transfer5           .
+                    Transfer6           .
+                    Transfer7           .
+                    Transfer8           .
+                    Transfer9           .
+                    ViewCallStack       Views Call Stack (Ctrl-F3).
+
+
+
+                                  - 74 -
+
+
+
+
+
+
+                    ViewUserScreen      Displays User Screen (Alt-F5).
+                    WindowList          Displays window list (Alt-0).
+                    WindowMenu          Selects Window menu (Alt-W).
+                    WindowCascade
+                    WindowTile
+                    WordHelp            Context sensitive help (Ctrl-F1).
+                    WriteBlock          Opens dialog box requesting a file
+                                        name to which the selected text
+                                        will be written.
+                    ZoomWindow          Zooms/unzoomd current window (F5).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 75 -
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 76 -
+
+
+
+
+
+
+INDEX
+___________________________________________________________________________
+
+
+
+
+
+- + and + - (TLIB action symbols)       /C THELP option (select color) 39,
+  48                                      40
+[ ] GREP operator 17                    /C TLIB option (case sensitivity)
+/? THELP help option 40, 42               45, 50
+-* and ** (TLIB action symbols) 47      $CAP EDIT transfer macro 55
+* (TLIB action symbol) 47               $CAP MSG transfer macro 55
++ (TLIB action symbol) 47               case sensitivity
+- (TLIB action symbol) 47                 GREP option 14
+$ GREP operator 17                        TLIB option 45, 50
+* GREP operator 17                      characters
++ GREP operator 17                        trigraph
+. GREP operator 17                          converting 53
+\ GREP operator 17                      $COL transfer macro 56
+^ GREP operator 17                      columns
+? THELP option 40, 42                     numbers 56
+                                        command line
+                                          syntax
+A                                           CPP 10
+add (TLIB action symbol) 47             compilers
+                                          Turbo editor macro 56
+                                        $CONFIG transfer macro 56
+B                                       configuration files 56
+BGIOBJ 2-10                               TCC file 10
+  advanced features 6                     CPP and 10
+  command-line syntax 3, 6              conversion
+  components 6                            trigraphs 53
+  example 4                             CPP 10-12
+  graphics.h and 8                        command-line options and syntax
+  options                                 10
+    destination file 7                    directory 10
+    /F 6                                  example of use 11
+    file name 6                           files
+    file name (/F) 5                        compiling 11
+    public name 7                         -P option (source file names and
+    segment class 7                         line numbers) 11
+    segment name 7                        wildcards and 10
+    source file 7
+
+                                        D
+C                                       -d GREP option (directories) 14
+-c GREP option (count only) 14          /D OBJXREF option (directory) 24
+
+
+
+Index                                                                    77
+
+
+
+
+
+
+debugging                               extended dictionary
+  include files 10                        TLIB and 45, 49
+  macros 10                             extract and remove (TLIB action) 47
+$DEF transfer macro 56
+Defines option
+  transfer macro 56                     F
+$DEP transfer macro 56                  /F BGIOBJ option 6
+dependencies                            /F BGIOBJ option (far routines) 5
+  explicit 56                           /F OBJXREF option (include full
+$DIR transfer macro 56                    library) 25
+directories                             /F THELP option 41
+  CPP 10                                /F THELP option (Help file path and
+  GREP option 14                          name) 40
+  include files                         files
+    transfer macro 57                     dates
+  libraries                                 changing 51
+    transfer macro 57                     destination
+  .OBJ files 24                             BGIOBJ 7
+  transfer macro 56                       extensions 57
+DLLs                                      linker response, used by OBJXREF
+  creating 57                               28, 33
+DOS                                       macros
+  commands                                  expanded 10
+    running from the IDE 59               matching
+$DRIVE transfer macro 56                    GREP option 14
+                                          names
+                                            macros
+E                                             transfer 54
+/E TLIB option (extended                    printing (GREP) 15
+  dictionary) 45, 49                      output, generated by OBJXREF 25
+editor                                    path
+  macro language (TEML)                     macros 56
+    using 56                              saving
+$EDNAME transfer macro 56                   all 58
+$ERRCOL transfer macro 57                 searching 12-22
+$ERRLINE transfer macro 57                source
+$ERRNAME transfer macro 57                  BGIOBJ 7
+errors                                  filters 55
+  linker                                  GREP 56
+    graphics drivers and fonts 5          Resource Compiler 56
+  OBJXREF (list) 34                       TASM 56
+examples                                fonts
+  OBJXREF 28-33                           adding to graphics library 3
+.EXE files                                files, converting to .OBJ files 2
+  file name transfer macro 57             included with Turbo C++ 4
+$EXENAME transfer macro 57                linker errors and 5
+$EXT transfer macro 57                    linking 2-10
+                                          registering 3, 8
+
+
+
+                                  - 78 -
+
+
+
+
+
+
+  stroked 2-10                              white space in 18
+    linking 2                             using 13
+                                          wildcards and 18
+                                        GREP.COM 16
+G                                       GREP2MSG.EXE 56
+graphics drivers
+  adding to graphics library 3
+  converting to .OBJ files 2, 2-10      H
+  included with Turbo C++ 4             /H THELP option (help) 40, 42
+  linker                                header files
+    errors and 5                          graphics.h 8
+  linking 2                             help
+  registering 3, 8                        GREP (file searcher) 13
+graphics.h (header file)                  OBJXREF 23
+  BGIOBJ and 8                            THELP 40, 42
+GRAPHICS.LIB                            hot keys
+  adding to 3                             scan codes 42
+GREP (file searcher) 12-22
+  capturing messages 56
+  examples 18                           I
+  files to search 18                    -i GREP option (case sensitivity)
+  help 13                                 14
+  literal character 17                  /I OBJXREF option (case
+  matches 17                              sensitivity) 24
+  operators 17                          $INC transfer macro 57
+  optimizing use of 16                  include files
+  options                                 debugging 10
+    case sensitivity (-i) 14              directories
+    count only (-c) 14                      transfer macro 57
+    default 15, 16                      integrated environment
+    discussion 13                         DOS commands and 59
+    file names (printing) 15              memory needs 59
+    -i (case sensitivity) 14
+    line numbers (-n) 14
+    lines, nonmatching (-v) 15          K
+    list matching files (-l) 14         /K THELP option (change hot key)
+    -n (line numbers) 14                  40, 42
+    -o (UNIX output format) 14          keyboard
+    precedence 16                         trigraph program 53
+    regular expression search (-r)
+    14
+    UNIX format (-o) 14                 L
+    updating (-u) 15                    -l GREP option (list matching
+    -v 15                                 files) 14
+    -v (nonmatching lines) 15           /L OBJXREF command (linker response
+    verbose 15                            file) 28
+    word search (-w) 15                 $LIB transfer macro 57
+  search strings 16                     libname (TLIB option) 45
+
+
+
+Index                                                                    79
+
+
+
+
+
+
+libraries                                 column number 57
+  directories                             file name 57
+    transfer macro 57                     line number 57
+  files 22                              module names, TLIB 46
+    contents of 22
+  graphics
+    adding driver and font files to     N
+    3                                   -n command-line compiler option
+  object files 43, 44                     CPP and 10
+    creating 47                         -n GREP option (line numbers) 14
+  OBJXREF                               /N OBJXREF option (limit reports)
+    including all 25                      26
+  page size 49                          $NAME transfer macro 57
+$LINE transfer macro 57                 $NOSWAP transfer macro 57
+lines                                   numbers
+  numbering 57                            column 56
+    printing (GREP) 14                    line 57
+linker
+  error: segment exceeds 64K 5
+  response files                        O
+    used by OBJXREF 28, 33              -o GREP option (UNIX format output)
+linking                                   14
+  graphics drivers 2                    /O OBJXREF option (output file for
+listfile (TLIB option) 45                 reports) 25
+                                        .OBJ files
+                                          converting font files into 2
+M                                         converting graphics drivers files
+macros                                    into 2
+  CPP and 11                              defined 22
+  debugging 10                            directories 24
+  editor 56                               libraries
+  expanded                                  advantages of using 44
+    list of 10                              creating 47
+  preprocessing 11                          TLIB and 43
+  preprocessor 10                         names 22
+MAKE (program manager)                    response files and 27
+  modifying 51                          object modules
+  project files and 36                    defined 22
+$MEM transfer macro 57, 59                names 22
+memory                                  OBJXREF 22-34
+  requirements                            directories 24
+    IDE 59                                error messages 34
+  transfer programs 57, 59                examples of reports 29, 30, 31,
+Message window                            32
+  capturing output into 55                help 23
+  copying text from 59                    /L command (linker response
+messages                                  files) 28
+  capturing from programs 55
+
+
+
+                                  - 80 -
+
+
+
+
+
+
+  linker files                            wildcards and 23
+    as response files 28                operations (TLIB option) 45
+  options 23                            operators
+    /N (limit information) 26             GREP 17
+    /RV 26                              $OUTNAME transfer macro 57
+    /RC 31                              output
+    control 24                            capturing 55
+    directories (/D) 24                 output file
+    /F (include full library) 25          generated by OBJXREF 25
+    ignore case (/I) 24
+    include full library (/F) 25
+    include zero-length segment         P
+    definitions (/Z) 25                 -P CPP option (source file names
+    list file names (/V) 25               and line numbers) 11
+    modified reports 26                 /P OBJXREF command (project files)
+    /O (output file) 25                   27
+    reports 25                          /P TLIB option (page size) 49
+      by class type                     page size (libraries) 49
+        example 33                      path
+      by class type (/RC) 26, 31          transfer macro 57
+      by external reference (/RX)       precedence
+      26, 30                              GREP options 16
+      by module (/RM) 26, 29              TLIB commands 46
+      by public names (/RP) 26, 29      PRJ2MAK (project file converter) 36
+      by reference (/RR) 26, 30, 33     PRJCNVT (project file converter) 35
+      default type 33                   $PRJNAME transfer macro 58
+      of all types (/RV) 26             programs
+      of module sizes (/RS) 26, 31        capturing output 55
+      of unreferenced symbol names        file name 57
+      (/RU) 26, 32                        memory assignments 59
+      output file (/O) 25               project files
+      verbose                             OBJXREF and 27
+        example 33                        used by OBJXREF 33
+      verbose (/RV) 26, 32              projects
+    /V (verbose output) 25                files
+    verbose report (/RV) 32                 converting from old versions 35
+    /Z (include zero-length segment         converting to MAKE files 36
+    definitions) 25                         file name transfer macro 58
+  project files                         $PROMPT transfer macro 58
+    as response files 27                public names
+  project files (/P) 27                   defined 22
+  reports 23
+    modifying 26
+    output file for (/O) 25             R
+  response files 23, 27                 -r GREP option (regular expression
+    example 33                            search) 14
+    linker 28                           /RC OBJXREF option (report) 31
+  warnings 34                           /RC OBJXREF option (reports) 26
+
+
+
+Index                                                                    81
+
+
+
+
+
+
+redirecting program output 55               in text files 12-22
+registerbgidriver (function)            swapping
+  BGIOBJ and 3, 8                         to User Screen 57
+registerbgifont (function)              syntax
+  BGIOBJ and 3, 8                         CPP 10
+registerfarbgidriver (function)           TLIB 44
+  BGIOBJ and 6, 8
+registerfarbgifont (function)
+  BGIOBJ and 6, 8                       T
+remove (TLIB action) 47                 TASM2MSG.EXE 56
+replace (TLIB action) 48                $TASM transfer macro 58
+Resource Compiler                       text
+  capturing messages 56                   Message window 59
+resources                               text files
+  rebuilding automatically 56             searching 12-22
+response files                          THELP (Turbo Help utility) 37-43
+  file-name extensions and 27             additional Help on highlighted
+  formats 27                              word 39
+  free-form 27                            cursor keys 38
+    example 33                            index 39
+  linker files and 28                     invoking 37
+  OBJXREF and 23, 27, 28                  keywords 38
+    example 33                            loading 37
+  project files and 27                    options 39-43
+  TLIB 48                                   colors (/C) 40
+  TLINK, OBJXREF and 33                     colors (/C)  39
+/RM OBJXREF option (reports) 26             Help file path (/F) 40
+/RP OBJXREF option (reports) 26             help file path (/F) 41
+/RR OBJXREF option (reports) 26             help on (/?
+/RS OBJXREF option (reports) 26               /H
+/RU OBJXREF option (reports) 26                 ?) 40, 42
+/RV OBJXREF option (reports) 26             Help screen colors (/C) 39
+/RX OBJXREF option (reports) 26             help screen colors (/C) 40
+                                            hot keys (/K) 40, 42
+                                            reassign hot keys (/K) 40, 42
+S                                           removing THELP (/U) 40, 43
+$SAVE ALL transfer macro 58                 screen colors (/C) 39, 40
+$SAVE CUR transfer macro 58                 /U (removing THELP) 40, 43
+$SAVE PROMPT transfer macro 58              /W (window options) 40
+scan codes 42                               window options 43
+searches                                    window options (/W) 40
+  text files 12-22                        paging through 38
+source files                              paste page 39
+  separately compiled 44                  previous screens 39
+standalone utilities 1                    quitting 39
+strings                                   removing from memory 40, 43
+  searching for                           scan codes 42
+    as expressions (GREP) 14              using 38
+
+
+
+                                  - 82 -
+
+
+
+
+
+
+TLIB (librarian) 43-51                    $INC 57
+  action symbols 46-48                    instruction 55
+  capabilities 43                         $LIB 57
+  examples 51                             $LINE 57
+  extended dictionary (/e)                $MEM 57
+    TLINK and 49                          $NAME 57
+  module names 46                         $NOSWAP 57
+  operations 46                           $OUTNAME 57
+    precedence 46                         $PRJNAME 58
+  options                                 $PROMPT 58
+    case sensitivity (/c) 45, 50          $SAVE ALL 58
+    /E 45, 49                             $SAVE CUR 58
+    extended dictionary (/e) 45, 49       $SAVE PROMPT 58
+    libname 45                            $TASM 58
+    listfile 45                           $WRITEMSG 59
+    operations 45                       trigraphs
+    page size (/P) 49                     translating 53
+    using 44                              undo option (-u) 53
+  response files                        Turbo Assembler
+    using 48                              capturing messages 56
+  syntax 44                               $TASM macro 58
+TLIB (Turbo librarian) 43-51            TURBOC.CFG 10
+  options 39-51
+TLINK (linker)
+  response files                        U
+    OBJXREF and 28                      -u GREP option (updating) 15
+  TLIB extended dictionary and 49       /U THELP option 43
+TOUCH 51, 52                            /U THELP option (remove THELP) 40
+transfer macros                         UNIX
+  $CAP EDIT 55                            format (GREP) 14
+  $CAP MSG 55                           User Screen 57
+  $COL 56                               utilities
+  $CONFIG 56                              standalone 1
+  $DEF 56                                 TLIB 43-51
+  defined 54                              TOUCH 51
+  $DEP 56
+  $DIR 56
+  DOS commands 59                       V
+  $DRIVE 56                             -v GREP option (nonmatching lines)
+  $EDNAME 56                              15
+  $ERRCOL 57                            /V OBJXREF option (verbose output)
+  $ERRLINE 57                             25
+  $ERRNAME 57
+  $EXENAME 57
+  $EXT 57                               W
+  file names 54                         -w GREP option (word search) 15
+  glossary of 55                        /W THELP option (ser window
+  how expanded 54                         size/location) 40
+
+
+
+Index                                                                    83
+
+
+
+
+
+
+/W THELP option (window options) 43     Z
+wildcards                               -z GREP option (verbose) 15
+  CPP and 10                            /Z OBJXREF option (include zero-
+  OBJXREF and 23                          length segment definitions) 25
+  TOUCH and 52
+$WRITEMSG transfer macro 59
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 84 -
+
+                                                                                                                                                                                                                                                                                                                       .bss                           .rdata  `                         H  `     i                    W  \                          g  €                     .xdata  h     (                 .pdata  Œ                     .file   Â  şÿ  gxtxtmode.c        .text   p                       .data   P                        .bss    0                      .file   ×  şÿ  gcrt_handler.c         w  p                           ‘          INDX( 	 96           (   X  è       )  ×                ÿ     ˜ †     õ     Ë©ùq²× Z.ĞÕ¢J]ôÎVÖR\ıq²× `      OX      !       " A N S I   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C M ş     ˜ †     õ     5õq²× Z.ĞÕÙ¬_ôÎVÖ‹õq²× €      x~      !       " B A S M   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C M ı     ˜ ˆ     õ     ïñq²× Z.ĞÕ›bôÎVÖÊUòq²× 0      Ÿ#      !       # B R I E F   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C  . T E M ü            õ     I¥íq²× Z.ĞÕ;rdôÎVÖ_»îq²×       ÷ş     !       & C L A S S L I B   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C   û    	   Œ     õ     ş7êq²× Z.ĞÕëÓfôÎVÖ‡xêq²×               !       % C M A C R O S   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . T E M M   ú            õ     s!çq²× Z.ĞÕkeiôÎVÖ3çq²×        b      !       & D E F A U L T S   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . T E M   ù       Œ     õ     é:äq²× Z.ĞÕ:môÎVÖ‰äq²×       À      !       % D O S E D I T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . T E M     ø       Œ     õ     ÖYáq²× Z.ĞÕpÿqôÎVÖ™áq²× 0      i%      !       % E P S I L O N   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . T E M     ÷       Œ     õ     jÅİq²× Z.ĞÕ¹atôÎVÖü Şq²×       JŒ      !       % H E L P M E !   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C     ö     ˜ †     õ     ¼ Ùq²× Z.ĞÕÄvôÎVÖ˜bÚq²       Ş     !       " U T I L   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            /******************************************************************
+This file contains a TEML script that is helpful to C and C++
+programmers.  To use the macros in this file run TEMC to compile
+it and add it to the appropriate tcconfig.tc file.  The syntax for
+this is:
+
+TEMC cmacros.tem tcconfig.tc
+
+This will add the macros and key definitions in cmacros.tem to what
+already exists in tcconfig.tc.
+
+For more information on TEMC, please refer to the file UTIL.DOC.
+
+******************************************************************/
+
+/******************************************************************
+
+Macro:   Sample macro to comment a function
+
+Use:     Put the cursor immediately after a function name which is
+			at the left of the screen, then press Alt-T. Do not include
+			the return type or parameters before using this macro.
+
+******************************************************************/
+
+macro MakeFuncText
+	 InsertText("\n\n");            /* add white space */
+	 CursorUp;
+	 CursorUp;
+	 LeftOfLine;                    /* go before beginning of intended
+                                       function name */
+	 SetBlockBeg;                   /* mark function name */
+	 WordRight;
+	 SetBlockEnd;
+	 LeftOfLine;
+	 CursorDown;
+	 CopyBlock;                     /* copy for prototyping */
+	 CursorUp;
+	 LeftOfLine;
+	 InsertText("\nFunction: ");     /* add "Function" to comment area */
+	 RightOfLine;
+	 CursorUp;                      /* put in comment lines before and
+												  after */
+	 LeftOfLine;
+	 InsertText("/*******************************************************");
+     CursorDown;
+	 RightOfLine;
+     InsertText("\n\n");
+     LeftOfLine;
+     InsertText("Description:\n");
+     LeftOfLine;
+     InsertText("*******************************************************/\n");
+     CursorDown;                     /* go back to end of name */
+     RightOfLine;
+end;                                /* MakeFuncText */
+
+/*******************************************************************
+
+MACRO: MakeStub
+
+DESCRIPTION:  Creates a stub, based on a user-entered function name.
+   It assumes the cursor is positioned immediately after the name,
+   and the name is at the left of the screen.
+
+*******************************************************************/
+
+macro MakeStub
+    LeftOfLine;           /* go before beginning of intended
+                             function name */
+    InsertText("void ");  /* void return type */
+    RightOfLine;
+    InsertText("( void )\n{\n");  /* void parameter */
+    InsertText("printf(\"This is ");
+    CursorUp;
+    CursorUp;
+    LeftofLine;
+    WordRight;
+    SetBlockBeg;
+    WordRight;
+    CursorLeft;
+    CursorLeft;
+    SetBlockEnd;
+    CursorDown;
+    CursorDown;
+    RightofLine;
+    InsertText(" ");
+    CopyBlock;
+    SetBlockBeg;
+    SetBlockEnd;
+    RightofLine;
+    InsertText("\\n\");");
+    InsertText("\n}");
+end;
+
+/*******************************************************************
+
+MACRO: MakeComment
+
+DESCRIPTION:  Inserts comment bars
+
+*******************************************************************/
+
+macro MakeComment
+   InsertText("/******************************");
+   InsertText("*************************************\n\n");
+   InsertText("*******************************");
+   InsertText("************************************/\n");
+   CursorUp;
+   CursorUp;
+end;
+
+/*******************************************************************
+
+MACRO: MakeMain
+
+DESCRIPTION:  Inserts outline of main program
+
+*******************************************************************/
+
+macro MakeMain
+   InsertText("int main(void)\n{\n\n  return 0;\n");
+   LeftOfLine;
+   InsertText("}");
+   CursorUp;
+   CursorUp;
+   CursorRight;
+end;
+
+/*******************************************************************
+
+MACRO: MainCppIO
+
+DESCRIPTION:  Inserts outline of main program for C++ which uses
+   iostream.h.
+
+*******************************************************************/
+
+macro MainCppIO
+   InsertText("#include <iostream.h>\n\n");
+   InsertText("int main(void)\n{\n\n  return 0;\n");
+   LeftOfLine;
+   InsertText("}");
+   CursorUp;
+   CursorUp;
+   CursorRight;
+end;
+
+/*******************************************************************
+
+MACRO: MainCIO
+
+DESCRIPTION:  Inserts outline of main program for C which uses
+  stdio.h
+
+*******************************************************************/
+
+macro MainCIO
+   InsertText("#include <stdio.h>\n\n");
+   InsertText("int main(void)\n{\n\n  return 0;\n");
+   LeftOfLine;
+   InsertText("}");
+   CursorUp;
+   CursorUp;
+   CursorRight;
+end;
+
+/*******************************************************************
+
+KEYBOARD ASSIGNMENTS:
+
+*******************************************************************/
+
+Alt-K : MakeComment;
+Alt-M : MakeMain;
+Alt-N : MainCPPIO;
+Alt-I : MainCIO;
+Alt-Z : MakeStub;
+Alt-T : MakeFuncText;
+                                                                                                ext   8      .data   °       .bss    `	      .idata$7ä      .idata$5@      .idata$4h       .idata$6D      .text   @      .data   °       .bss    `	      .idata$7à      .idata$58      .idata$4`       .idata$60      .text   H      .data   °       .bss    `	      .idata$7Ü      .idata$50      .idata$4X       .idata$6      .text   P      .data   °       .bss    `	      .idata$7Ø      .idata$5(      .idata$4P       .idata$6       .file   ñ  şÿ  gfake              hname   P       fthunk  (      .text   `                       .data   °                        .bss    `	                       .idata$2                       .idata$4P       .idata$5(      .file     şÿ  gfake              .text   `                       .data   °                        .bss    `	                       .idata$4                      .idata$5à                      .idata$74                      .text   `      .data   °       .bss    `	      .idata$7l      .idata$58      .idata$4`      .idata$6‚      .file   !  şÿ  gcygming-crtend.c      Ì  Ğ                       .text   `                       .data   °                        .bss    `	                           à  Ğ                         î  @                          ı  ¬                           ğ                     .rdata  €            °            È      .idata$2(       .idata$5¸      .idata$4à      .idata$4       .idata$5ø      .idata$7Ô      __xc_z             5  °          T  X          j  P          v  4          ’              ¡              °  8          ½  °          Î  €          Ü             ó  Ğ            X                        -      	        <  €          [    @ ÿÿ   __xl_a  8           g  (          t            Œ  ğ          £  È          ³  °      _cexit  ğ          Ç  P          æ      ÿÿ       ş     ÿÿ                   "             0      ÿÿ       J     ÿÿ       f  8           x  (      __xl_d  H           ”  ˆ       _tls_end   	        ¹  à          Ï             Ü             î  P            (            8           $  0          <  ¸          G      	    memcpy             R  `	          l             }             £  @          ¼  H          Õ  `      malloc  ¨          ô  8      _CRT_MT P             ¸            À          %  (           ;              I  è          d  Ô          ‡  à               ÿÿ       ¶  P          É  Ğ          İ  p          è  ˜            ¨                      #  X           5  x          P  °          a  (           o             „  0            h          ±  `      abort   Ø          Ò  ğ          ü  X             Ğ   /***********************************************************************
+
+              Brief editor emulation for Borland C++ IDE.
+
+	This file contains a Turbo Editor Macro Language (TEML)
+script which emulates the Brief programmer's editor in the Borland
+C++ IDE.  A complete description of the TEML language and the Turbo
+Editor Macro Compiler (TEMC) can be found in the file "UTIL.DOC".
+
+	The TEMC compiler can be invoked from the DOS command line at
+follows:
+ 
+	  temc [-c] brief.tem <IDE configuration file>
+
+The optional -c switch can also be specified as /c, and can appear in
+any argument position on the command line. If you use this option,
+any existing command table in your configuration file is thrown away
+before the script file is merged with those already defined. The
+configuration file extensions is assumed to be .TC.  The configuration
+file need not exist. If it does not exist, it is created. 
+tcconfig.tc is the main configuration file.
+
+Most of the simple Brief commands have been fully implemented.  Most
+of the complex commands have been either partially implemented or not
+implemented at all. Below is a list of the commands that have been
+fully or partially implemented.
+
+IDE Binding   Brief Command              Comments
+-----------   ---------------	         -------------------------
+F4            Close Window               Closes the current window
+F5            Search                     
+F6            Replace
+F10           Command                    Activates system menu
+Shift-F5      Search Backward            Repeats previous search
+                                         Option to go backward can be selected
+Shift-F6      Repeat Replace             Repeats previous replace
+                                         Option to go backward can be selected
+Ins           Paste Scrap                Pastes current clipboard selection
+Del           Delete                     Deletes current character only
+PgDn          Page Down
+PgUp          Page Up
+UpAr          Cursor Up
+DnAr          Cursor Down
+Star          Undo
+Plus          Copy Block                 Copies block to clipboard
+Minus         Move Block                 Cuts block to clipboard
+Ctrl-D        Scroll Down
+Ctrl-E        Scroll Up
+Ctrl-G        Routines                   Activates the search menu
+                                         Find function can be selected here
+Ctrl-N        Next Error
+Ctrl-P        Error list                 Moves to previous error
+Ctrl-K        Delete To BOL              Deletes to beginning of line
+Ctrl-U        Redo
+Ctrl-W        Toggle Backup              Activates Options menu
+                                         Backup files can be toggled here
+Ctrl-F5       Case Sensitivity           Selects search dialog box
+                                         Case sensitivity can be toggled here
+Ctrl-F6       Toggle Regular Exp.        Selects search dialog box
+                                         Regular expressions can be toggled here
+Ctrl-bksp     Delete Prev Word
+Alt-A         Drop anchor                Sets beginning of block
+Alt-B         Buffer List                Lists ALL open windows
+Alt-C         Column mark                Sets beginning of *non-column* block
+Alt-D         Delete line
+Alt-E         Edit File
+Alt-G         Goto line                  Activates the search menu
+                                         Goto line can be selected here
+Alt-H         Help                       Context sensitive help
+Alt-I         Toggle Insert
+Alt-J+0       Goto BookMark(0)           Only marks 0-5 are supported
+Alt-J+1       Goto BookMark(1)             :
+Alt-J+2       Goto BookMark(2)             :
+Alt-J+3       Goto BookMark(3)             :
+Alt-J+4       Goto BookMark(4)             :
+Alt-J+5       Goto BookMark(5)           by this macro file
+Alt-K         Delete To EOL
+Alt-L         Mark Line
+Alt-M         Mark                       Sets beginning of block
+Alt-N         Next Buffer                Cycles to next open window
+Alt-O         New output file            Activates file menu
+                                         Save as... can be selected here
+Alt-P         Print Block
+Alt-Q         Quote                      Insert literal character
+Alt-R         Read Block
+Alt-S         Search
+Alt-T         Replace
+Alt-U         Undo
+Alt-V         Version                    Activates system menu
+                                         About can be selected here
+Alt-W         Write File
+Alt-X         Quit
+Alt-Z         DOS Shell                  Activates the file menu
+                                         OS Shell can be selected here
+Alt-0         Set BookMark(0)
+Alt-1         Set BookMark(1)
+Alt-2         Set BookMark(2)
+Alt-3         Set BookMark(3)
+Alt-4         Set BookMark(4)
+Alt-5         Set BookMark(5)
+Alt-F2        Zoom Window
+Alt-F5        Incremental Search         Prompts for search string
+                                         IDE does not support inc. search
+Alt-F6        Translate Backwards        Prompts for replace string
+                                         Option to go backward can be selected
+Alt-F10       Compile File
+Alt-BkSp      Delete Next Word
+
+****************************************************************/
+
+/******* Macros ********/
+
+MACRO MacScrollUp
+  ScrollScreenUp;
+  FixCursorPos;
+END;
+
+MACRO MacScrollDown
+  ScrollScreenDown;
+  FixCursorPos;
+END;
+
+MACRO MacPageUp
+  FixScreenPos;
+  PageScreenUp;
+  FixCursorPos;
+END;
+
+MACRO MacPageDown
+  FixScreenPos;
+  PageScreenDown;
+  FixCursorPos;
+END;
+
+MACRO MacDeleteLine
+  DeleteLine;
+  LeftOfLine;
+END;
+
+MACRO MacTopOfScreen
+  SetPrevPos;
+  TopOfScreen;
+END;
+
+MACRO MacBottomOfScreen
+  SetPrevPos;
+  BottomOfScreen;
+END;
+
+MACRO MacHomeCursor
+  SetPrevPos;
+  HomeCursor;
+END;
+
+MACRO MacEndCursor
+  SetPrevPos;
+  EndCursor;
+END;
+
+MACRO MacOpenLine
+  RightOfLine;
+  LiteralChar(13);
+END;
+
+
+MACRO MacSetBlockBeg
+  HideBlock;
+  SetBlockBeg;
+END;
+
+MACRO MacSetBlockEnd
+  HideBlock;
+  SetBlockEnd;
+  HighlightBlock;
+END;
+
+MACRO MacMarkLine
+  HideBlock;
+  SetTempPos;
+  RightOfLine;
+  CursorCharRight;
+  SetBlockEnd;
+  CursorCharLeft;
+  LeftOfLine;
+  SetBlockBeg;
+  HighlightBlock;
+  MoveToTempPos;
+END;
+
+MACRO MacMarkWord
+  HideBlock;
+  SetTempPos;
+  CursorRight;
+  WordLeft;
+  RightOfWord;
+  SetBlockEnd;
+  WordLeft;
+  SetBlockBeg;
+  HighlightBlock;
+  MoveToTempPos;
+END;
+
+MACRO MacMoveToBlockBeg
+  SetPrevPos;
+  MoveToBlockBeg;
+  CenterFixScreenPos;
+END;
+
+MACRO MacMoveToBlockEnd
+  SetPrevPos;
+  MoveToBlockEnd;
+  CenterFixScreenPos;
+END;
+
+MACRO MacMoveToPrevPos
+  SwapPrevPos;
+  CenterFixScreenPos;
+END;
+
+MACRO MacCopyBlock
+  CopyBlock;
+  HideBlock;
+  CenterFixScreenPos;
+END;
+
+MACRO MacMoveBlock
+  MoveBlock;
+  HighlightBlock;
+  CenterFixScreenPos;
+END;
+
+MACRO MacBreakLine
+  LiteralChar(13);
+  CursorCharLeft;
+END;
+
+MACRO MacDeleteNextWord
+  WordRight;
+  MacMarkWord;
+  DeleteBlock;
+  CenterFixScreenPos;
+END;
+
+MACRO MacDeletePrevWord
+  WordLeft;
+  MacMarkWord;
+  DeleteBlock;
+  CenterFixScreenPos;
+END;
+
+MACRO MacDeleteToBOL
+  SetPrevPos;
+  LeftOfLine;
+  SetBlockBeg;
+  MoveToPrevPos;
+  SetBlockEnd;
+  DeleteBlock;
+  CenterFixScreenPos;
+END;
+
+/******* Brief Key Bindings  ******/
+
+F4        : CloseWindow;
+F5        : GetFindString;
+F6        : Replace;
+F10       : Menu;
+
+Shift-F5  : RepeatSearch;
+Shift-F6  : RepeatSearch;
+
+Ins       : ClipPaste;
+Del       : DeleteChar;
+PgDn      : MacPageDown;
+PgUp      : MacPageUp;
+UpAr      : CursorUp;
+DnAr      : CursorDown;
+Star      : Undo;
+Plus      : MacCopyBlock;
+Minus     : MoveBlock;
+
+Ctrl-D    : MacScrollDown;
+Ctrl-E    : MacScrollUp;
+Ctrl-G    : SearchMenu;
+Ctrl-N    : NextError;
+Ctrl-P    : PrevError;
+Ctrl-K    : MacDeleteToBOL;
+Ctrl-U    : Redo;
+Ctrl-W    : OptionsMenu;
+Ctrl-F5   : GetFindString;
+Ctrl-F6   : GetFindString;
+Ctrl-bksp : MacDeletePrevWord;
+
+Alt-A     : SetBlockBeg;
+Alt-B     : WindowList;
+Alt-C     : MacSetBlockBeg;
+Alt-D     : MacDeleteLine;
+Alt-E     : OpenFile;
+Alt-G     : SearchMenu;
+Alt-H     : Help;
+Alt-I     : ToggleInsert;
+Alt-J+0   : MoveToMark(0);
+Alt-J+1   : MoveToMark(1);
+Alt-J+2   : MoveToMark(2);
+Alt-J+3   : MoveToMark(3);
+Alt-J+4   : MoveToMark(4);
+Alt-J+5   : MoveToMark(5);
+Alt-K     : DeleteToEOL;
+Alt-L     : MacMarkLine;
+Alt-M     : SetBlockBeg;
+Alt-N     : NextWindow;
+Alt-O     : FileMenu;
+Alt-P     : PrintBlock;
+Alt-Q     : LiteralChar;
+Alt-R     : ReadBlock;
+Alt-S     : GetFindString;
+Alt-T     : Replace;
+Alt-U     : Undo;
+Alt-V     : SystemMenu;
+Alt-W     : SaveFile;
+Alt-X     : Quit;
+Alt-Z     : FileMenu;
+Alt-0     : SetMark(0);
+Alt-1     : SetMark(1);
+Alt-2     : SetMark(2);
+Alt-3     : SetMark(3);
+Alt-4     : SetMark(4);
+Alt-5     : SetMark(5);
+Alt-F2    : ZoomWindow;
+Alt-F5    : GetFindString;
+Alt-F6    : GetFindString;
+Alt-F10   : CompileFile;
+Alt-BkSp  : MacDeleteNextWord;
+                                                                                                 _data_end__ __imp_fwrite __CTOR_LIST__ __imp___getmainargs _head_lib64_libkernel32_a libstdc___6_dll_iname __bss_end__ .refptr.mingw_initltsdrot_force GetTickCount __native_vcclrit_reason ___crt_xc_end__ RtlAddFunctionTable .refptr.__native_startup_lock __imp_EnterCriticalSection __imp__ZNSirsERi __fu1__ZSt3cin _ZNSolsEi _tls_index __native_startup_state ___crt_xc_start__ __imp_GetCurrentProcessId __imp___lconv_init __imp_TerminateProcess __lib64_libmsvcrt_os_a_iname ___CTOR_LIST__ .refptr.__dyn_tls_init_callback __imp_signal __rt_psrelocs_size __imp_QueryPerformanceCounter .refptr._ZSt4cout __imp_strlen __imp_malloc __mingw_winmain_nShowCmd mingw_pcinit .refptr._gnu_exception_handler _ZNSt8ios_base4InitC1Ev __file_alignment__ __imp_InitializeCriticalSection __lconv_init __imp__ZNSt8ios_base4InitD1Ev __getmainargs InitializeCriticalSection __imp_exit __imp_vfprintf __nm__ZSt4cout __major_os_version__ __imp___initenv __IAT_start__ __imp__cexit __imp_UnhandledExceptionFilter __imp_SetUnhandledExceptionFilter .refptr.mingw_app_type __imp__ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ __imp__onexit __DTOR_LIST__ RtlVirtualUnwind .refptr.__imp__acmdln __set_app_type __imp_Sleep __imp___p__acmdln LeaveCriticalSection __imp___setusermatherr __size_of_heap_reserve__ ___crt_xt_start__ __subsystem__ _amsg_exit __security_cookie_complement __imp_TlsGetValue __imp__ZSt3cin GetCurrentProcess __setusermatherr __imp_fprintf _ZNSt8ios_base4InitD1Ev __imp_VirtualProtect ___tls_end__ QueryPerformanceCounter __imp_VirtualQuery __imp__initterm mingw_initltsdyn_force _dowildcard __imp___iob_func __dyn_tls_init_callback __imp__ZSt4cout .refptr.__image_base__ _initterm __imp_strncmp _head_lib64_libmsvcrt_os_a .refptr._fmode __imp___acrt_iob_func __major_image_version__ __loader_flags__ __fu0__ZSt4cout _ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ ___chkstk_ms __native_startup_lock __mingw_winmain_hInstance GetStartupInfoA GetCurrentThreadId __rt_psrelocs_end __imp__get_invalid_parameter_handler __minor_subsystem_version__ __minor_image_version__ __imp___set_app_type mingw_initltsdrot_force .refptr.__xc_a __imp__ZNSt8ios_base4InitC1Ev .refptr.__xi_z .refptr._MINGW_INSTALL_DEBUG_MATHERR DeleteCriticalSection __imp_RtlCaptureContext __RUNTIME_PSEUDO_RELOC_LIST_END__ __imp_GetCurrentProcess .refptr.__xc_z ___crt_xt_end__ __security_cookie                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      #!/bin/sh
+#
+# An example hook script to block unannotated tags from entering.
+# Called by "git receive-pack" with arguments: refname sha1-old sha1-new
+#
+# To enable this hook, rename this file to "update".
+#
+# Config
+# ------
+# hooks.allowunannotated
+#   This boolean sets whether unannotated tags will be allowed into the
+#   repository.  By default they won't be.
+# hooks.allowdeletetag
+#   This boolean sets whether deleting tags will be allowed in the
+#   repository.  By default they won't be.
+# hooks.allowmodifytag
+#   This boolean sets whether a tag may be modified after creation. By default
+#   it won't be.
+# hooks.allowdeletebranch
+#   This boolean sets whether deleting branches will be allowed in the
+#   repository.  By default they won't be.
+# hooks.denycreatebranch
+#   This boolean sets whether remotely creating branches will be denied
+#   in the repository.  By default this is allowed.
+#
+
+# --- Command line
+refname="$1"
+oldrev="$2"
+newrev="$3"
+
+# --- Safety check
+if [ -z "$GIT_DIR" ]; then
+	echo "Don't run this script from the command line." >&2
+	echo " (if you want, you could supply GIT_DIR then run" >&2
+	echo "  $0 <ref> <oldrev> <newrev>)" >&2
+	exit 1
+fi
+
+if [ -z "$refname" -o -z "$oldrev" -o -z "$newrev" ]; then
+	echo "usage: $0 <ref> <oldrev> <newrev>" >&2
+	exit 1
+fi
+
+# --- Config
+allowunannotated=$(git config --type=bool hooks.allowunannotated)
+allowdeletebranch=$(git config --type=bool hooks.allowdeletebranch)
+denycreatebranch=$(git config --type=bool hooks.denycreatebranch)
+allowdeletetag=$(git config --type=bool hooks.allowdeletetag)
+allowmodifytag=$(git config --type=bool hooks.allowmodifytag)
+
+# check for no description
+projectdesc=$(sed -e '1q' "$GIT_DIR/description")
+case "$projectdesc" in
+"Unnamed repository"* | "")
+	echo "*** Project description file hasn't been set" >&2
+	exit 1
+	;;
+esac
+
+# --- Check types
+# if $newrev is 0000...0000, it's a commit to delete a ref.
+zero="0000000000000000000000000000000000000000"
+if [ "$newrev" = "$zero" ]; then
+	newrev_type=delete
+else
+	newrev_type=$(git cat-file -t $newrev)
+fi
+
+case "$refname","$newrev_type" in
+	refs/tags/*,commit)
+		# un-annotated tag
+		short_refname=${refname##refs/tags/}
+		if [ "$allowunannotated" != "true" ]; then
+			echo "*** The un-annotated tag, $short_refname, is not allowed in this repository" >&2
+			echo "*** Use 'git tag [ -a | -s ]' for tags you want to propagate." >&2
+			exit 1
+		fi
+		;;
+	refs/tags/*,delete)
+		# delete tag
+		if [ "$allowdeletetag" != "true" ]; then
+			echo "*** Deleting a tag is not allowed in this repository" >&2
+			exit 1
+		fi
+		;;
+	refs/tags/*,tag)
+		# annotated tag
+		if [ "$allowmodifytag" != "true" ] && git rev-parse $refname > /dev/null 2>&1
+		then
+			echo "*** Tag '$refname' already exists." >&2
+			echo "*** Modifying a tag is not allowed in this repository." >&2
+			exit 1
+		fi
+		;;
+	refs/heads/*,commit)
+		# branch
+		if [ "$oldrev" = "$zero" -a "$denycreatebranch" = "true" ]; then
+			echo "*** Creating a branch is not allowed in this repository" >&2
+			exit 1
+		fi
+		;;
+	refs/heads/*,delete)
+		# delete branch
+		if [ "$allowdeletebranch" != "true" ]; then
+			echo "*** Deleting a branch is not allowed in this repository" >&2
+			exit 1
+		fi
+		;;
+	refs/remotes/*,commit)
+		# tracking branch
+		;;
+	refs/remotes/*,delete)
+		# delete tracking branch
+		if [ "$allowdeletebranch" != "true" ]; then
+			echo "*** Deleting a tracking branch is not allowed in this repository" >&2
+			exit 1
+		fi
+		;;
+	*)
+		# Anything else (is there anything else?)
+		echo "*** Update hook: unknown type of update to ref $refname of type $newrev_type" >&2
+		exit 1
+		;;
+esac
+
+# --- Finished
+exit 0
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                             MZn    š ÿÿÈ€       >    û0jr                               Ş                                                                                                                                                                                                                                                                                                                                                                                                                                                           ºÚ.‰5´0Í!‹. ‹, Ú£ Œ ‰Š ‰.¦ è=Ä>ˆ ‹Ç‹Ø¹ÿüò®ãaC&8uö€Í€÷Ù‰ˆ ¹ ÓãƒÃƒãø‰Œ ŒÚ+ê‹>âÿ s¿ ‰>âÇŞr(>Úr"±ÓïG;ïrƒ>â tƒ>Ú u¿ ;ïw‹ıëé„‹ßÚ‰ ‰¢ ¡ +ØÀ´JWÍ!_ÓçúÒ‹çû3À.5¿Î¹Ş+Ïüóª´ Í‰” ‰– 3í¸ÚØ¾Â¿Îèê .5.Æçr.ÆÖ ÿ6† ÿ6„ ÿ6‚ èPè´¸ÚØ¾Î¿Îè¸ .5ÿhÿjÿl.5èr 3À‹ğ¹- €Ô Fâø-¥t	¹ º- èÅ ‹ì´LŠFÍ!¹ ºF éÁ ¸ 5Í!‰r Œt ¸5Í!‰v Œx ¸5Í!‰z Œ| ¸5Í!‰~ Œ€ ¸ %ŒÊÚº\Í!Ã¸ %År Í!¸%Åv Í!¸%Åz Í!¸%Å~ Í!Ã´ÿ‹×‹Ş;ßt€?ÿt
+8gwŠg‹ÓƒÃëè;×t ‹Ú€? Æÿ.5t&ÿ_ëÅ&ÿWë¾Ã´@» Í!Ã¹ ºT .5èêÿ¸ Pèùş   U‹ìƒìP‹Ô	Ñãÿ·¨ è)YÿvF°Pè| YY¸4PF°Pè  YYF°PèY‹å]ÃU‹ìÇÔ	  ÇÎ	zÆzÿÇĞ	Î]ÃU‹ìLL>Î	{tÇÒ	 ë>ÿ6x
+¸ P¸ P¸z
+PèƒÄ‰FşÀw‹x
+÷G  uÇÔ	 ëÈ‹^şÆ‡z
+ÿÇÎ	z
+‹å]ÃU‹ìÿ6&
+¡Ğ	-ÎP¸ P¸ÎPè·ƒÄ‹Ğ	êÎ;ÂtÇÔ	 ÇÒ	 ëÇĞ	Î]ÃU‹ìÿÎ	‹Î	ŠFˆ]ÃU‹ìÿv¸Ö	Pè‘YY¸. P¸Ö	PèNYYÀu¸CP¸Ö	PèYY]ÃU‹ìì¢ VW‹v‹~FğPFöP†^ÿPF®PÿvèŠƒÄ
+ötV†^ÿPè9YYÿt¸FPFğPè(YYWFğPè¯YY€~ğ u¸HPFğPèYYFğPFöP†^ÿPF®P¸(
+Pè4ƒÄ
+_^‹å]ÃU‹ìì² V‹v¸{PèkYFğPFöP†NÿPFP¸{PèşƒÄ
+FöPFæPè¯YYFğPFàPè¢YYFğPFöP†NÿPFPÿvèÊƒÄ
+ötV†NÿPèyYYFàPFæP†NÿPFP¸{Pè¢
+ƒÄ
+^‹å]ÃU‹ìVW‹v‹~VèªşYÿvWVèĞşƒÄ¸KP¸Ö	Pè`YY£x
+ÀuÇÔ	 ¸Ö	Pÿ6ª ¸NPèAƒÄ3Àë1WVèÿYY¸UP¸{Pè)YY£&
+ÀuÇÔ	 ¸{Pÿ6¬ ¸XëÇ¸ _^]ÃU‹ìƒ>x
+ tÿ6x
+èÙYƒ>&
+ tÿ6&
+èÊY]ÃU‹ìƒìÿvFğPè¤YY¸. PFğPèaYY‰FşÀu¸_PFğPèë
+¸dPÿvşèwYYFğPèØYFğP¸Ö	PèÔYY=ÿÿuÇÔ	 ë%¸(
+P¸{PèºYY=ÿÿuÇÔ	 ¸Ö	PFğPè¢YY‹å]ÃU‹ìV‹vƒ>Ô	 tVè~üëVè^ÿY^]ÃU‹ì¸»Pè¦Y¸ôPèY¸(Pè–Y¸`PèY¸™Pè†Y¸ÓPè~Y¸ÜPèvY¸PènY¸-PèfY¸ Pè¬Y]ÃU‹ìLLVW‹~‹v¸zPèGYëD‹\ŠG˜‰Fş¹ »Õ.‹;FştCCâôë .ÿg‹D@@£lëÇj ë‹D@@£nëèSÿOFF‹\€?-t´‹\€?/t¬ƒÿ}è8ÿë4ë2ÿ4èßYÿ6nÿ6lÿ4èØıƒÄÀtƒ>j uèëè3 è?şÿ4èçşYFF‹ÇO= Ä3À_^‹å]ÃN U X n u x S]eS]eU‹ìLLVè|ûÇÒ	  éæ‹Î	ÿÎ	ŠˆFÿ˜‹ğ¹
+ »ş	.97tCCâ÷éª.ÿg>Ğ	Î	uèµûë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèûë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uè…ûë ‹Ğ	ÿĞ	Æ=éu>Ğ	Î	uèjûë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèRûë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uè:ûë ‹Ğ	ÿĞ	Æ(é*>Ğ	Î	uèûë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèûë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèïúë ‹Ğ	ÿĞ	Æ/éß>Ğ	Î	uèÔúë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uè¼úë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uè¤úë ‹Ğ	ÿĞ	Æ)é”>Ğ	Î	uè‰úë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèqúë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèYúë ‹Ğ	ÿĞ	Æ'éI>Ğ	Î	uè>úë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uè&úë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèúë ‹Ğ	ÿĞ	Æ<éş >Ğ	Î	uèóùë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèÛùë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèÃùë ‹Ğ	ÿĞ	Æ!é³ >Ğ	Î	uè¨ùë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèùë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèxùë ‹Ğ	ÿĞ	Æ>ëi>Ğ	Î	uè^ùë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèFùë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uè.ùë ‹Ğ	ÿĞ	Æ-ëèÅøë>Ğ	Î	uèùë ‹Ğ	ÿĞ	ŠFÿˆƒ>Ò	 uéıƒ>Ô	 uèìø^‹å]Ãÿÿ# [ \ ] ^ { | } ~ Æ	%p»Qœç2	|	U‹ìLLVér‹Î	ÿÎ	ŠˆFÿ˜‹ğ¹ »°.97tCCâ÷é.ÿg>Ğ	Î	uè…øë ‹Ğ	ÿĞ	Æ?é1>Ğ	Î	uèjøë ‹Ğ	ÿĞ	Æ#é >Ğ	Î	uèOøë ‹Ğ	ÿĞ	Æ[é°\PèwøYéû >Ğ	Î	uè*øë ‹Ğ	ÿĞ	Æ]éà >Ğ	Î	uèøë ‹Ğ	ÿĞ	Æ^éÅ >Ğ	Î	uèô÷ë ‹Ğ	ÿĞ	Æ{éª >Ğ	Î	uèÙ÷ë ‹Ğ	ÿĞ	Æ|é >Ğ	Î	uè¾÷ë ‹Ğ	ÿĞ	Æ}ëu>Ğ	Î	uè¤÷ë ‹Ğ	ÿĞ	Æ~ë[è;÷ëL>Ğ	Î	uè…÷ë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèm÷ë ‹Ğ	ÿĞ	Æ?>Ğ	Î	uèU÷ë ‹Ğ	ÿĞ	ŠFÿˆë
+ƒ>Ò	 ué„ş^‹å]Ãÿÿ! ' ( ) - / < = > ? PË
+‹
+°
+6¦
+æ
+p
+U
+U‹ìLLëF‹Î	ÿÎ	ŠˆFÿ˜=ÿÿt=? të
+è&şë.è‰öë">Ğ	Î	uèÓöë ‹Ğ	ÿĞ	Æ?ŠFÿPèıöYëƒ>Ò	 t³‹å]ÃU‹ìLLë.‹Î	ÿÎ	ŠˆFÿ˜=ÿÿt=
+ t= tëè1öë
+ŠFÿPè½öYëƒ>Ò	 tË‹å]ÃU‹ìLLëK‹Î	ÿÎ	ŠˆFÿ˜=ÿÿt=
+ t= të
+è—ÿë.èìõë">Ğ	Î	uè6öë ‹Ğ	ÿĞ	Æ\ŠFÿPè`öYëƒ>Ò	 t®‹å]ÃU‹ìLLè™õÇÒ	  ëH‹Î	ÿÎ	ŠˆFÿ˜=ÿÿt=? t=\ tëèqÿë$èÔşëèõë>Ğ	Î	uèËõë ‹Ğ	ÿĞ	ŠFÿˆƒ>Ò	 t±ƒ>Ô	 uè«õ‹å]ÃU‹ìV3ÀPÿvèøYY‹ğƒşÿuë÷F t÷Æ u3Àë	Ç’  ¸ÿÿ^]ÃU‹ìƒ>f u¸ ë‹fÑã‹F‰‡Šÿf3À]ÃU‹ìV‹vö|ƒş|	¸ Pè¢ë‹ŞÑãÇ‡®ÿÿVè Y^]ÃÃU‹ìë
+‹fÑãÿ—Š¡fÿfÀuëÿvè,óY]ÃU‹ìVW‹v¿ÿÿ9ttë`ƒ| tƒ< }VèW YÀtëJ÷D tÿtèVY€| |ŠD˜PèmÿY‹øÇD  ÇD  Ç  ÆDÿƒ| t3ÀPÿtèØPèëYÇD  ‹Ç_^]ÃU‹ìVW‹vöuès ëk9tt¸ÿÿëcƒ< |)÷D u
+‹Æ 9D
+uÇ  ‹Æ 9D
+u‹D‰D
+ë5ë3‹D@‹ø‹+Ç‰W‹D‰D
+PŠD˜PèÚƒÄ;Çt÷D uL ëš3À_^]ÃU‹ìLLVWÇFş  ¿ ¾në÷D tVè_ÿYÿFşƒÆ‹ÇOÀuç‹Fş_^‹å]ÃU‹ìVW‹v‹~ÿt€= t
+ŠˆGFÆ:Fƒ~ t#‹^€? tÿvVè 
+YY‹ğ€|ÿ\t
+€|ÿ/tÆ\Fƒ~
+ tÿv
+Vè
+YY‹ğƒ~ tÿvVèn
+YY‹ğÆ _^]ÃU‹ìVW‹v‹~öt$Wè^Y;FrÿvWVèjƒÄ‹^Æ  ëWVèYY_^]Â U‹ìLLV‹v€|ÿ.uNN‹ŞŠ˜‰Fş¹ ».‹;FştCCâôë.ÿg€|ş u¸ ë3À^‹å]Â   / : \ ööğöU‹ìƒìVVWÇFş  ƒ~ t‹^Æ ƒ~ t‹^Æ ƒ~
+ t‹^
+Æ ƒ~ t‹^Æ Fª‹ğëÿF‹^€? tõÿvèY‹ø=P ~¿P Æ FWÿvVè‘ƒÄ÷Æ 3ÿN‹ŞŠ˜‰Fü¹ »t.‹;FütCCâôëã.ÿgÿu€| uVèÿ‹øÿuË÷Fş uÄNş ÿvV¸ Pè°şÆ ë¯F¬;Æu¨ÿtF‹Ş€? tNş ÿvV¸A PèˆşÆ NëIÿu‚GF‹Ş€? tNş ÿv
+V¸ PèeşÆ N€< t#€<:téXÿF¬;ÆtéNÿëÿtéEÿNş é=ÿ€<:u€~« tNş ÿvF«P¸ Pèş‹Fş_^‹å]Ã  * . / : ? \ â>«Û>U‹ìLLVW‹v3ÿÇFş  3É‹ŞFŠŠĞ<ru¿ ¹ ë €úwu¿ë€úau¿	ÇFş€ ¹ ë3ÀërŠŠĞF€ú+t€<+u%€útt€úbu€ú+uŠŠĞ‹Ç%üÿ ‹øÇFş€¹ €útuÏ @ë€úbuÏ €ë¡Ö% Àø‹Ç© €tÉ@ Çj’‹^‰?‹^‹Fş‰‹Á_^‹å]Â U‹ìƒìV‹vÿvFşPFüPè(ÿ‰DÀt€| }#ÿvüÿvşÿvè|ƒÄˆD
+À}ÆDÿÇD  3ÀëAŠD˜PèíYÀtL ¸ P÷D t¸ ë3ÀP3ÀPVèYƒÄÀtVèûYëÂÇD  ‹Æ^‹å]Â V¾n€| |
+‹ÆƒÆ=®rğ€| |3Àë‹Æ^ÃU‹ìVè×ÿ‹ğÀu3Àë
+Vÿvÿvè3ÿ^]ÃU‹ìV‹v9tt3ÀëVè²úYVÿvÿvèÿ^]ÃU‹ìVƒ~ |	è‘ÿ‹ğÀu3ÀëŠFˆDV3ÀPÿvèçş^]ÃU‹ìLLVW‹~éÇ ÿF‹^‹G;Fv‹Fë‹^‹G‹ğ‹^÷G@ t`ƒ tZ‹G;FsRƒ? uMÿN3öë‹^w‹G)F‹^‹G;FvéVWŠG˜PèRƒÄ‰Fş~ş9vştY‹Æ+FşF‹^ƒO ëQŠFşˆGÿN‹FÀt0Nt-‹^‹H‰À|S‹_
+‹Ã[ÿG
+‹ØŠ´ ëÿvè3	Y‰Fş=ÿÿuÀƒ~şÿuë¯ƒ~ té0ÿ‹F_^‹å]Â U‹ìƒìV‹vöuë6‹Ş3É‹F3Òèx‰Vş‰FüƒúwrÀsÿvÿvüÿv
+èßşP‹FüZ+Â3Ò÷öë3À^‹å]ÃU‹ìLLVW‹N‹Ùƒ? }‹G@ë	‹Ù‹™3Â+Â‹ğ‰Fş‹Ù÷G@ të2‹Ù‹
+ƒ? }!ëO‹ß€?
+uÿFş‹ÆNÀuîë‹ßG€?
+uÿFş‹ÆNÀuî‹Fş_^‹å]Â U‹ìVW‹v‹~
+Vè?ùYÀt¸ÿÿëGƒÿuƒ< ~Vèjÿ™)FVd_şÇ  ‹D‰D
+WÿvÿvŠD˜PèB	ƒÄƒúÿu
+=ÿÿu¸ÿÿë3À_^]ÃU‹ìƒìV‹vŠD˜PèˆY‰Vş‰Füƒ< }Vèÿ™FüVşëVèşş™)FüVş‹Vş‹Fü^‹å]ÃU‹ìƒìVW‹v‹~öu‹Çë0‹Ş3É‹Ç3Òè‰Vş‰FüƒúwrÀsÿvÿvüÿv
+èP3Ò÷öë3À_^‹å]ÃU‹ì¸CP¸~PÿvFPèU]ÃU‹ìV‹v‹H‰VŠF˜Pè YY^]ÃU‹ìV‹vŠF¢Êƒ<ÿ}7‹@‰‹\
+ÿD
+ Êˆ÷D t€>Ê
+t€>ÊuVèñ÷YÀt¸ÿÿé´ é¬ ÷D u÷D uL ëâL ƒ| tDƒ< tVèº÷YÀtëÇ‹D÷Ø‰‹\
+ÿD
+ Êˆ÷D t€>Ê
+t€>ÊuVèˆ÷YÀtë•ëH€>Ê
+u÷D@ u¸ P¸ÜPŠD˜Pè-ƒÄ= u¸ P¸ÊPŠD˜PèƒÄ= t
+÷D uébÿ Ê´ ^]ÃU‹ìV‹v¸~PVèôşYY^]ÃU‹ìLLVW‹~‹v‰~ş÷D t&ëV‹^ÿFŠ˜PèÈşYY=ÿÿu3Àé÷ ‹ÇOÀußéê ÷D@ uéƒ ƒ| te9|s(ƒ< tVèÀöYÀtëÌWÿvŠD˜PèyƒÄ;Çsë·é­ ‹Ç|ƒ< u
+¸ÿÿ+D‰ëVèˆöYÀtë”Wÿvÿt
+èÊƒÄ‹Ç‰|
+ëuWÿvŠD˜Pè)ƒÄ;Çséfÿë]ƒ| tAë6‹@‰À}‹\
+ÿD
+S‹^ÿFŠ[ˆ´ ëV‹^ÿFŠPè×ıYY=ÿÿué&ÿ‹ÇOÀuÃëWÿvŠD˜Pè?ƒÄ;Çséÿ‹Fş_^‹å]Â U‹ìVW‹vVèv
+Y‹øVW¸~Pè¶ş;Çt¸ÿÿë¸~P¸
+ Pè‘ıYY=
+ t¸ÿÿë¸
+ _^]Ã r˜PèÑYÀu&pÿı¸ P÷p t¸ ë3ÀP3ÀP¸nPè8 ƒÄ ‚˜PèYÀu&€ÿı¸ P÷€ t¸ ë3ÀP3ÀP¸~Pè ƒÄÃU‹ìVW‹v‹~
+9tuƒ~ÿÿv¸ÿÿé¦ ƒ>à uş~uÇà ëƒ>Ş uşnuÇŞ ƒ< t¸ P3À3ÒPRVè–ûƒÄ÷D tÿtèçYdóÿÇD  ‹Æ ‰D‰D
+ƒ~t=ÿv9Çh³ƒ~ uWè†Y‰FÀtL ëémÿ‹F‰D
+‰D‰|ƒ~uL 3À_^]ÃU‹ìVW‹~ÿvè 	Y‹ğ@PÿvWè®ƒÄ‹ÇÆ_^]ÃU‹ì¸ P3À3ÒPRÿvè}ƒÄ]ÃU‹ìV‹vöu¾ÎÆ ¸äPVè%YY¸
+ P‹Æ P3ÀPÿvèƒÄ¸èPVèYY‹Æ^]Â U‹ìV‹vVƒ>Ìÿu¸ ë¸ Ì¡ÌPèœÿ‹ğ3ÀPVè«òYY=ÿÿuÕ‹Æ^]ÃU‹ììŠ VW‹F@= s3ÀéÖ ‹^Ñã÷‡® €tÿvÿvÿvè[ƒÄé· ‹^Ñã§®ÿı‹F‰Fø‹F‰FüëWÿNü‹^øÿFøŠˆFû<
+uÆFŠFûˆF†vÿ‹Ö+Ğú€ |3‹Ö+Ğ‹úWPÿvèƒÄ‰Fş;Çtƒ~ş s¸ÿÿëL‹F+Füë?ëB†vÿ‹ğƒ~ü u†vÿ‹Ö+Ğ‹ú‹ÂÀv(W†vÿPÿvè½ƒÄ‰Fş;Çtƒ~ş së·‹FFş+Çë‹F_^‹å]ÃVW3ÿ¾në÷D tVè@òYƒÆGƒÿ|ë_^ÃVW¿ ¾në÷D tVè–òYOƒÆÿuì_^ÃU‹ì‹F‹Ôê ;Âs£š 3Àë	Ç’  ¸ÿÿ]ÃU‹ì‹F‹Vš ƒÒ ‹ÈÒuÁ r
+;Ìs‡š ë	Ç’  ¸ÿÿ]ÃU‹ìÿvè¤ÿY]ÃU‹ì‹F™RPè·ÿYY]ÃU‹ì‹N´CŠF‹VÍ!r‘ëPèô]ÃU‹ì´>‹^Í!rÑãÇ‡®ÿÿ3ÀëPèÖ]ÃU‹ìƒì‹^Ñã÷‡® t¸ ëL¸ D‹^Í!r>öÂ€u5¸B3É‹ÑÍ!r.RP¸B3É‹ÑÍ!‰Fü‰VşZYr¸ BÍ!r;Vşr	w;Fürë·3ÀëPèp‹å]ÃVW¿ ¾në‹D% = uVèañYƒÆ‹ÇOÀuæ_^ÃU‹ìV‹v÷D tèÈÿÿt‹D‰D
+PŠD˜PèHƒÄ‰À~ƒdß3Àëƒ< u‹D%ş  ‰DëÇ  ƒL¸ÿÿ^]Â U‹ìV‹v‹@‰Vè Y^]ÃU‹ìV‹vƒ< ~‹H‰‹\
+ÿD
+Šé‰ ƒ< |÷Du÷D u	ƒL¸ÿÿëoL€ ƒ| tVèNÿÀtëæë½÷D tèÿ¸ P¸ÜPŠD˜Pè—ƒÄÀu ŠD˜PèşY= të¯‹D%ş  ‰Dë¥ë£€>Üu÷D@ t±ƒdß Ü´ ^]Ã¸nPèOÿYÃU‹ì´DŠF‹^‹N
+‹VÍ!rƒ~ u‹ÂëëPè ]ÃU‹ìV‹vö|ƒşX~¾W ‰6îŠ„ğ˜‹ğë‹Æ÷Ø‹ğƒş#åÇîÿÿ‰6’ ¸ÿÿ^]Â U‹ì¸ D‹^Í!’%€ ]ÃU‹ì‹^Ñã§®ÿı´BŠF
+‹^‹N‹VÍ!rëPèŒÿ™]ÃU‹ìƒì"VW‹~
+‹^ƒû$wX€ûrS‹F‹NÉ}€~ tÆ-G÷Ù÷ØƒÙ vŞã‘+Ò÷ó‘÷óˆFã	ëñ+Ò÷óˆFÀuõNŞ÷ÙÎüNŠ,
+s:ëFªâï° ª‹F
+_^‹å]Â U‹ìVW‹v‹~ƒÿ
+u‹Æ™ë‹Æ3ÒRPÿvW°P°aPè[ÿ_^]ÃU‹ìÿvÿvÿvÿv
+° P°aPè?ÿ]ÃU‹ìV‹v
+ÿvÿvÿvVƒş
+u¸ ë3ÀP°aPèÿ^]ÃU‹ìVWŒØÀ‹~‹v‹NÑéüó¥s¤‹F_^]ÃU‹ì‹N´<‹VÍ!rëPèiş]Â U‹ì‹^+É+Ò´@Í!]Â U‹ìƒìVW‹v÷Æ Àu¡Ö% À‹ÖĞ‹ò÷Æ tz¡Ø!F‹F©€u¸ Pèş3ÀPÿvèüYY‰Fş=ÿÿu)÷F€ t3Àë¸ ‰Fş÷Æğ t)ÿv3ÀPèjÿ‹øÀ}é± ÷Æ t#¸P PèÒıé£ WèÙûYëÿvÿvşèAÿ‹øÀ}jéˆ ÇFş  Vÿvè„ YY‹øÀ|S3ÀPWètıYY‰Fü©€ tÎ  ÷Æ €t%ÿ   P¸ PWèQıƒÄë
+÷Æ tWèÿƒ~ş t÷Æğ t¸ PPÿvèEûƒÄÿ|÷Æ t¸ ë3À‹ÖâÿøĞ‹ßÑã‰—®‹Ç_^‹å]ÃU‹ìLL°‹N÷Á u
+°÷Á u° ‹V±ğ"N
+Á´=Í!r‰Fş‹^şÑã‹F%ÿø €‰‡®‹FşëPèŞü‹å]ÃU‹ìƒìVW‹F@= r‹^Ñã÷‡® t3ÀéŒ ÿvÿvÿvè† ƒÄ‰Fş@= r‹^Ñã÷‡® €t‹Fşëb‹Nş‹v‹ş‹Şü¬<t-<tªâôëâğS¸ PFıPÿvè; ƒÄ[üŠFıª;ûuë™ë S¸ P÷ÙÀPQÿvè‹üƒÄ‹^Ñã® [+û—_^‹å]ÃU‹ì´?‹^‹N‹VÍ!rëPèü]ÃU‹ìWŒØÀ´V‹V‹~Í!r3ÀëPèïû_]ÃU‹ìVWü‹~‹×2À¹ÿÿò®uÿ‹~¹ÿÿò®÷Ñ+ù‡÷÷Æ t¤IÑéó¥s¤’_^]ÃU‹ìVü‹vŠ^÷Æ t	¬:Ãt"Àt­:Ãt"Àt:ãt"äuï3ÀëFDş^]ÃU‹ìVWŒØÀü‹~‹÷2À¹ÿÿò®÷Ñ‹~ó¤‹F_^]ÃU‹ìWŒØÀ‹~3Àü¹ÿÿò®‘÷ĞH_]ÃU‹ìVWŒØÀü‹~‹÷2À‹^‹Ëò®+Ù‹~‡Ëó¤‹Ëóª‹F_^]ÃU‹ì´A‹VÍ!r3ÀëPèÿú]ÃŠÆè ŠÂÔ†àè †à'@'ªÃU‹ìì– VWÇFî  ÇFìP ÇFê  ëFW¹ÿÿ2Àò®÷ÑI_Ã6ˆGşNìu/SQR†jÿ+ø†jÿPWÿvÿV
+ÀuÇFê ÇFìP ~î¾jÿZY[Ãü¾jÿ‰~ü‹~ü‹v¬
+Àt<%t6ˆGşNìîè¬ÿëééæ‰vğ¬<%tç‰~ü3É‰Nò‰NşˆNõÇFøÿÿÇFöÿÿë¬2ä‹Ğ‹Ø€ë €û`sŠŸQƒûvé™Ñã.ÿ§ú'é€ı wøƒNşëĞ€ı wíƒNşëÅ€ı wâ€~õ+tˆVõëµƒfşßëƒNş µë§€ı wM÷Fş u)ƒNşµë“éD‹~6‹ƒF€ısÀy÷ØƒNş‰Føµéoÿ€ıu×‰FöşÅébÿ€ısÊµÿFöéUÿ’,0˜€ıwµ‡FøÀ|ÑÑà‹ĞÑàÑàÂFøé3ÿ€ıu›‡FöÀtµÑà‹ĞÑàÑàÂFöéÿƒNşéeÿNş ƒfşïéYÿ·ë
+·
+ë
+·³éÚÆFõ ˆVû3ÒˆVú‹~6‹ë·
+ÆFúˆVû‹~6‹™GG‰v÷Fş t6‹GG‰~~»Àu/Òu+ƒ~ö u)‹~ü‹Nøãƒùÿt‹Fş% t²0ë² ŠÂè	şâùéIşƒNşRPWŠÇ˜PŠFúPSè&ù‹VöÒéñ éü ˆVû‰v~º‹^6ÿ7CC‰^÷Fş  t6‹CC‰^è{ı°:ªZèrı6Æ ÆFú ƒfşûNº+ù‡Ï‹Vö;Ñ‹Ñé ‰vˆVû‹~6‹ƒF~»2ä6‰¹ é± ‰vˆVû‹~÷Fş  u6‹=ƒFÿë6Ä=ƒFŒÀÇu¿Jè3ı;Növ‹Nöëu‰vˆVû‹~‹NöÉ}¹ WQ^»SR¸ #FşP‹Fş© t	¸ ƒF
+ëƒF¸ Pèf~»÷Fş t‹VøÒ~èÖü&€=-uI+Ñ~‰VòŠFõ
+Àt
+&€=-tO&ˆè´ü‹÷‹~ü‹^ø¸ #Fş= uŠfû€üouƒ~ò ÇFò ë€üxt€üXuƒNş@KKƒnò}ÇFò  Nò÷Fş uë° èmüK;Ùö÷Fş@ t°0è\üŠFûèVü‹VòÒ~'+Ê+Ú&Š<-t< t<+u&¬è7üIK‡Êã°0è,üâù‡Êã+Ù&¬6ˆGşNìèüâğÛ~	‹Ë° è	üâùéIü‰v‹~÷Fş  u6‹=ƒFë6Ä=ƒF¸P *FìFî&‰÷Fş tGG&Ç  é
+ü‹vğ‹~ü°%è½û¬
+Àuø€~ìP}è¸ûƒ~ê t¸ÿÿë‹Fî_^‹å]Â Q$;$†$F$´$Á$ÿ$%%o$4%%%%°%\& & &'Ê'Ê'Ê'a$g$U‹ì‹^Ñã÷‡® t¸ P3À3ÒPRÿvèTöƒÄ´@‹^‹N‹VÍ!rP‹^Ñã® XëPèáõ]ÃVW‹ô‹\ƒër;´tèB ëè _^Ã9²t#‹wöt‰6´ë ;6²t‹ŞèT ‹G£´ë‹Ş3À£²£´£¶Sèó[Ãÿ;²t‹w‹¨u‰‹?û‰u‹Şëè2 ‹?û‹¨tÃ‹÷ğ‰\‹ß‹;ßt‰>¶‹w‰u‰|ÃÇ¶  Ã‹6¶öt‹|‰\‰]‰‰wÃ‰¶‰_‰_ÃVW‹ô‹DÀtR r6%şÿ= s¸ ƒ>² t‹¶Ût‹Ó9s‹_;Úuõèf ë!èŠ ëè ë3Àë‹ğƒÆ97séèkÿÿ‹Ã _^ÃP3ÀPPèNò[[% t	3ÒRPè@ò[[XP3ÛSPè5ò[[=ÿÿt‹Ø‰²‰´X@‰ƒÃ‹ÃÃ[3ÀÃP3ÛSPèò[[=ÿÿt‹Ø¡´‰G‰´X@‰ƒÃ‹ÃÃX3ÀÃ)‹ó7‹şø@‰‰\‰uƒÆ‹ÆÃ‹ìSPQPèÿ[‹ØÀtü‹ø‹vş‹ƒÆVƒéÑéó¥‰Fşè$ş[‹^şƒÄÃ‹ÂƒÂ;Ñw5‹Ñ;´u‰ÿÃSPècñ[[ë‹ûø‰]+Ğ)‹÷ò‰|B‰‹Ë‹ßè7ş‹ÙƒÃÃVWU‹ì‹^‹F
+Àt7Ût-ƒë‹I‹ĞƒÂƒâşƒúsº ;ÊrwƒÃëè‡ÿëèOÿ‹ÃëPèeşëSèı3À[]_^ÃV–’…Àt÷ãã‘÷æÁ–÷ãÖ^Ãÿ&Â  é×¸º¼.Œ+‰6¾‰>Àü ¾€ 2ä&¬@ŒÅ‡Ö“‹6ˆ FF¹ €> rŠ ‹ş±2Àò®ã´€ñP‹Á@%şÿ‹ü+ør¤‹çIó¤2Àª‹ÍKƒìH‹ìRQS¸€ ‰F.+Pè¬ğYY^‰F ŒV=ÿÿt^F‰F´/Í!‰^ŒFV´Í!Ä~ 3Ò‰~
+2ÿ‰vèn rLt< tò<	tî<tê<"t"èñ èT rtö< t<	t<t<"uæèëÂé)Öè5 rt<"tèÄ ëğ2Àè½ Bë§‹Ç+FtRW.+PèğY_ZÅv ‹Ï+ÎBéã(¬I<\t<?t<*t€ÌÃ„ÿuø€ÏÃãò€<"uí¬I·2äÃùÃ‰vŒ^‰~ŒFÇF  ‹Ş¬"Àt<\t<:t<\uï‹Şëë+^‰^´N¹  ÅVÍ!r+ÿFÄ~‹Nã	Åv¬è! âúv:6¬Pè X"Àuõ‰~´OÍ!sÕ‹NÄ~Ã;~sªÃVWPSQR.+¸ FFPèIïY=ÿÿt
+ZY[X_^ªÃé#ÕS2ÀèÆÿ[öÇuBÃQÿ4Æ ‡vW‹~
+Rè?ÿZ[#Éu‹û¹ Ñ‹vYÃRÅV´Í!ZƒÄH.+&‰`BÑâ‹Ü‹ì+êr§‹å&‰.b‰^ ƒÅã‰v ƒÅ¬
+Ààûtñ3À‰F .+.+‹6¾‹>Àÿ6¼ÿ6º¡`£‚ ¡b£„ ÿ&¸      Turbo C++ - Copyright 1990 Borland Intl. Null pointer assignment
+Divide error
+Abnormal program termination
+                                      ŞŞ            ´ µ Ñ ñ & Unable to open input file:  Unable to open temporary file:  Error reading input file. Error writing output file. System error.  not modified. .c . .c rb %s %s
+ wb %s %s
+ .BAK .BAK        $*$*$*  
+Trigraph  Version 1.0  Copyright (c) 1991 Borland International 
+Filter to remove or insert trigraphs in C source files, and to handle backslash splicing outside of macros. 
+Works directly on source files, creating a backup file with the extension .BAK, unless -n or -x switch is used. 
+USAGE: trigraph [options] <file spec> [<file spec> ...]
+ options: 	-nXXX   write output files to directory 'XXX' 	-u      UNDO    insert trigraphs 	-xXXX   create output files with extension 'XXX'          ÂÂÂ  	          n  
+         ~             C           B         ®    ÿ         ¾    ÿ         Î    ÿ         Ş    ÿ         î    ÿ         ş    ÿ             ÿ             ÿ         .    ÿ         >    ÿ         N    ÿ         ^    ÿ         n    ÿ         ~    ÿ             ÿ              ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ @ÿÿ        TMP .$$$     ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ#ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ#ÿÿÿÿ#ÿÿ (null)   	
+
+                  +   ´                                                                                                                                                    ingw_invalidParameterHandler pre_c_init .rdata$.refptr.mingw_initltsdrot_force .rdata$.refptr.mingw_initltsdyn_force .rdata$.refptr.mingw_initltssuo_force .rdata$.refptr.mingw_initcharmax .rdata$.refptr.__image_base__ .rdata$.refptr.mingw_app_type managedapp .rdata$.refptr._fmode .rdata$.refptr._MINGW_INSTALL_DEBUG_MATHERR pre_cpp_init .rdata$.refptr._newmode startinfo .rdata$.refptr._dowildcard __tmainCRTStartup .rdata$.refptr.__native_startup_lock .rdata$.refptr.__native_startup_state has_cctor .rdata$.refptr.__dyn_tls_init_callback .rdata$.refptr.__mingw_oldexcpt_handler .rdata$.refptr.__imp___initenv .rdata$.refptr.__xc_z .rdata$.refptr.__xc_a .rdata$.refptr.__xi_z .rdata$.refptr.__xi_a WinMainCRTStartup .l_startw mainCRTStartup .rdata$.refptr._gnu_exception_handler .rdata$.refptr._matherr .CRT$XCAA .CRT$XIAA __gcc_register_frame __gcc_deregister_frame .text$_ZnwyPv .text$_ZdlPvS_ _ZStL19piecewise_construct .text$_ZNSt11char_traitsIcE7compareEPKcS2_y _ZNSt11char_traitsIcE7compareEPKcS2_y _ZStL13allocator_arg _ZStL6ignore _ZStL8__ioinit .text$_ZNSt15_Rb_tree_headerC2Ev _ZNSt15_Rb_tree_headerC2Ev .text$_ZNSt15_Rb_tree_header8_M_resetEv _ZNSt15_Rb_tree_header8_M_resetEv _ZN9__gnu_cxxL21__default_lock_policyE _ZStL10defer_lock _ZStL11try_to_lock _ZStL10adopt_lock _ZNSt15regex_constantsL5icaseE _ZNSt15regex_constantsL6nosubsE _ZNSt15regex_constantsL8optimizeE _ZNSt15regex_constantsL7collateE _ZNSt15regex_constantsL10ECMAScriptE _ZNSt15regex_constantsL5basicE _ZNSt15regex_constantsL8extendedE _ZNSt15regex_constantsL3awkE _ZNSt15regex_constantsL4grepE _ZNSt15regex_constantsL5egrepE _ZNSt15regex_constantsL12__polynomialE _ZNSt15regex_constantsL13match_defaultE _ZNSt15regex_constantsL13match_not_bolE _ZNSt15regex_constantsL13match_not_eolE _ZNSt15regex_constantsL13match_not_bowE _ZNSt15regex_constantsL13match_not_eowE _ZNSt15regex_constantsL9match_anyE _ZNSt15regex_constantsL14match_not_nullE _ZNSt15regex_constantsL16match_continuousE _ZNSt15regex_constantsL16match_prev_availE _ZNSt15regex_constantsL14format_defaultE _ZNSt15regex_constantsL10format_sedE _ZNSt15regex_constantsL14format_no_copyE _ZNSt15regex_constantsL17format_first_onlyE _ZNSt15regex_constantsL13error_collateE _ZNSt15regex_constantsL11error_ctypeE _ZNSt15regex_constantsL12error_escapeE _ZNSt15regex_constantsL13error_backrefE _ZNSt15regex_constantsL11error_brackE _ZNSt15regex_constantsL11error_parenE _ZNSt15regex_constantsL11error_braceE _ZNSt15regex_constantsL14error_badbraceE _ZNSt15regex_constantsL11error_rangeE _ZNSt15regex_constantsL11error_spaceE _ZMZ¶ $ ª @  ÿÿ5€       >    û0jr                               [       L  R  ^  ÿ‹İ‹»‹‹h‹B‹
+‹Ş‹Ê‹‹‹>‹#‹¨ ‹‚ ‹n ‹ ‹ù‹À‹‚‹i‹R‹>‹,‹‹‹ö‹È‹±‹¤‹x‹‹ä‹³‹—‹j‹]‹<‹‹ø‹Û‹»‹ˆ‹‰‹Å
+‹
+‹Ö‹É‹‹v‹Y‹L‹‹ª‹‹’‹†‹z‹m‹I‹ç‹Ò‹Ä‹‹N‹8‹ı‹ï‹Â‹«‹™‹ƒ‹i‹>‹ ´š ´o´k´w´s´xœOœœà œª œc œ/ œ  0        †´‚´~´Û  Š  r  ;  ù  &  3  `  w    j  -  )  ğ  #  ì  Õ  ·  á  D  ,  ´  ¢  n  >  ä  Å     ä  ¹  b  ß  &    (  i  à      >  p  ª#  *#  #  Ó"  ³"  |"  d"  4"  !  o!  F!  !  ¼   n      $  S$  x$  £$  ‡%  s%  ;%   %  ò'  £'  %'  '  f(   (                                                                                                                                                                                                                                                                                            º´.‰`´0Í!‹. ‹, Ú£} Œ{ ‰w ‰.‘ èRÄ>u ‹Ç‹Ø¹ÿüò®ãCC&8uö€Í€÷Ù‰u ¹ ÓãƒÃƒãğ‰y ŒÒ+ê¿´Ç&‹>°ÿ s¿ &‰>°±ÓïG;ïséË‹ßÚ‰‰ ‰ ¡{ +ØÀ´JWÍ!_ÓçúÒ‹çû¸´À&‰>°3À.`¿x¹
++Ïüóªƒ>vG€>} r@w€>~ r7¸X» Í!r*´g‹Í!r ´H» Í!r@£‘ HÀ´IÍ!r
+¸X»  Í!sé@´ Í‰ ‰ƒ 
+Àt¸@ À»p &Æ3í.`¾l¿xèµ ÿ6s ÿ6q ÿ6o ÿ6m ÿ6k š'‹Pš8  .`VW¾x¿xè† _^ËË‹ì´LŠFÍ!¹ º/ éÕ ¸ 5Í!‰[ Œ] ¸5Í!‰_ Œa ¸5Í!‰c Œe ¸5Í!‰g Œi ¸ %ŒÊÚºqÍ!Ã¸ %Å[ Í!¸%Å_ Í!¸%Åc Í!¸%Åg Í!Ëşlt2äë´ÿ‹×‹Ş;ßt#&€?ÿtşlt&:gë&8gw&Šg‹ÓƒÃëÙ;×t‹Ú&€? &Æÿt&ÿ_ë±&ÿWëªÃ´@» Í!Ã¹ º= .`èêÿ¸ PšG    ÀU‹ìƒ>z u¸ ë‹zÑãÑã‹F‹V‰‡z‰—xÿz3À]ËU‹ìÿvÿvšğ  YY]ËU‹ì´C2ÀÅVÍ!r
+Ä^
+&‰3ÀëPè]ËU‹ì´C°ÅV‹N
+Í!r3ÀëPèp]ËËU‹ìV‹vöu"ëÿz‹zÑãÑãÿŸxƒ>z uéšT  ÿ|š½  šg  ƒ~ uöuÿ€ÿ„ÿvšh  Y^]Â U‹ì3ÀPPÿvèœÿ]ËU‹ì¸ P3ÀPÿvèŠÿ]Ë3ÀP¸ P3ÀPè{ÿË¸ PP3ÀPèoÿË[S€ùs‹ØÓàÓâöÙ€ÁÓëÓË€é’3ÀÓâË[S€ùs‹ÚÓèÓêöÙ€ÁÓãÃË€é’3ÒÓèËÉ}÷Ó÷ÑƒÃƒÑ ë/ÃsÂ Šé±ÒåõŠèÓèĞŠÅ% ËÉ}÷Ó÷ÑƒÃƒÑ ëÑ+Ãsê Šù±Òç2Û+ÓŠèÓèĞŠÅ% ËU‹ìV‹vö|ƒşX~¾W ‰6FŠ„H˜‹ğë÷Şƒş#éÇFÿÿ‰6 ¸ÿÿ^]Â U‹ìV‹vVè¼ÿ‹Æ^]Â U‹ì¸ D‹^Í!’%€ ]ËU‹ìƒì"VWÄ~
+‹^ƒû$w\€ûrW‹F‹NÉ}€~ t&Æ-G÷Ù÷ØƒÙ vŞã‘+Ò÷ó‘÷ó6ˆFã
+ëğ+Ò÷ó6ˆFÀuôNŞ÷ÙÎüN6Š,
+s:ëFªâî° ª‹V‹F
+_^‹å]Â U‹ì3ÀPÿvÿvÿv¸
+ P° P°aPèbÿ]Â U‹ì‹^Ñã§ÿı´BŠF‹^‹N
+‹VÍ!rëPèÜş™]ËU‹ì‹F
+FuŒ^ÇF
+øÿv‹FFuŒÚ¸¢ë‹V‹FRPÿvÿv
+š]  ƒÄRPèwÿ¸¦Pÿvÿv
+šÑ%  ƒÄ‹V‹F
+]Â
+ U‹ìƒìÿv
+ÿv3ÀPPÄ^&ƒ?ÿu¸ ë¸ Ä^&&‹Pèuÿ‰V
+‰FFşPÿv
+ÿvš£  ƒÄÀt»‹V
+‹F‹å]Â U‹ìƒì¡®‹¬‰Fş‰Vü‹F‹V£®‰¬‹Vş‹Fü‹å]ËU‹ìƒìV‹vöt‹Æë¸ ‹ğëÿ¬Všú  Y‰Vş‰FüÂu	¡¬®uâ‹Vş‹Fü^‹å]ËV–’…Àt÷ãã‘÷æÁ–÷ãÖ^ÃQŠè±ÓèĞŠÅŠãÓëYËŠÜ% ƒã;Ñu;ÃÃU‹ì´?‹^‹NÅVÍ!rëPègı]Ë¹ ;s8‹ÙÑãÇ‡  ‹Áº ÷ê‹ØÆ‡Œÿ‹Áº ÷êˆP‹Áº ÷ê‹ØX‰‡šA;rÈ Œ˜Pš`  YÀu&Šÿı¸ P÷Š t¸ ë3ÀP3ÀPP¸ˆPš¶$  ƒÄ  ˜Pš`  YÀu&ÿı¸ P÷ t¸ ë3ÀP3ÀPP¸œPš¶$  ƒÄÃU‹ì¸ P3ÀPPÿvš  ƒÄ]ËU‹ì´AÅVÍ!r3ÀëPèü]ËŠÆè ŠÂÔ†àè †à'@'ªÃU‹ìì– VWÇFî  ÇFìP ÇFê  ëJW¹ÿÿ2Àò®÷ÑI_Ã6ˆGşNìu3SQR†jÿ+ø†jÿPWÿvÿv
+ÿVÀuÇFê ÇFìP ~î¾jÿZY[Ãü¾jÿ‰~ü‹~üÄv&¬
+Àt<%t6ˆGşNìíè§ÿëèéÑ‰vğ&¬<%tæ‰~ü3É‰NòÇFş  ˆNõÇFøÿÿÇFöÿÿë&¬2ä‹Ğ‹Ø€ë €û`sŠŸ¹ƒûvé|Ñã.ÿ§-ér€ı wøƒNşëÏ€ı wíƒNşëÄ€ı wâ€~õ+tˆVõë´ƒfşßëƒNş µë¦€ı wM÷Fş u)ƒNşµë’é'‹~6‹ƒF€ısÀy÷ØƒNş‰Føµénÿ€ıu×‰FöşÅéaÿ€ısÊµÿFöéTÿ’,0˜€ıwµ‡FøÀ|ÑÑà‹ĞÑàÑàÂFøé2ÿ€ıu›‡FöÀtµÑà‹ĞÑàÑàÂFöéÿƒNşéeÿNş ƒfşïéYÿ·ë
+·
+ë
+·³éÚÆFõ ˆVû3ÒˆVú‹~6‹ë·
+ÆFúˆVû‹~6‹™GG‰v÷Fş t6‹GG‰~~»ÀuÒu	ƒ~ö uécşƒNşRPWŠÇ˜PŠFúPSè¥ú‹VöÒ}éó éş ˆVû‰v~º‹^6ÿ7CC‰^÷Fş  t6‹CC‰^è“ı°:ªZèŠı6Æ ÆFú ƒfşûNº+ù‡Ï‹Vö;Ñ‹Ñé  ‰vˆVû‹~6‹ƒF~»2ä6‰¹ éµ ‰vˆVû‹~÷Fş  u6‹=ƒFÿë6Ä=ƒFŒÀÇu¿²èKı;Növ‹Nöëy‰vˆVû‹~‹NöÉ}¹ WQ^»SR¸ #FşP‹Fş© t	¸ ƒF
+ëƒF¸ Pè£~»÷Fş t‹VøÒ~
+èìü+Ñ~‰VòŠFõ
+Àt&€=-tƒ~ò ~ÿNòO&ˆèÈü‹÷‹~ü‹^ø¸ #Fş= uŠfû€üouƒ~ò ÇFò ë€üxt€üXuƒNş@KKƒnò}ÇFò  Nò÷Fş uë° èüK;Ùö÷Fş@ t°0èpüŠFûèjü‹VòÒ~'+Ê+Ú&Š<-t< t<+u&¬èKüIK‡Êã°0è@üâù‡Êã+Ù&¬6ˆGşNìè3üâğÛ~	‹Ë° èüâùéaü‰v‹~÷Fş  u6‹=ƒFë6Ä=ƒF¸P *FìFî&‰÷Fş tGG&Ç  é"ü‹vğF‹~ü°%èÎû&¬
+Àu÷€~ìP}èÈûƒ~ê t¸ÿÿë‹Fî_^‹å]Â ‡Ò’ 		K	R	W	»€	^	b	f	Û	‡
++
+K
+½ùùù­³U‹ìVÿvÿv
+š¦&  YY‹ğ@Pÿvÿv
+ÿvÿvš}  ƒÄ
+‹V‹FÆ^]Ëºëº¹ ´@» Í!¹' º$´@Í!é™õ            .;°t7Ú ƒ>  t.Œ²ë8ŒØ.;°t¡ .£²3ÀPè¢ .¶ë#.‹°.Ç°  .Ç²  .Ç´  .¶R3ÀPè=ƒÄÃÚ Ç   Œ .;°t.&ƒ>  u&¡  [&  ŒÁĞÂ&ƒ>  u&‰ ë
+&‰ ëèQ ŒÀ&  Øƒ>  tÃ¡  &  ŒÀŒÛ  Ã&£ ŒÛ; t  Œ &Œ .Œ´ÛÃ.Ç´  Ã.¡´Àt!ŒÓœúĞ6 6Œ Œ Ó&Œ Œ Ã.Œ´Œ Œ ÃU‹ìVW.Œ¶‹VÒt.;²uè±şëèÿ.¶_^]ËP.¶3ÀPPèqƒÄ% tº +Ğ3À.¶PRèXƒÄXP3ÛŠÜ±ÓëÓà.¶SPè?ƒÄ[=ÿÿt.‰°.‰²Ú‰  ‰ ¸ Ã3À™ÃP3ÛŠÜ±ÓëÓà.¶SPèƒÄ[=ÿÿt8% u.‹².‰²Ú‰  ‰ ¸ ÃSR÷Ø 3ÛSPèÑƒÄZ[=ÿÿtBëÍ3À™Ã‹Ú)    Ú£  ‰ ‹Ú  Û‰ ¸ ÃU‹ì3Ò‹Fë	U‹ì‹V‹F‹ÈÊVW.Œ¶t^ ƒÒ rA÷Âğÿu;±ÓèÓâ
+â.‹°Òt .‹´Òt‹ÚÚ9  s‹ ;Óuğè&ÿëè½şëèvÿë3À™ëwôè#ş‹ ‰ ¸ .¶_^]ËS.‹6¸V.‹6ºVèrÿƒÄÒu[ÃÂS‹  üJ¿ ‹÷¹ ó¥Òt7ŒÀ@ÀŒØ@Ø3ÿ‹÷‹Êù v¹ ÑáÑáÑáó¥ê vŒÀ ÀŒØ ØëÓ.¶èûıƒÄZ¸ Ã.;²tE‹ûøÇ‹ñ+ğ&‰6  &‰ PÃ&£  ‹ÓÑÂ&ƒ>  t&‰> ë&‰> ‹óè°ıƒÄ‹Ö¸ ÃSÃ&£  ØS3ÀPèÿ ƒÄZ¸ ÃU‹ì3ÒëU‹ì‹V‹F
+‹^VW.Œ¶.‰¸.£ºÛt:‹ÈÊt? ƒÒ r@÷Âğÿu:±ÓèÓâ
+âÃ&‹  ;Èrw‹Ó¸ ë!èBÿëèÁşëRPè<şƒÄëSPèıƒÄ3À™.¶_^]ËU‹ìV‹vF+6{ ƒÆ?±Óî;6Lu‹F‹V£ ‰‹ ¸ ëF±Óæ‹‘ ‹Æ{ ;Âv‹ò+6{ Vÿ6{ š”  YY‹Ğƒúÿu‹Æ±Óè£Lë¸¡{ Â£‘ Ç   3À^]Â U‹ì‹‰ ‹‡ ‹V‹Fèõr ‹‘ ‹ ‹V‹FèôôwÿvÿvèXÿÀu¸ÿÿë3À]ÃU‹ìƒì¡ 3Ò±èÌñ‹ ƒÒ FVƒú|=ÿÿvºÿÿ¸ÿÿëY‹ ¡‹ ‹N‹^èİñ‰Vş‰Fü‹‰ ‹‡ ‹Vşè‡ôrÒ‹‘ ‹ ‹Vş‹Füètôw¿¡ ‹‹ ‰Fú‰VøÿvşÿvüèËşÀt¥‹Vú‹Fø‹å]ÃU‹ìÅV
+´DŠF‹^‹NÍ!rƒ~ u‹ÂëëPèÉñ]ËU‹ì¸Â!P¸œPÿvÿvF
+PèGõ]Ëÿ&d  TVX.Œm‰6Z‰>\ü{ ¾€ 2ä&¬@ŒÅ‡Ö“‹6u FF¹ €>} rw ‹ş±2Àò®ãn€ñP‹ÁÃ@%şÿ‹ü+ør\‹çQIó¤2Àªİ‡ò‡Ù‹Ã‹ĞCè wrBè wù< t<t<	uè2ÀëäÀtBª
+ÀuC†à2Àùã¬I,"t"<\u€<"u¬IöÃêI  YÊ.m‰NCÛÛ‹ô‹ì+ërâ‹å‰.PŒRã‰v ŒVƒÅ6¬
+Ààútí3À‰F ‰F.m‹6Z‹>\ÿ6Xÿ6V¡N£k ¡R£o ¡P£m ÿ&TU‹ì´J‹^FÍ!r¸ÿÿëSPèhğX]ËU‹ì‹N´CŠF
+ÅVÍ!r‘ëPèJğ]ËU‹ì‹V;r	¸ Pè5ğë‹ÚÑãÇ‡  Ršõ  Y]ËU‹ì´>‹^Í!rÑãÇ‡  3ÀëPèğ]ËU‹ìƒì‹F;r¸ Pë[‹^Ñã÷‡ t¸ ëL¸ D‹^Í!r>öÂ€u5¸B3É‹ÑÍ!r.RP¸B3É‹ÑÍ!‰Fü‰VşZYr¸ BÍ!r;Vşr	w;Fürë·3ÀëPèï‹å]ËU‹ìV¾ÿÿÄ^&‹G;Fté Ä^&ƒ t/&ƒ? }ÿvSš5  YYÀuqÄ^&÷G t&ÿw
+&ÿwšğ  YYÄ^&€ |&ŠG˜PšÍ  Y‹ğÄ^&ÇG  &ÇG  &Ç  &ÆGÿ&ƒ t3ÀPPPP&ÿwèğRPš~  YYÄ^&ÇG  ‹Æ^]ËU‹ìV‹FFuš  é´ Ä^&‹G;Ft¸ÿÿé¤ Ä^&ƒ? |Q&÷G u&‹G‹VƒÂ;Fté &9WuyÄ^&Ç  &‹G‹VƒÂ;Fub&9Wu\&‹G
+&‹W&‰G&‰WëJëHÄ^&‹G&@‹ğ&)7P&‹G
+&‹W&‰G&‰WPR&ŠG˜PšÅ&  ƒÄ;ÆtÄ^&÷G u&ƒOéXÿ3À^]ËU‹ìƒìVW3ÿ‹6Œ^şÇFüˆëÄ^ü&÷G tÿvşSš5  YYGƒFü‹ÆNÀuŞ‹Ç_^‹å]ËU‹ìVW3ÿÄ^ÿF&ŠŠÁ<ruº ¾ ë€ùwuºë€ùauº	¿€ ¾ ë3ÀëzÄ^&ŠÿF€ù+tÄ^&€?+u!€ùtt€ùbu€ù+uÄ^&ŠƒâüƒÊ¿€¾ €ùtuÊ @ë€ùbuÊ €ë¡B% ÀĞ‹Â© €tƒÎ@Ç‚  Ç€=(Ä^&‰Ä^&‰?‹Æ_^]Â U‹ìƒìÿvÿvFşPFüPè+ÿÄ^&‰GÀt*&€ }7ÿvü‹FşFPÿvÿv
+šA  ƒÄÄ^&ˆG
+À}Ä^&ÆGÿ&ÇG  3Ò3ÀëgÄ^&ŠG˜Pš`  YÀt	Ä^&O ¸ PÄ^&÷G t¸ ë3ÀP3ÀPPÿvÿvš¶$  ƒÄÀtÿvÿvšŠ  YYë¢Ä^&ÇG  ‹V‹F‹å]Â U‹ìƒìŒ^şÇFüˆÄ^ü&€ |‹FüƒFüP¡º ÷êˆZ;ĞrŞÄ^ü&€ |3Ò3Àë‹Vş‹Fü‹å]ÃU‹ìƒìè­ÿ‰Vş‰FüÂu3Ò3Àëÿvşÿvüÿvÿvÿvÿv
+3ÀPè¶ş‹å]ËU‹ìVWéÚ ÿFÄ^&‹G;Fv‹FëÄ^&‹G‹øÄ^&÷G@ to&ƒ th&‹G;Fs_&ƒ? uYÿN3ÿëÄ^&&‹G)FÄ^&‹G;FvæWÿvÿv
+&ŠG˜Pš”  ƒÄ‹ĞV
+;×t]‹Ç+ÂFÄ^&ƒO ëUÄ^
+&ˆÿF
+ÿN‹FÀt4Ot1Ä^&ÿ|&‹G&‹w&ÿGÀ&Š´ ëÿvÿvšk  YY‹Ğ=ÿÿu¹ƒúÿtªƒ~ téÿ‹F_^]Â
+ U‹ìƒìVW‹~
+ÿu3Àëu‹ß3É‹F3Òèûì‰Vş‰Füƒúw%rÀsÿvÿvÿvüÿvÿvèÊş‹Vü+ĞR3ÒX÷÷ë9‹vFë‹ß3É‹V‹Fèê‰V‰FN‹ÆÀtÿvÿvWÿvÿvèşÀtÒ‹F+Æ_^‹å]ËU‹ìƒìVÄ^&ƒ? }&‹O&A‹ñëÄ^&‹™3Â+Â‹È‹ğÄ^&÷G@ uCÄ^&‹G&‹W‰Fş‰Vü&ƒ? }%ëÿNüÄ^ü&€?
+uF‹ÁIÀuìëÄ^üÿFü&€?
+uF‹ÁIÀuì‹Æ^‹å]Â U‹ìV‹vÿvÿvš5  YYÀt¸ÿÿë`ƒşuÄ^&ƒ? ~ÿvSèLÿ™)F
+VÄ^&g_ş&Ç  &‹G
+&‹W&‰G&‰WVÿvÿv
+&ŠG˜Pš  ƒÄƒúÿu
+=ÿÿu¸ÿÿë3À^]ËU‹ìƒìÄ^&ŠG˜Pšf  Y‰Vş‰Füƒúÿu=ÿÿt)Ä^&ƒ? }ÿvSèÉş™FüVşëÿvÿvè·ş™)FüVş‹Vş‹Fü‹å]ËU‹ìƒìVW‹~
+ÿts‹ß3É‹F3Òèë‰Vş‰FüƒúwrÀsÿvÿvÿvüÿvÿvèZ3Ò÷÷ëA3ö;vs7ÿvÿvWÿvÿvè=3ÒÒu;Çt‹Æë‹ß3É‹V‹Fèè‰V‰FF;vrÉ‹F_^‹å]ËU‹ìƒìV¾ Œ^şÇFüˆëÄ^ü&‹G% = uÿvşSš5  YYƒFü‹ÆNÀuÛ^‹å]ÃU‹ìÄ^&÷G tè±ÿÄ^&ÿw&‹G
+&‹W&‰G&‰WPR&ŠG˜PšÁ#  ƒÄÄ^&‰À~	&ƒgß3Àë)Ä^&ƒ? u&‹G%ş  &‰GëÄ^&Ç  &ƒO¸ÿÿ]Â U‹ìÄ^&ÿÿvSè YY]ËXPU‹ìV‹FFu¸ÿÿéÙ Ä^&ƒ? ~Ä^&ÿ&‹G&‹w&ÿGÀ&Šé´ Ä^&ƒ? |o&÷Gug&÷G t_Ä^&O€ &ƒ tÿvSèÿÀt²ë¡ë®Ä^&÷G tè·ş¸ P¸PÄ^&ŠG˜PšÁ#  ƒÄÀu3Ä^&ŠG˜Pš  Y= tÄ^&ƒOéTÿÄ^&‹G%ş  &‰Gé@ÿ€>uÄ^&÷G@ tÄ^&ƒgß ´ ^]Ë¸ˆPè	ÿYYËU‹ìVWŒÚÄ~Åv
+‹NÑéüó¥s¤Ú‹V‹F_^]ËU‹ìVW‹N‹^
+‹V‹Fè½èsı¸ ëü3ÀÅvÄ~
+‹NÀtñNùO÷Ç tã¤I+ğ+øÑéó¥sğø¤ü_^]ËU‹ìÿvÿvÿvÿvÿv
+è˜ÿƒÄ
+‹V‹F]ËU‹ì‹N´<ÅVÍ!rëPèêå]Â U‹ì‹^+É+Ò´@Í!]Â U‹ìƒìVW‹v
+‹~÷Æ Àu¡B% Àğ3ÀPÿvÿvš°  ƒÄ‰Fş÷Æ ué€ #>D‹Ç©€u¸ Pè‰åƒ~şÿu#ƒ>Ft
+ÿ6Fèuåé÷Ç€ t3Àë¸ ‰Fşë÷Æ t?¸P PëÜ÷Æğ tÿvÿv3ÀPèAÿ‹øÀ}éÌ Wšõ  Yëÿvÿvÿvşè#ÿ‹øÀ}~é® Vÿvÿvš°  ƒÄ‹øÀ|f3ÀPWš%  YY‰Fü©€ t#Î  ÷Æ €t#%ÿ   3ÒRP¸ PWš%  ƒÄë
+÷Æ tWèàş÷Fş t÷Æ t÷Æğ t¸ PPÿvÿvš°  ƒÄÿ|/÷Æ t¸ ë3À‹ÖâÿøĞR÷Fş t3Àë¸ ZĞ‹ßÑã‰—‹Ç_^‹å]ËU‹ìƒì°‹N
+÷Á u
+°÷Á u° ÅV±ğ"N
+
+Á´=Í!r‰Fş‹F
+%ÿ¸ €‹^şÑã‰‡‹FşëPèä‹å]ËU‹ìÄ^&ÿÿv
+SŠF˜Pš   ƒÄ]ËU‹ìVŠF¢Ä^&ƒ?ÿ}T&ÿ&‹G&‹w&ÿGŠÀ&ˆF
+&÷G uéR€>
+t
+€>téAÿv
+ÿvš5  YYÀué-¸ÿÿé,é$Ä^&÷G u&÷G u
+Ä^&ƒOëÚÄ^&O &ƒ to&ƒ? tÿv
+Sš5  YYÀuµÄ^&‹G÷Ø&‰&‹G&‹w&ÿGŠÀ&ˆF
+&÷G ué³ €>
+t
+€>té¢ ÿv
+ÿvš5  YYÀué é^ÿéˆ Ä^&ŠG˜Ñà‹Ø÷‡ t¸ P3ÀPP‹^&ŠG˜Pš  ƒÄ€>
+u'Ä^&÷G@ u¸ P¸^P&ŠG˜Pš(  ƒÄ= u¸ P¸PÄ^&ŠG˜Pš(  ƒÄ= tÄ^&÷G uéïş ´ ^]ËU‹ì¸œPÿvè^şƒÄ]ËU‹ìƒìVW‹~‰~şÄ^&÷G t.ë"ÿvÿvÄ^
+ÿF
+&Š˜Pè)şƒÄ=ÿÿu3Àéº‹ÇOÀu×é­Ä^&÷G@ ué$&ƒ uéÉ &9sg&ƒ? tÿvSš5  YYÀu¾Ä^&ŠG˜Ñà‹Ø÷‡ t¸ P3ÀPP‹^&ŠG˜Pš  ƒÄWÿvÿv
+Ä^&ŠG˜Pš(  ƒÄ;Çré.éoÿé(Ä^&‹Ç|&&ƒ? u¸ÿÿ&+G&‰ëÿvÿvš5  YYÀté<ÿWÿvÿv
+Ä^&ÿw&ÿwš}  ƒÄ
+Ä^&‹Ç&‰&éÌ Ä^&ŠG˜Ñà‹Ø÷‡ t¸ P3ÀPP‹^&ŠG˜Pš  ƒÄWÿvÿv
+Ä^&ŠG˜Pš(  ƒÄ;Çré€ éÁşë{Ä^&ƒ tRëGÄ^&ÿ} &‹G&‹w&ÿGÄ^
+ÿF
+&ŠÀ&ˆŠÂ´ ëÿvÿvÄ^
+ÿF
+&ŠPè|üƒÄ=ÿÿuélş‹ÇOÀu²ëWÿvÿv
+Ä^&ŠG˜PšÅ&  ƒÄ;ÇséDş‹Fş_^‹å]Â
+ U‹ìƒìVW‹F;r
+¸ Pè<àé° ‹F@= r‹^Ñã÷‡ t3Àé• ÿvÿv
+ÿvÿvš”  ƒÄ‰Fş@= r‹^Ñã÷‡ @u‹Fşëf‹NşÄv‹ş‹Şü&¬<t0<tªâóëâïS¸ PFıPÿvš”  ƒÄ[üŠFıª;ûuë’ë"S¸ P÷ÙÀPQÿvš  ƒÄ‹^Ñã [+û—_^‹å]ËU‹ì3ÀPPPÿvÿvšR  ƒÄ
+ÀuÄ^&ƒgï]ËU‹ìVW‹~‹vÄ^&‹G;Fuƒÿşÿv¸ÿÿéï ƒ>b u~œuÇb ëƒ>` u~ˆuÇ` Ä^&ƒ? t¸ P3ÀPPÿvSšR  ƒÄ
+Ä^&÷G t&ÿw
+&ÿwšğ  YYÄ^&ƒgó&ÇG  ‹F‹VƒÂ&‰G
+&‰W&‰G&‰Wƒÿt`öv\Ç~  Ç|z(‹F
+Fu!Všú  Y‰V‰F
+ÂuéAÿÄ^&ƒOëé4ÿÄ^‹F‹V
+&‰G&‰W&‰G
+&‰W&‰wƒÿu&ƒO3À_^]ËU‹ìVWüÄ~‹×2À¹ÿÿò®uÿÄ~
+¹ÿÿò®÷Ñ+ù‡÷÷Æ t¤IÑéó¥s¤’ŒÂ_^]ËU‹ìVüÅvŠ^
+÷Æ t	¬:Ãt"Àt­:Ãt"Àt:ãt"äuï3Ò3ÀëFDşŒÚ^]ËU‹ìVWŒÚü3À‹ØÄ~
+‹÷2À¹ÿÿò®÷Ñ‹şÅvó¦ŠDÿ&Š]ÿ+ÃÚ_^]ËU‹ìVWüÄ~
+‹÷2À¹ÿÿò®÷ÑŒÀØÄ~ó¤‹V‹F_^]ËU‹ìWÄ~3À;Fu;Çt
+ü¹ÿÿò®‘÷ĞH_]ËU‹ìì VW‹~;>r
+¸ Pè7İé-‹F@= s3Àé‹ßÑã÷‡ t¸ P3ÀPPWš  ƒÄ‹ßÑã÷‡ @uÿvÿv
+ÿvWš(  ƒÄéá ‹ßÑã§ÿı‹F
+‹V‰Fö‰Vô‹F‰FúëuÿNúÄ^ôÿFô&ŠˆFù<
+u
+Ä^ü&ÆÿFüÄ^üŠFù&ˆÿFü†rÿ‹Vü3Û+ĞƒÛ Û|Duú€ r<†rÿ‹vü3Ò+ğƒÚ VPWš(  ƒÄ‹Ğ;Ætƒúÿu¸ÿÿëQ‹F+FúëE†rÿŒVş‰Füƒ~ú téxÿ†rÿ‹vü3Ò+ğƒÚ ‹ÆÀv$V†rÿPWš(  ƒÄ‹Ğ;Ætƒúÿt±‹FÂ+Æë‹F_^‹å]ËU‹ì´@‹^‹NÅVÍ!rP‹^Ñã XëPèÚÛ]ËU‹ìƒìV3öŒ^şÇFüˆ;6s!Ä^ü&÷G tÿvşSšŠ  YYƒFüF;6rß^‹å]ËU‹ìƒìV¾ Œ^şÇFüˆëÄ^ü&÷G tÿvşSš5  YYNƒFüöuá^‹å]ËU‹ìVW‹~‹FFtë¸ Pš  Y‰V‰F‹FFu	‹V‹FébÄ^&ÇGqÄ^‹F‹V
+&‰G&‰Ä^&ÇG  &ÇG
+  ¸  PÄ^&ÿw&ÿ7š'œƒÄ‹ğÄ^&ÿw&ÿ7š‹YYÄ^&‰G¸ P‹F ÿvPÄ^&ÿw&ÿ7šB œƒÄ
+ğÄ^&ƒ
+tKÄ^&ƒ2tAÄ^&ƒ3t7Ä^&ƒ4t-Ä^&ƒ5t#Ä^&ƒ6tÄ^&ƒ7tÄ^&ƒÿt¸ ë3Àğ¸ P‹F ÿvPÄ^&ÿw&ÿ7šB œƒÄ
+ğÄ^&ÿwÄ^&ÿw&ÿ7šõ œƒÄğÄ^&ƒÿtÄ^&9téÿÄ^&9tÄ^&ÇGşÿÄ^&ÇG  Ä^&ÇG  öt¸  PšN  YY‹V‹Fë _^]ËU‹ì‹FFt>Ä^&ÇGqÄ^&‹G
+&GtÄ^&ÿw&ÿw
+šğ  YY÷F
+ tÿvÿvš‘  YYë ]ËU‹ìV3öÄ^&ƒştyÄ^&ƒ toÄ^&ÿwšú  YÄ^&‰W&‰G
+Ä^&‹G
+&Gu¸ ëIÄ^&‹G PÄ^&ÿw&ÿ7š'œƒÄ‹ğÄ^&ÿwÄ^&ÿw&ÿw
+Ä^&ÿw&ÿ7šB œƒÄ
+ğ‹Æë ^]ËU‹ìV3öÄ^&ƒşt^¸ P‹F ÿvPÿvÿv
+š‰ œƒÄ
+‹ğ¸ P‹F ÿvPÿvÿv
+š‰ œƒÄ
+ğÄ^&ÿwÄ^&ÿw&ÿw
+ÿvÿv
+š‰ œƒÄ
+ğ‹Æë ^]ËU‹ì‹FFtë¸ Pš  Y‰V‰F‹FFu‹V‹Fë7¸
+ Pÿvÿv
+ÿvÿvèÖüƒÄ
+‰V‰FÄ^&ÇGiÄ^&ÇGÿÿ‹V‹Fë ]ËU‹ìLLÿvÿvè†şYY‰FşÄ^&‹G»C3Ò÷óÄ^&‰G‹Fşë ‹å]ËU‹ìV‹v
+Ä^&9w~Ä^&‹W&‹G
+RP‹ÆºC÷ê‹ĞXÂZëë3Ò3Àë ^]ËU‹ììÂ VWÇFò  3öë‹ÆÑà>ÿØ6Ç  Fƒş
+|ë3öë@Vÿvÿv
+è“ÿƒÄ‰Vú‰Fø‹FøFút#Ä^ø&ƒ¿A tÄ^ø&‹‡A5 Ñà>ÿØ6Ç Fƒş
+|»3öéŸÄ^
+&ƒ}¸ ë3À‰FôÇFö  Vÿvÿvè0ÿƒÄ‰Vş‰Fü3ÿéWÿvÿv
+èÿƒÄ‰Vú‰Fø‹Fø@ÿvúP‹Fü@ÿvşPšM&  ƒÄÀu¸ ë3À‰Föƒ~ö uéÌ ‹Fø) ÿvúP‹Fü) ÿvşPšM&  ƒÄÀu#‹Føy ÿvúP‹Füy ÿvşPšM&  ƒÄÀué‡ ‹Fü@ÿvşP†RÿPš}&  ƒÄ†RÿP¸¶ PšN  ƒÄÄ^ü&ƒ¿A t/Ä^ü&‹‡A5 Ñà>ÿØ6ƒ? t¸Ã PšN  YYÄ^ü&Ç‡A  ¸CPÿvşÿvüÿvúÿvøšó  ƒÄ
+¸æ PšN  YYëGÄ^
+&9~éäşƒ~ö téG‹Fü@ÿvşP†RÿPš}&  ƒÄƒ~ô ué†RÿP¸è PšN  ƒÄÄ^ü&ƒ¿A t/Ä^ü&‹‡A5 Ñà>ÿØ6ƒ? t¸ò PšN  YYÄ^ü&Ç‡A  Ä^
+&‹GCPÄ^
+&ÿw&ÿw
+ša  ƒÄÄ^
+&‰W&‰G
+Âu¸ÿÿéº Ä^
+&GCÄ^
+&ÿGÄ^
+&‹GHPÿvÿv
+è;ıƒÄ‰Vú‰Fø¸CPÄ^
+&‹GşÿPÿvÿv
+èıƒÄRPÿvúÿvøšó  ƒÄ
+¸CPÿvşÿvüÄ^
+&‹GşÿPÿvÿv
+èçüƒÄRPšó  ƒÄ
+¸PšN  YYëÿFò†RÿP¸PšN  ƒÄFÄ^&9w~éUı‹Fòë _^‹å]ËU‹ìƒìTVWÿvÿvšĞ œYYÿv
+ÿvš¦&  YY@PF¬PÿvÿvšB œƒÄ
+‹ğÿv
+ÿvF¬PšM&  ƒÄğÿ6 ÿ6œ š¦&  YY@PF¬PÿvÿvšB œƒÄ
+ğÿ6 ÿ6œ F¬PšM&  ƒÄğ¸ PFşPÿvÿvšB œƒÄ
+ğ‹Fş% ÿ‹Vâ ÿ;Âu‹Fş%ÿ ‹Vâÿ ;Âu¿ ë¿ ë3ÿÿvÿvšĞ œYYöt¿ ‹Çë _^‹å]ÃU‹ìì² VW‹~ÇFş  ¸IPÿvÿvFîPš œƒÄÂuÿvÿv¸LPšN  ƒÄ¸ é¸ Pÿ6š ÿ6˜ FîPè¶şƒÄ
+‹ğƒşt*ƒşt%ÿvÿv¸_PšN  ƒÄFîPšYœYY¸ é¾¸‡Pÿvÿv
+FâPš œƒÄÂuÿvÿv
+¸‹PšN  ƒÄ¸ é‰¸ Pÿ6š ÿ6˜ FâPè9şƒÄ
+‹ğƒşt*ƒşt%ÿvÿv
+¸PšN  ƒÄFâPšYœYY¸ éA¸2 PFâPFÒPè÷ƒÄ
+¸3 PFâPFÂPèûöƒÄ
+¸4 PFâPF²PèæöƒÄ
+¸5 PFâPF¢PèÑöƒÄ
+¸6 PFâPF’Pè¼öƒÄ
+¸7 PFâPF‚Pè§öƒÄ
+¸ÿÿPFâP†rÿPè‘öƒÄ
+FâP†`ÿPèhùƒÄFîP†NÿPèVùƒÄFÒPèEøYY‹ğFÂPè8øYYğ†NÿPè•ùYYğF²PèøYYğF¢PèøYYğF’PèøYYğF‚Pèö÷YYğöué¦ ¸ÆPšN  YY‰vú3ÀP†NÿPè„÷ƒÄ3ÀP†`ÿPèt÷ƒÄ¸ P†rÿPèc÷ƒÄ¸ PF‚PèS÷ƒÄ¸ PF’PèC÷ƒÄ¸ PF¢Pè3÷ƒÄ¸ PF²Pè#÷ƒÄ¸ PFÂPè÷ƒÄ¸ PFÒPè÷ƒÄ‹Fúé€ÿtéš†`ÿPèŸøYY‹ğöué¨ ¸ãPšN  YY‰vú3ÀP†NÿPèÂöƒÄ3ÀP†`ÿPè²öƒÄ¸ P†rÿPè¡öƒÄ¸ PF‚Pè‘öƒÄ¸ PF’PèöƒÄ¸ PF¢PèqöƒÄ¸ PF²PèaöƒÄ¸ PFÂPèQöƒÄ¸ PFÒPèAöƒÄ‹Fúé¾ë†`ÿP†NÿPèEøƒÄ‹ğö|éª ¸ PšN  YYÇFú 3ÀP†NÿPèüõƒÄ3ÀP†`ÿPèìõƒÄ¸ P†rÿPèÛõƒÄ¸ PF‚PèËõƒÄ¸ PF’Pè»õƒÄ¸ PF¢Pè«õƒÄ¸ PF²Pè›õƒÄ¸ PFÂPè‹õƒÄ¸ PFÒPè{õƒÄ‹Fúéøëö~V¸4PšN  ƒÄÇFş ¸  PFâPš'œƒÄ‹ğFâPFÒPèöƒÄğFâPFÂPè öƒÄğÿtFâP†NÿP‹\ÿÿ_ƒÄğëFâP†`ÿP‹nÿÿ_ƒÄğFâPF²Pè¹õƒÄğFâPF¢Pè¦õƒÄğFâPF’Pè“õƒÄğFâPF‚Pè€õƒÄğFâP†rÿPèlõƒÄğöué¦ ¸PšN  YY‰vú3ÀP†NÿPèiôƒÄ3ÀP†`ÿPèYôƒÄ¸ P†rÿPèHôƒÄ¸ PF‚Pè8ôƒÄ¸ PF’Pè(ôƒÄ¸ PF¢PèôƒÄ¸ PF²PèôƒÄ¸ PFÂPèøóƒÄ¸ PFÒPèèóƒÄ‹FúéeFîPšYœYY‹ğFâPšYœYYğöué¦ ¸œPšN  YY‰vú3ÀP†NÿPè óƒÄ3ÀP†`ÿPèóƒÄ¸ P†rÿPèóƒÄ¸ PF‚PèoóƒÄ¸ PF’Pè_óƒÄ¸ PF¢PèOóƒÄ¸ PF²Pè?óƒÄ¸ PFÂPè/óƒÄ¸ PFÒPèóƒÄ‹Fúéœ ‹Fş‰Fü3ÀP†NÿPèóƒÄ3ÀP†`ÿPèóòƒÄ¸ P†rÿPèâòƒÄ¸ PF‚PèÒòƒÄ¸ PF’PèÂòƒÄ¸ PF¢Pè²òƒÄ¸ PF²Pè¢òƒÄ¸ PFÂPè’òƒÄ¸ PFÒPè‚òƒÄ‹Füë _^‹å]ËU‹ìì¦ VWƒ~}~‹– ¡” %  â ÿ±š—  ‰Fü¡– ‹” â  %ÿ ‰Fúÿvúÿvü¸¹PšN  ƒÄ¸ôPšN  YY¸5PšN  YY¸PšN  YY¸´PšN  YY¸úPšN  YY¸ éR° ˆ†ZÿˆFª3ÿ¾ éª ‹ÆÑàÑàÄ^Ø&Ä&€?-t‹ÆÑàÑàÄ^Ø&Ä&€?/u/‹ÆÑàÑàÄ^Ø&Ä&€rt‹ÆÑàÑàÄ^Ø&Ä&€Ru¿ ëRŠFª˜Àu!‹ÆÑàÑàÄ^Ø&ÿw&ÿ7FªPš}&  ƒÄë)Š†Zÿ˜Àu ‹ÆÑàÑàÄ^Ø&ÿw&ÿ7†ZÿPš}&  ƒÄF;v}éNÿ¸. PFªPš&  ƒÄÂu¸PFªPšÑ%  ƒÄ¸. P†ZÿPš&  ƒÄÂu¸P†ZÿPšÑ%  ƒÄW†ZÿPFªPèşöƒÄ
+‰Fşƒ~ş uÿt¸PšN  YYë¸EPšN  YY‹Fşë _^‹å]ËU‹ìÄ^&‹W
+&‹Gë ]ËU‹ìÄ^&ÇG
+  &ÇG  ÿvÿvÿvÿv
+š  ƒÄÄ^&‰W&‰ë ]ËU‹ìLLV‹vÄ^&ÿw&ÿ7V¸ Pÿvÿv
+šB  ƒÄ‰Fş;Æs¸ ëÄ^&w&ƒW
+ 3Àë ^‹å]ËU‹ìLLV‹vÄ^&ÿw&ÿ7V¸ Pÿvÿv
+š*  ƒÄ‰Fş;Æs¸ ëÄ^&w&ƒW
+ 3Àë ^‹å]ËU‹ìÄ^&ÿw&ÿ7š’$  YYÄ^&ÇG
+  &ÇG  ]ËU‹ìV‹v
+Ä^&w&ƒW
+ ¸ P3ÀPVÄ^&ÿw&ÿ7šR  ƒÄ
+ë ^]ËU‹ìV‹v
+Ä^&ÇG
+  &‰w3ÀP3ÀPVÄ^&ÿw&ÿ7šR  ƒÄ
+ë ^]ËU‹ìÄ^&ÇG
+  &ÇG  Ä^&ÿw&ÿ7šŠ  YYë ]Ë    Borland C++ - Copyright 1991 Borland Intl. Divide error
+Abnormal program termination
+                                          
+               *´A´Invalid project file
+ Replacing %s  (hot key changed to "Unassigned") 
+ Adding %s  (hot key changed to "Unassigned") 
+ No room to add %s
+ Turbo C Project File    rb Unable to open %s
+ Error:  %s is not a valid project file
+ r+b Unable to open %s
+ Error:  %s is not a valid project file
+ Error loading project files
+ Error loading project files
+ Error merging transfer items.  Try specifying "-r"
+ 
+Use the IDE to delete %d or more translators from the destination project.
+ Error saving project file
+ Error closing project files
+ TRANCOPY  %d.%d  Copyright (c) 1991 Borland International
+ Syntax:   TRANCOPY [-r] <source project> <destination project>
+
+ Merges the transfer programs in <source project> and <destination project>
+ and writes the results to <destination project>.
+
+ -r causes the transfer programs in <source project> to replace those
+ in <destination project>.
+ .prj .prj Transfer items replaced successfully
+ Transfer items merged successfully
+ Q‹v‹æ‹v‹   à  à  à    	              ˆ  
+             œ               °  C             Ä  B             Ø                                                                                                                                                                                                                                                                                                             ```                                 @ÿÿ   ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ#ÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿÿ#ÿÿÿÿ#ÿÿ TMP .$$$       (null)   	
+
+ print scanf : floating point formats not linked
+                        ‘––– °   o                                                                                                                                                                                                                                                                                                                                          IS9_E4typeE _ZSt7forwardISt5tupleIJONSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEEEEEOT_RNSt16remove_referenceIS9_E4typeE .text$_ZSt7forwardISt5tupleIJEEEOT_RNSt16remove_referenceIS2_E4typeE _ZSt7forwardISt5tupleIJEEEOT_RNSt16remove_referenceIS2_E4typeE .text$_ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIcS4_EESt10_Select1stISA_ESt4lessIS5_ESaISA_EE14_M_create_nodeIJRKSt21piecewise_construct_tSt5tupleIJOS5_EESL_IJEEEEEPSt13_Rb_tree_nodeISA_EDpOT_ _ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIcS4_EESt10_Select1stISA_ESt4lessIS5_ESaISA_EE14_M_create_nodeIJRKSt21piecewise_construct_tSt5tupleIJOS5_EESL_IJEEEEEPSt13_Rb_tree_nodeISA_EDpOT_ .text$_ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIcS4_EESt10_Select1stISA_ESt4lessIS5_ESaISA_EE29_M_get_insert_hint_unique_posESt23_Rb_tree_const_iteratorISA_ERS7_ _ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIcS4_EESt10_Select1stISA_ESt4lessIS5_ESaISA_EE29_M_get_insert_hint_unique_posESt23_Rb_tree_const_iteratorISA_ERS7_ .text$_ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIcS4_EESt10_Select1stISA_ESt4lessIS5_ESaISA_EE6_S_keyEPKSt13_Rb_tree_nodeISA_E _ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIcS4_EESt10_Select1stISA_ESt4lessIS5_ESaISA_EE6_S_keyEPKSt13_Rb_tree_nodeISA_E .text$_ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIcS4_EESt10_Select1stISA_ESt4lessIS5_ESaISA_EE14_M_insert_nodeEPSt18_Rb_tree_node_baseSI_PSt13_Rb_tree_nodeISA_E _ZNSt8_Rb_treeINSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt4pairIKS5_St6vectorIcS4_EESt10_Select1stISA_ESt4lessIS5_ESaISA_EE14_M_insert_nodeEPSt18_Rb_tree_node_baseSI_PSt13_Rb_tree_nodeISA_E .text$_ZNSt17_Rb_tree_iteratorISt4pairIKNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEEESt6vectorIcS5_EEEC1EPSt18_Rb_tree_node_base _ZNSt17_Rb_tree_itINDX( 	 ¸_           (   °
+  è       _  Ö( 7   ×        ~            S     ˆÁs²× -×,ĞÕC¿ñòÎVÖĞ[Ás²×p      k      !       & B U I L T I N S   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . M A K  }     ˜ „     S     ìî¼s²× -×,ĞÕGä‹uç ×*¾s²×      )      !       ! C P P   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E ) . |            S     ¹×¸s²× -×,ĞÕdæøòÎVÖµ%¹s²× ğ      0ë      !       & D P M I 1 6 B I   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0  1 7   U T C ) . O V L  {            S     «+µs²× -×,ĞÕ#‹uç ×|µs²×       ÄŠ      !       & D P M I I N S T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E  z            S     ¯I°s²× -×,ĞÕ›"’uç ×Ç—°s²× `      ´V      !       & D P M I L O A D   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E  y       Œ     S     ğ*¬s²× -×,ĞÕÕ/•uç ×'y¬s²× p      da      !       % D P M I M E M   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D L L    x       Œ     S     %¨s²× -×,ĞÕàÌ•uç ×@¨s²×        y      !       % D P M I R E S   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E    w    	   Œ     S     ´³£s²× -×,ĞÕJ4óÎVÖN¤s²× P      ĞL      !       % E M S T E S T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C O M    v     ˜ „     S     ¬ÖŸs²× -×,ĞÕš'™uç ×Ğ$ s²× `      œZ      !       ! E X 1   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E M . u     ˜ †     S     ÁU›s²× -×,ĞÕU[óÎV Ó·›s²×        o      !       " G R E P   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C O M . t            S      ^—s²× -×,ĞÕóê™uç ×¶—s²×              !       & G R E P 2 M S G   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E  s     ˜ †     S     ¸‘s²× -×,ĞÕ]
+uç ×êT’s²× `     _     !       " M A K E   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E E r     ˜ ˆ     S     ØŠs²× -×,ĞÕI}¡uç ×·ôs²× ğ      è      !       # M A K E R    2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E q       Œ     S     €5‹s²× -×,ĞÕ)HóÎVÖx‹s²×        E      !       % O B J X R E F   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C O M E  p    $   Œ     S     ôd‡s²× -×,ĞÕú°¤uç ×³‡s²× À      J¾      !       % P R J 2 M A K   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E E  o    5   Š     S     B”ƒs²× -×,ĞÕW¸§uç ×”	„s²×       Ê„      !       $ P R J C F G   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1    U T C ) . E X E E E  n       Œ     S     d~s²× -×,ĞÕ§ªuç ×½²~s²× P      JA      !       % P R J C N V T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E E                `_s²× -×,ĞÕK4óÎVÖÿ`s²×              !       $ T C 0 0 0 2   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . S W P      g        Š     S     "­Zs²× -×,ĞÕ­ã6óÎVÖY"[s²×              !       $ T C 0 0 0 3   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . S W P      f       Š    S     ËUs²× -×,ĞÕôE9óÎVÖ3@Vs²×              !       $ T C 0 0 0 4   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . S W P      e       Š     S     éèPs²× -×,ĞÕß	>óÎVÖ^Qs²×              !       $ T C 0 0 0 5   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . S W P      d       Š     S      .Ls²× -×,ĞÕpl@óÎVÖ£Ls²×              !       $ T C 0 0 0 6   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . S W P      c     ˜ „     S     ±eDs²× -×,ĞÕKI´uç  ÕKGs²× P     cA     !       ! T C C   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . E X E ) . b       Œ     S     ëm@s²× -×,ĞÕ”GóÎVÖã@s²× 0      P.      !       % T C C O N F I G   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . T C    a     ˜ ˆ     S     <v<s²× -×,ĞÕğöIóÎVÖXÄ<s²×       Ë      !       # T C D E F   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D P R                                                                                              MZš 	      ÿÿ  È   ¸	 @    û0jr                             À ¹	                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   QRVW‹ğTX;Ät¸ ëè _^ZYËÈ,  SQWŒÈØºÂ¸ =Í!s¸ é	‹ØVÜ¹ ´?Í!s
+´>Í!¸ éï °3É3Ò´BÍ!s
+´>Í!¸ éÙ ‰Fø‰Vú´>Í!‹FÜ=MZt¸ éÁ ‹Fä‹ĞÁàÁê‰FÔ‰VÖ‹~Ş‹Fàƒÿ tH‹ĞÁà	ÁêÇƒÒ +FÔVÖ‰Fü‰Vş‹Fø‹Vú+FÔVÖ ƒÒ S‹ÚÁèÁêÁãÃ[@‹Ø´HÍ!s¸ ë\‰FØ‰FÚFòŒÈØºÂŒĞÀ^Ø¸KÍ!s¸ ë9‹Fü‹Vş ƒÒ S‹ÚÁèÁêÁãÃ[@‹ØFØ´JÍ!‹Æÿ^ğƒÄ=  tP´IÍ!X_Y[ÉÃ                                                                                                                                                                                                                               
+DOS SETBLOCK (4Ah) error     $
+DOS EXEC (4Bh) error     $
+DPMI server initialization complete$
+DPMI server initialization error->$
+Application load & execute error     $$:Yqˆ¯Ü4Rk—½âò7Xydies trying to shrink memory$v86 task without vcpi$this kernel requires 386 (386)$machine not in database$bad environment params$unable to initialize page tables (386)$bad info in machine database - A20 off param$bad info in machine database - A20 on param$bad info in machine database - switch param$not enough memory for PM init$cannot create fret (386)$unable to create linear address space (386)$unable to init sys linear space (386)$unable to copy kernel to high memory$undefined error$unable to copy DOSX to high memory$unable to copy IDT to high memory$unable to create int chain table$unable to create PM locked stack$unable to init swapping (386+)$¹ñƒÁÁéŒÀŒË+ØÙ¸ JÍ!séØ ƒ>( t¡&š
+  =  téš ºlè× ƒ>*uëwƒ>* t"ŒØÀ»Pº^¸ KÍ!sé¤ ¸ MÍ!= tëF¸Bû»
+ ‹,‹&‹6.Í/=  u‹Â=Ûÿt»Úº·è˜ ë¸ÿ ƒ>* tP¸Bû» ‹,Í/X%ÿ €ÌLÍ!ôŒØÀ»Pº^¸ KÍ!såë5Pº’èJ X=@vºâë%ÿHÑà¾ßğ‹è/ ¸ïÿë¼»Kº0è/ ¸ğÿë®»gºPè! ¸ñÿë ÷& u¸ 	Í!Ã÷& u¸ 	Í!ÃU`P‹ì‹û¹ ‹F % 0 =9 ~ ‹ĞˆUÁn OâãXa]èÅÿÃ                                                                                                    PATH=          dpmi16bi.ovl dpmi32bi.ovl dpmi32vm.ovl dpmiload.exe dosload.exe       
+BOSS Stub Version 3.2  Copyright (c) 1990, 1991 Borland International(****)
+$ $*$*$* !BOSS STUB 
+Failed to locate real mode loader (DOSLOAD.EXE)$
+Failed to locate protected mode loader (DPMILOAD.EXE)$
+EXE file read error$
+DPMI services resident$
+Failed to locate DPMI server (DPMI16BI.OVL)$
+Failed to locate DPMI server (DPMI32BI.OVL)$
+Failed to locate DPMI server (DPMI32VM.OVL)$
+Hardware does not support protected mode$
+EXE runs in protected mode only$
+Running real mode EXE$
+Failed to locate real mode EXE$¸  Ğ¸È ‹àŒØÀ¡% ÿ£.èöºªèÍüèŸ èú sëEèsè.së9ÿ(¿Âè©Ç, è³s"¾‹ècsÇ* Ç(  ë¿^è‚Ç* ëMèsƒ>*u	ºAèzüé	üº¨èqüé üƒ>*t(Ç,  è_s¾˜ès	ºèNüéİû¿^è3Ç* è(éûTX;ÄtÇ¤  ëÇ¤ è f3Àë	Ç¤ ƒÄè# Ã¸ 5 Í!Œ¨‰¦¸ % º˜
+Í!Ã¸ % ‹¦¨Í!Ãƒ>¤ uº2	èÀûùÃ¸Cû» Í/=Cûtëï÷& tëåøÃ¸‡Í/=  uºè‘ûøÃùÃƒ>¤t2÷&@ uë¾~è= s:º	ènûù÷&  uë¾qè$ s!ºÖèUûù÷& uùë¾dè
+ sº¨è;ûùÃ‰6`ƒ>^ uèY èu è¸ =ºñÍ!rë<¿ñèû ¸ =ºñÍ!rë*ƒ>Z uèz ŒÀ&¡, ¡Z£\è› rèÑ ¸ =ºñÍ!sëì‹Ø¸ >Í!øÃùÃ&‹, Â+ö&‹=  tFëõFFFF‰6^Ã&‹, Â‹6^¿ñ¹ &Š< tˆFGAëòOŠ<\t</tâóGÃŒÀ&‹, Â+ÿ¾U¹ ó¦t&€= tGë÷G&€= uæùÃ‰>ZøÃ&‹, Â‹6\¿ñ&€< t#&Š<;t
+< tˆFGëïF€}ÿ\tÆ\G‰6\øÃùÃ‹6`Š< tˆFGëôÆ Ã¾ñ3ÀŠˆ=  tGFëóÃ¸Bû» ‹,Í/ÛtùÃøÃ÷& tëèH èu r?¡b© uøÃ÷&€ t+‹6Çèyşsº]	è¸ùº—	è²ùë¿^è˜ÿÇ* º	èùøÃùÃ¸ÿÿÃ&‹, Â+ö&‹=  tFëõFFFF¿ñ&Š< tˆFGşÁëñÆ Ãºñ¸ =Í!r@‹Ø¹@ ºñ¸ ?Í!r,‹/‹-ƒÂƒÑ ¸ BÍ!r¹ ºb¸ ?Í!r
+¸ >Í!¡bøÃ¸ >Í!ºyèùùÃ&¡, £PŒTÇR€ ŒXÇV\ Œ\ÇZl ÃÉ ƒ&ƒ&ƒ&Ã      NE
+³      	 
+       
+     @ ¨ ¨ ³ ³ U    	            	 €™@€™[  @ \ O DO ] î@îk @s  A w  
+A 
+|  A } @A@~ ÜEÜ€ 8üA8üÿ y Ay  ) A) tlinkoe     tlinkoe.exe                                                                                                                                                               $*$*$* $ TLINK ÿÿƒ>ªu:¸Bû»! ¹ Í/ƒú të£¦‰¤¸Bû»" ¹ ŒÎºT Í/ƒú uøÃùÃƒúuùÃùÃP. ƒ>¨t,Ç¨ ƒ>œÿt¸ÿÿĞ¼ 
+€>UtÇ¨ 3ÀP¸ Pèp—¸ PèK“¸3LÍ!ƒ>ªu"¸Bû»" ¹ ‹6¦‹¤Í/ƒú uøÃƒúuùÃùÃÆ  Æ Æ  Æ  Ç  ÆJ
+ Æ… Æ  Æ	 3À£’R£ê£a
+£èÇh  Çd  Çf  Æ Ãè©ÿÇ´`“è1•èé“Turbo Link  Version èÑ“5.0èÊ“) Copyright (c) 1992 Borland InternationalèC“èñ”èÍ€>‰u€>„ tÆ„ 3ÀP¸3 Pèr– „¢ ¢  …˜Ñà£ Ñà£  €>ˆ uÆˆ3À€>ˆt@¢ èZèB €>‰ uÆ‰€> tÆ† è~Ãƒ>" u
+šÿÿ  šÿÿ  ÃNot enough memory
+$¡  ±Óè) ¸ÿÿPPPP@P¸ P3ÀP¸€ P¸CP3ÀPPšÿÿ  #Àtèş PPPPšÿÿ  Ç"  Ã3ÀP¸ PèŸ•¸ÿÿØ&¡, £  ¸ÿÿØŒ  Ç € 3À£" H£’£”PU‹ìÇF  ]PU‹ìÇF  ]šÿÿ  ƒÄèmı  &‹ ÃÇ  ¸¡ D£ Ã¸ÿÿ¿

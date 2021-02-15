@@ -1,0 +1,1415 @@
+      Deletes a leading space, if
+                                                any, from the beginning of
+                                                each line in the
+                                                highlighted (selected)
+                                                text.
+
+                    PageDown                    Moves cursor down by number
+                                                of lines in the window.
+
+                    PageScreenDown              Scrolls screen down by
+                                                numer of lines in the
+                                                window, leaving cursor
+                                                position unchanged.
+
+                    PageScreenUp                Scrolls screen up by numer
+                                                of lines in the window,
+                                                leaving cursor position
+                                                unchanged.
+
+                    PageUp                      Moves cursor up by number
+                                                of lines in the window.
+
+                    PaintScreen                 Redraws the entire window,
+                                                assuming that the screen
+                                                still correctly displays
+                                                what the editor last drew
+                                                on it.
+
+
+
+
+
+                                  - 69 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                    ReDo                        Performs an Redo operation.
+                                                Exactly what happens
+                                                depends on the option
+                                                settings.
+
+                    RightOfLine                 Moves cursor to end of
+                                                current line.
+
+                    RightOfWord                 Moves cursor to the next
+                                                column that follows the end
+                                                of a word.
+
+                    ScrollScreenDown            Scrolls screen down one
+                                                line, leaving cursor
+                                                position unchanged.
+
+                    ScrollScreenUp              Scrolls screen up one line,
+                                                leaving cursor position
+                                                unchanged.
+
+                    SetAutoIndent               Sets the Auto Indent option
+                                                On.
+
+                    SetAutoOutdent              Sets the Backspace
+                                                Unindents option On.
+
+                    SetBlockBeg                 Sets the beginning of the
+                                                selected text to be the
+                                                character at the current
+                                                cursor location.
+
+                    SetBlockEnd                 Sets the end of the
+                                                selected text to be the
+                                                character at the current
+                                                cursor location.
+
+                    SetCursorThroughTabMode     Sets the Cursor Through
+                                                Tabs option On.
+
+                    SetInsertMode               Sets Insert/Overwrite
+                                                option to Insert.
+
+                    SetMark                     Sets a marker to point to
+                                                the character at the
+                                                current cursor location, so
+                                                a later MoveToMark(n)
+
+
+
+                                  - 70 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                                                comand can restore the
+                                                cursor. Use the syntax
+                                                SetMark(n), where n is a
+                                                one digit number, 0-9.
+
+                    SetOptimalFillMode          Sets Optimal Fill option
+                                                On.
+
+                    SetPrevPos                  Sets a marker (the previous
+                                                position marker) to point
+                                                to the character at the
+                                                current cursor location.
+                                                This marker location
+                                                changes only by a call to
+                                                SetPrevPos or SwapPrevPos.
+
+                    SetTabbingMode              Sets Use Tab Char option
+                                                On.
+
+                    SetTempPos                  Saves the cursor location
+                                                in a temporary marker that
+                                                can be used by some
+                                                internal editor commands.
+                                                This is not a practical
+                                                application in user-defined
+                                                macros. Use SetMark
+                                                instead.
+
+                    SmartRefreshScreen          Redraws the window,
+                                                skipping any portions that
+                                                the editor is sure are
+                                                unmodified since the last
+                                                redraw.
+
+                    SmartTab                    Inserts space or tab
+                                                characters in accordance
+                                                with the current settings
+                                                of the Use Tab Char option,
+                                                Tab Width.
+
+                    SwapPrevPos                 Exchanges the values of the
+                                                cursor and the "previous
+                                                position marker."
+
+                    ToggleAutoIndent            Toggles the state of the
+                                                Auto Indent option.
+
+
+
+                                  - 71 -
+
+
+
+
+
+
+                    Table 1.4: TEMC editor commands (continued)____________
+
+                    ToggleAutoOutdent           Toggles the state of the
+                                                Backspace Unindents option.
+
+                    ToggleCursorThroughTabMode  Toggles the state of the
+                                                Cursor Through Tabs option.
+
+                    ToggleHideBlock             Toggles the state of the
+                                                highlight (selected) text
+                                                flag (see HighlightBlock).
+
+                    ToggleInsert                Toggles state of
+                                                Insert/Overwrite option.
+
+                    ToggleOptimalFillMode       Toggles state of Optimal
+                                                Fill option.
+
+                    ToggleTabbingMode           Toggles state of Use Tab
+                                                Char option.
+
+                    TopOfScreen                 Moves cursor to the top
+                                                line currently displayed in
+                                                the window, leaving column
+                                                unchanged.
+
+                    UnDo                        Performs an Undo operation.
+                                                Exactly what happens
+                                                depends on the option
+                                                settings.
+
+                    WordLeft                    Moves cursor to beginning
+                                                of previous word, or to end
+                                                of previous line, whichever
+                                                is first.
+
+                    WordRight                   Moves cursor to beginning
+                                                of next word, or to the end
+                                                of a line, whichever is
+                                                first.
+
+                    -------------------------------------------------------
+
+
+                    The following commands cause an exit from the editor,
+                    for example, by bringing up a dialog box. The macro
+                    resumes when the editor window regains the focus.
+
+
+
+
+                                  - 72 -
+
+
+
+
+
+
+                    The keys listed next to some of the commands below are
+                    the ones used by default when the Alternate mode of the
+                    IDE is selected.
+
+                    AddWatch            Adds a watch item (Ctrl-F7).
+                    ChangeDirectory     Opens a dialog box for changing the
+                                        current directory.
+                    ChangeModeFlags     Used after a command such as
+                                        ToggleInsert which changes the
+                                        state of an editor option switch.
+                                        Causes the IDE to update various
+                                        menu items and/or icons.
+                    ClipCopy            Copys selected text to Clipboard
+                                        (Ctrl-Ins).
+                    ClipCut             Cuts selected text to Clipboard
+                                        (Shift-Del).
+                    ClipPaste           Pastes Clipboard into buffer at
+                                        cursor (Shift-Ins).
+                    ClipShow            Shows Clipboard (no hot key
+                                        defined).
+                    CloseWindow         Closes editor window (Alt-F3).
+                    CompileFile         Compiles current buffer (Alt-F9).
+                    CompileMenu         Selects Compile menu (Alt-C).
+                    CompilerOptions     Selects the Options Compiler menu
+                    DebugMenu           Selects Debug menu (Alt-D).
+                    EditMenu            elects Edit menu (Alt-E).
+                    FileMenu            Selects File menu (Alt-F).
+                    GetFindString       Opens a dialog box for the Search
+                                        operation. (Alt-S F)
+                    GotoWindow1         Selects window #1 (Alt-1).
+                    GotoWindow2         Selects window #2 (Alt-2).
+                    GotoWindow3         Selects window #3 (Alt-3).
+                    GotoWindow4         Selects window #4 (Alt-4).
+                    GotoWindow5         Selects window #5 (Alt-5).
+                    GotoWindow6         Selects window #6 (Alt-6).
+                    GotoWindow7         Selects window #7 (Alt-7).
+                    GotoWindow8         Selects window #8 (Alt-8).
+                    GotoWindow9         Selects window #9 (Alt-9).
+                    Help                Opens the Help window (F1).
+                    HelpMenu            Selects Help menu (Alt-H).
+                    HelpIndex           Display the Help system't index
+                                        (Shift-F1)
+                    Inspect             Inspects item (Alt-F4).
+                    LastHelp            Opens previous help window (Alt-
+                                        F1).
+                    MakeProject         Makes project (F9).
+                    Menu                Highlights top menu bar.
+
+
+
+
+                                  - 73 -
+
+
+
+
+
+
+                    Modify              Evaluates expression/modify
+                                        variable (Ctrl-F4).
+                    NextError           Moves to next item in message
+                                        window (Alt-F8).
+                    NextWindow          Selects next window in IDE (F6).
+                    OpenFile            Opens dialog box for File Open
+                                        (F3).
+                    OptionsMenu         Selects Options menu (Alt-O).
+                    PrevError           Moves to previous item in message
+                                        window (Alt-F7).
+                    PrintBlock          Writes selected text to the
+                                        printer.
+                    ProjectMenu         Selects Project menu (Alt-P).
+                    Quit                Exits the IDE (Alt-X).
+                    ReadBlock           Opens dialog box requesting a file
+                                        name to be read into the buffer at
+                                        the cursor location and marked as
+                                        selected text.
+                    RepeatSearch        Searches again, using previous
+                                        parameters.
+                    Replace             Opens an dialog box for the Replace
+                                        operation.
+                    ResetProgram        Resets program being debugged
+                                        (Ctrl-F2).
+                    RunMenu             Selects Run menu (Alt-R).
+                    RunProgram          Makes and runs current executable
+                                        (Ctrl-F9).
+                    RunToHere           Runs program until statement at
+                                        cursor (F4).
+                    SaveFile            Saves current editor buffer (F2).
+                    SaveFileAs          Opens dialog for File SaveAs.
+                    SearchMenu          Selects Search menu (Alt-S).
+                    Step                Step over (F8).
+                    SystemMenu          Selects Sytem menu (Alt-Spacebar).
+                    ToggleBreakpoint    Sets/Clears a breakpoint at the
+                                        cursor location
+                    Trace               Trace into (F7).
+                    Transfer0           Selects nth item from transfer menu
+                    Transfer1           .
+                    Transfer2           .
+                    Transfer3           .
+                    Transfer4           .
+                    Transfer5           .
+                    Transfer6           .
+                    Transfer7           .
+                    Transfer8           .
+                    Transfer9           .
+                    ViewCallStack       Views Call Stack (Ctrl-F3).
+
+
+
+                                  - 74 -
+
+
+
+
+
+
+                    ViewUserScreen      Displays User Screen (Alt-F5).
+                    WindowList          Displays window list (Alt-0).
+                    WindowMenu          Selects Window menu (Alt-W).
+                    WindowCascade
+                    WindowTile
+                    WordHelp            Context sensitive help (Ctrl-F1).
+                    WriteBlock          Opens dialog box requesting a file
+                                        name to which the selected text
+                                        will be written.
+                    ZoomWindow          Zooms/unzoomd current window (F5).
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 75 -
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 76 -
+
+
+
+
+
+
+INDEX
+___________________________________________________________________________
+
+
+
+
+
+- + and + - (TLIB action symbols)       /C THELP option (select color) 39,
+  48                                      40
+[ ] GREP operator 17                    /C TLIB option (case sensitivity)
+/? THELP help option 40, 42               45, 50
+-* and ** (TLIB action symbols) 47      $CAP EDIT transfer macro 55
+* (TLIB action symbol) 47               $CAP MSG transfer macro 55
++ (TLIB action symbol) 47               case sensitivity
+- (TLIB action symbol) 47                 GREP option 14
+$ GREP operator 17                        TLIB option 45, 50
+* GREP operator 17                      characters
++ GREP operator 17                        trigraph
+. GREP operator 17                          converting 53
+\ GREP operator 17                      $COL transfer macro 56
+^ GREP operator 17                      columns
+? THELP option 40, 42                     numbers 56
+                                        command line
+                                          syntax
+A                                           CPP 10
+add (TLIB action symbol) 47             compilers
+                                          Turbo editor macro 56
+                                        $CONFIG transfer macro 56
+B                                       configuration files 56
+BGIOBJ 2-10                               TCC file 10
+  advanced features 6                     CPP and 10
+  command-line syntax 3, 6              conversion
+  components 6                            trigraphs 53
+  example 4                             CPP 10-12
+  graphics.h and 8                        command-line options and syntax
+  options                                 10
+    destination file 7                    directory 10
+    /F 6                                  example of use 11
+    file name 6                           files
+    file name (/F) 5                        compiling 11
+    public name 7                         -P option (source file names and
+    segment class 7                         line numbers) 11
+    segment name 7                        wildcards and 10
+    source file 7
+
+                                        D
+C                                       -d GREP option (directories) 14
+-c GREP option (count only) 14          /D OBJXREF option (directory) 24
+
+
+
+Index                                                                    77
+
+
+
+
+
+
+debugging                               extended dictionary
+  include files 10                        TLIB and 45, 49
+  macros 10                             extract and remove (TLIB action) 47
+$DEF transfer macro 56
+Defines option
+  transfer macro 56                     F
+$DEP transfer macro 56                  /F BGIOBJ option 6
+dependencies                            /F BGIOBJ option (far routines) 5
+  explicit 56                           /F OBJXREF option (include full
+$DIR transfer macro 56                    library) 25
+directories                             /F THELP option 41
+  CPP 10                                /F THELP option (Help file path and
+  GREP option 14                          name) 40
+  include files                         files
+    transfer macro 57                     dates
+  libraries                                 changing 51
+    transfer macro 57                     destination
+  .OBJ files 24                             BGIOBJ 7
+  transfer macro 56                       extensions 57
+DLLs                                      linker response, used by OBJXREF
+  creating 57                               28, 33
+DOS                                       macros
+  commands                                  expanded 10
+    running from the IDE 59               matching
+$DRIVE transfer macro 56                    GREP option 14
+                                          names
+                                            macros
+E                                             transfer 54
+/E TLIB option (extended                    printing (GREP) 15
+  dictionary) 45, 49                      output, generated by OBJXREF 25
+editor                                    path
+  macro language (TEML)                     macros 56
+    using 56                              saving
+$EDNAME transfer macro 56                   all 58
+$ERRCOL transfer macro 57                 searching 12-22
+$ERRLINE transfer macro 57                source
+$ERRNAME transfer macro 57                  BGIOBJ 7
+errors                                  filters 55
+  linker                                  GREP 56
+    graphics drivers and fonts 5          Resource Compiler 56
+  OBJXREF (list) 34                       TASM 56
+examples                                fonts
+  OBJXREF 28-33                           adding to graphics library 3
+.EXE files                                files, converting to .OBJ files 2
+  file name transfer macro 57             included with Turbo C++ 4
+$EXENAME transfer macro 57                linker errors and 5
+$EXT transfer macro 57                    linking 2-10
+                                          registering 3, 8
+
+
+
+                                  - 78 -
+
+
+
+
+
+
+  stroked 2-10                              white space in 18
+    linking 2                             using 13
+                                          wildcards and 18
+                                        GREP.COM 16
+G                                       GREP2MSG.EXE 56
+graphics drivers
+  adding to graphics library 3
+  converting to .OBJ files 2, 2-10      H
+  included with Turbo C++ 4             /H THELP option (help) 40, 42
+  linker                                header files
+    errors and 5                          graphics.h 8
+  linking 2                             help
+  registering 3, 8                        GREP (file searcher) 13
+graphics.h (header file)                  OBJXREF 23
+  BGIOBJ and 8                            THELP 40, 42
+GRAPHICS.LIB                            hot keys
+  adding to 3                             scan codes 42
+GREP (file searcher) 12-22
+  capturing messages 56
+  examples 18                           I
+  files to search 18                    -i GREP option (case sensitivity)
+  help 13                                 14
+  literal character 17                  /I OBJXREF option (case
+  matches 17                              sensitivity) 24
+  operators 17                          $INC transfer macro 57
+  optimizing use of 16                  include files
+  options                                 debugging 10
+    case sensitivity (-i) 14              directories
+    count only (-c) 14                      transfer macro 57
+    default 15, 16                      integrated environment
+    discussion 13                         DOS commands and 59
+    file names (printing) 15              memory needs 59
+    -i (case sensitivity) 14
+    line numbers (-n) 14
+    lines, nonmatching (-v) 15          K
+    list matching files (-l) 14         /K THELP option (change hot key)
+    -n (line numbers) 14                  40, 42
+    -o (UNIX output format) 14          keyboard
+    precedence 16                         trigraph program 53
+    regular expression search (-r)
+    14
+    UNIX format (-o) 14                 L
+    updating (-u) 15                    -l GREP option (list matching
+    -v 15                                 files) 14
+    -v (nonmatching lines) 15           /L OBJXREF command (linker response
+    verbose 15                            file) 28
+    word search (-w) 15                 $LIB transfer macro 57
+  search strings 16                     libname (TLIB option) 45
+
+
+
+Index                                                                    79
+
+
+
+
+
+
+libraries                                 column number 57
+  directories                             file name 57
+    transfer macro 57                     line number 57
+  files 22                              module names, TLIB 46
+    contents of 22
+  graphics
+    adding driver and font files to     N
+    3                                   -n command-line compiler option
+  object files 43, 44                     CPP and 10
+    creating 47                         -n GREP option (line numbers) 14
+  OBJXREF                               /N OBJXREF option (limit reports)
+    including all 25                      26
+  page size 49                          $NAME transfer macro 57
+$LINE transfer macro 57                 $NOSWAP transfer macro 57
+lines                                   numbers
+  numbering 57                            column 56
+    printing (GREP) 14                    line 57
+linker
+  error: segment exceeds 64K 5
+  response files                        O
+    used by OBJXREF 28, 33              -o GREP option (UNIX format output)
+linking                                   14
+  graphics drivers 2                    /O OBJXREF option (output file for
+listfile (TLIB option) 45                 reports) 25
+                                        .OBJ files
+                                          converting font files into 2
+M                                         converting graphics drivers files
+macros                                    into 2
+  CPP and 11                              defined 22
+  debugging 10                            directories 24
+  editor 56                               libraries
+  expanded                                  advantages of using 44
+    list of 10                              creating 47
+  preprocessing 11                          TLIB and 43
+  preprocessor 10                         names 22
+MAKE (program manager)                    response files and 27
+  modifying 51                          object modules
+  project files and 36                    defined 22
+$MEM transfer macro 57, 59                names 22
+memory                                  OBJXREF 22-34
+  requirements                            directories 24
+    IDE 59                                error messages 34
+  transfer programs 57, 59                examples of reports 29, 30, 31,
+Message window                            32
+  capturing output into 55                help 23
+  copying text from 59                    /L command (linker response
+messages                                  files) 28
+  capturing from programs 55
+
+
+
+                                  - 80 -
+
+
+
+
+
+
+  linker files                            wildcards and 23
+    as response files 28                operations (TLIB option) 45
+  options 23                            operators
+    /N (limit information) 26             GREP 17
+    /RV 26                              $OUTNAME transfer macro 57
+    /RC 31                              output
+    control 24                            capturing 55
+    directories (/D) 24                 output file
+    /F (include full library) 25          generated by OBJXREF 25
+    ignore case (/I) 24
+    include full library (/F) 25
+    include zero-length segment         P
+    definitions (/Z) 25                 -P CPP option (source file names
+    list file names (/V) 25               and line numbers) 11
+    modified reports 26                 /P OBJXREF command (project files)
+    /O (output file) 25                   27
+    reports 25                          /P TLIB option (page size) 49
+      by class type                     page size (libraries) 49
+        example 33                      path
+      by class type (/RC) 26, 31          transfer macro 57
+      by external reference (/RX)       precedence
+      26, 30                              GREP options 16
+      by module (/RM) 26, 29              TLIB commands 46
+      by public names (/RP) 26, 29      PRJ2MAK (project file converter) 36
+      by reference (/RR) 26, 30, 33     PRJCNVT (project file converter) 35
+      default type 33                   $PRJNAME transfer macro 58
+      of all types (/RV) 26             programs
+      of module sizes (/RS) 26, 31        capturing output 55
+      of unreferenced symbol names        file name 57
+      (/RU) 26, 32                        memory assignments 59
+      output file (/O) 25               project files
+      verbose                             OBJXREF and 27
+        example 33                        used by OBJXREF 33
+      verbose (/RV) 26, 32              projects
+    /V (verbose output) 25                files
+    verbose report (/RV) 32                 converting from old versions 35
+    /Z (include zero-length segment         converting to MAKE files 36
+    definitions) 25                         file name transfer macro 58
+  project files                         $PROMPT transfer macro 58
+    as response files 27                public names
+  project files (/P) 27                   defined 22
+  reports 23
+    modifying 26
+    output file for (/O) 25             R
+  response files 23, 27                 -r GREP option (regular expression
+    example 33                            search) 14
+    linker 28                           /RC OBJXREF option (report) 31
+  warnings 34                           /RC OBJXREF option (reports) 26
+
+
+
+Index                                                                    81
+
+
+
+
+
+
+redirecting program output 55               in text files 12-22
+registerbgidriver (function)            swapping
+  BGIOBJ and 3, 8                         to User Screen 57
+registerbgifont (function)              syntax
+  BGIOBJ and 3, 8                         CPP 10
+registerfarbgidriver (function)           TLIB 44
+  BGIOBJ and 6, 8
+registerfarbgifont (function)
+  BGIOBJ and 6, 8                       T
+remove (TLIB action) 47                 TASM2MSG.EXE 56
+replace (TLIB action) 48                $TASM transfer macro 58
+Resource Compiler                       text
+  capturing messages 56                   Message window 59
+resources                               text files
+  rebuilding automatically 56             searching 12-22
+response files                          THELP (Turbo Help utility) 37-43
+  file-name extensions and 27             additional Help on highlighted
+  formats 27                              word 39
+  free-form 27                            cursor keys 38
+    example 33                            index 39
+  linker files and 28                     invoking 37
+  OBJXREF and 23, 27, 28                  keywords 38
+    example 33                            loading 37
+  project files and 27                    options 39-43
+  TLIB 48                                   colors (/C) 40
+  TLINK, OBJXREF and 33                     colors (/C)  39
+/RM OBJXREF option (reports) 26             Help file path (/F) 40
+/RP OBJXREF option (reports) 26             help file path (/F) 41
+/RR OBJXREF option (reports) 26             help on (/?
+/RS OBJXREF option (reports) 26               /H
+/RU OBJXREF option (reports) 26                 ?) 40, 42
+/RV OBJXREF option (reports) 26             Help screen colors (/C) 39
+/RX OBJXREF option (reports) 26             help screen colors (/C) 40
+                                            hot keys (/K) 40, 42
+                                            reassign hot keys (/K) 40, 42
+S                                           removing THELP (/U) 40, 43
+$SAVE ALL transfer macro 58                 screen colors (/C) 39, 40
+$SAVE CUR transfer macro 58                 /U (removing THELP) 40, 43
+$SAVE PROMPT transfer macro 58              /W (window options) 40
+scan codes 42                               window options 43
+searches                                    window options (/W) 40
+  text files 12-22                        paging through 38
+source files                              paste page 39
+  separately compiled 44                  previous screens 39
+standalone utilities 1                    quitting 39
+strings                                   removing from memory 40, 43
+  searching for                           scan codes 42
+    as expressions (GREP) 14              using 38
+
+
+
+                                  - 82 -
+
+
+
+
+
+
+TLIB (librarian) 43-51                    $INC 57
+  action symbols 46-48                    instruction 55
+  capabilities 43                         $LIB 57
+  examples 51                             $LINE 57
+  extended dictionary (/e)                $MEM 57
+    TLINK and 49                          $NAME 57
+  module names 46                         $NOSWAP 57
+  operations 46                           $OUTNAME 57
+    precedence 46                         $PRJNAME 58
+  options                                 $PROMPT 58
+    case sensitivity (/c) 45, 50          $SAVE ALL 58
+    /E 45, 49                             $SAVE CUR 58
+    extended dictionary (/e) 45, 49       $SAVE PROMPT 58
+    libname 45                            $TASM 58
+    listfile 45                           $WRITEMSG 59
+    operations 45                       trigraphs
+    page size (/P) 49                     translating 53
+    using 44                              undo option (-u) 53
+  response files                        Turbo Assembler
+    using 48                              capturing messages 56
+  syntax 44                               $TASM macro 58
+TLIB (Turbo librarian) 43-51            TURBOC.CFG 10
+  options 39-51
+TLINK (linker)
+  response files                        U
+    OBJXREF and 28                      -u GREP option (updating) 15
+  TLIB extended dictionary and 49       /U THELP option 43
+TOUCH 51, 52                            /U THELP option (remove THELP) 40
+transfer macros                         UNIX
+  $CAP EDIT 55                            format (GREP) 14
+  $CAP MSG 55                           User Screen 57
+  $COL 56                               utilities
+  $CONFIG 56                              standalone 1
+  $DEF 56                                 TLIB 43-51
+  defined 54                              TOUCH 51
+  $DEP 56
+  $DIR 56
+  DOS commands 59                       V
+  $DRIVE 56                             -v GREP option (nonmatching lines)
+  $EDNAME 56                              15
+  $ERRCOL 57                            /V OBJXREF option (verbose output)
+  $ERRLINE 57                             25
+  $ERRNAME 57
+  $EXENAME 57
+  $EXT 57                               W
+  file names 54                         -w GREP option (word search) 15
+  glossary of 55                        /W THELP option (ser window
+  how expanded 54                         size/location) 40
+
+
+
+Index                                                                    83
+
+
+
+
+
+
+/W THELP option (window options) 43     Z
+wildcards                               -z GREP option (verbose) 15
+  CPP and 10                            /Z OBJXREF option (include zero-
+  OBJXREF and 23                          length segment definitions) 25
+  TOUCH and 52
+$WRITEMSG transfer macro 59
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 84 -
+
+                                                                                                                                                                                                                                                                                                                       .bss                           .rdata  `                         H  `     i                    W  \                          g  Ä                     .xdata  h     (                 .pdata  å                     .file   ¬  ˛ˇ  gxtxtmode.c        .text   p                       .data   P                        .bss    0                      .file   ◊  ˛ˇ  gcrt_handler.c         w  p                           ë          INDX( 	 96           (   X  Ë       )  ◊                ˇ     ò Ü     ı     À©˘q≤◊ Z.–’¢J]ÙŒV÷R\˝q≤◊ `      OX      !       " A N S I   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C M ˛     ò Ü     ı     5ıq≤◊ Z.–’Ÿ¨_ÙŒV÷ãıq≤◊ Ä      x~      !       " B A S M   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C M ˝     ò à     ı     ÔÒq≤◊ Z.–’õbÙŒV÷ UÚq≤◊ 0      ü#      !       # B R I E F   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C  . T E M ¸     † é     ı     I•Ìq≤◊ Z.–’;rdÙŒV÷_ªÓq≤◊       ˜˛     !       & C L A S S L I B   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C   ˚    	 † å     ı     ˛7Íq≤◊ Z.–’Î”fÙŒV÷áxÍq≤◊        †      !       % C M A C R O S   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . T E M M   ˙     † é     ı     s!Áq≤◊ Z.–’keiÙŒV÷3Áq≤◊        b      !       & D E F A U L T S   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . T E M   ˘     † å     ı     È:‰q≤◊ Z.–’ê:mÙŒV÷â‰q≤◊       ¿      !       % D O S E D I T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . T E M     ¯     † å     ı     ÷Y·q≤◊ Z.–’pˇqÙŒV÷ô·q≤◊ 0      i%      !       % E P S I L O N   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . T E M     ˜     † å     ı     j≈›q≤◊ Z.–’πatÙŒV÷¸ ﬁq≤◊ ê      Jå      !       % H E L P M E !   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C     ˆ     ò Ü     ı     º Ÿq≤◊ Z.–’ƒvÙŒV÷òb⁄q≤       ﬁ     !       " U T I L   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . D O C                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            /******************************************************************
+This file contains a TEML script that is helpful to C and C++
+programmers.  To use the macros in this file run TEMC to compile
+it and add it to the appropriate tcconfig.tc file.  The syntax for
+this is:
+
+TEMC cmacros.tem tcconfig.tc
+
+This will add the macros and key definitions in cmacros.tem to what
+already exists in tcconfig.tc.
+
+For more information on TEMC, please refer to the file UTIL.DOC.
+
+******************************************************************/
+
+/******************************************************************
+
+Macro:   Sample macro to comment a function
+
+Use:     Put the cursor immediately after a function name which is
+			at the left of the screen, then press Alt-T. Do not include
+			the return type or parameters before using this macro.
+
+******************************************************************/
+
+macro MakeFuncText
+	 InsertText("\n\n");            /* add white space */
+	 CursorUp;
+	 CursorUp;
+	 LeftOfLine;                    /* go before beginning of intended
+                                       function name */
+	 SetBlockBeg;                   /* mark function name */
+	 WordRight;
+	 SetBlockEnd;
+	 LeftOfLine;
+	 CursorDown;
+	 CopyBlock;                     /* copy for prototyping */
+	 CursorUp;
+	 LeftOfLine;
+	 InsertText("\nFunction: ");     /* add "Function" to comment area */
+	 RightOfLine;
+	 CursorUp;                      /* put in comment lines before and
+												  after */
+	 LeftOfLine;
+	 InsertText("/*******************************************************");
+     CursorDown;
+	 RightOfLine;
+     InsertText("\n\n");
+     LeftOfLine;
+     InsertText("Description:\n");
+     LeftOfLine;
+     InsertText("*******************************************************/\n");
+     CursorDown;                     /* go back to end of name */
+     RightOfLine;
+end;                                /* MakeFuncText */
+
+/*******************************************************************
+
+MACRO: MakeStub
+
+DESCRIPTION:  Creates a stub, based on a user-entered function name.
+   It assumes the cursor is positioned immediately after the name,
+   and the name is at the left of the screen.
+
+*******************************************************************/
+
+macro MakeStub
+    LeftOfLine;           /* go before beginning of intended
+                             function name */
+    InsertText("void ");  /* void return type */
+    RightOfLine;
+    InsertText("( void )\n{\n");  /* void parameter */
+    InsertText("printf(\"This is ");
+    CursorUp;
+    CursorUp;
+    LeftofLine;
+    WordRight;
+    SetBlockBeg;
+    WordRight;
+    CursorLeft;
+    CursorLeft;
+    SetBlockEnd;
+    CursorDown;
+    CursorDown;
+    RightofLine;
+    InsertText(" ");
+    CopyBlock;
+    SetBlockBeg;
+    SetBlockEnd;
+    RightofLine;
+    InsertText("\\n\");");
+    InsertText("\n}");
+end;
+
+/*******************************************************************
+
+MACRO: MakeComment
+
+DESCRIPTION:  Inserts comment bars
+
+*******************************************************************/
+
+macro MakeComment
+   InsertText("/******************************");
+   InsertText("*************************************\n\n");
+   InsertText("*******************************");
+   InsertText("************************************/\n");
+   CursorUp;
+   CursorUp;
+end;
+
+/*******************************************************************
+
+MACRO: MakeMain
+
+DESCRIPTION:  Inserts outline of main program
+
+*******************************************************************/
+
+macro MakeMain
+   InsertText("int main(void)\n{\n\n  return 0;\n");
+   LeftOfLine;
+   InsertText("}");
+   CursorUp;
+   CursorUp;
+   CursorRight;
+end;
+
+/*******************************************************************
+
+MACRO: MainCppIO
+
+DESCRIPTION:  Inserts outline of main program for C++ which uses
+   iostream.h.
+
+*******************************************************************/
+
+macro MainCppIO
+   InsertText("#include <iostream.h>\n\n");
+   InsertText("int main(void)\n{\n\n  return 0;\n");
+   LeftOfLine;
+   InsertText("}");
+   CursorUp;
+   CursorUp;
+   CursorRight;
+end;
+
+/*******************************************************************
+
+MACRO: MainCIO
+
+DESCRIPTION:  Inserts outline of main program for C which uses
+  stdio.h
+
+*******************************************************************/
+
+macro MainCIO
+   InsertText("#include <stdio.h>\n\n");
+   InsertText("int main(void)\n{\n\n  return 0;\n");
+   LeftOfLine;
+   InsertText("}");
+   CursorUp;
+   CursorUp;
+   CursorRight;
+end;
+
+/*******************************************************************
+
+KEYBOARD ASSIGNMENTS:
+
+*******************************************************************/
+
+Alt-K : MakeComment;
+Alt-M : MakeMain;
+Alt-N : MainCPPIO;
+Alt-I : MainCIO;
+Alt-Z : MakeStub;
+Alt-T : MakeFuncText;
+                                                                                                ext   8      .data   ∞       .bss    `	      .idata$7‰      .idata$5@      .idata$4h       .idata$6D      .text   @      .data   ∞       .bss    `	      .idata$7‡      .idata$58      .idata$4`       .idata$60      .text   H      .data   ∞       .bss    `	      .idata$7‹      .idata$50      .idata$4X       .idata$6      .text   P      .data   ∞       .bss    `	      .idata$7ÿ      .idata$5(      .idata$4P       .idata$6       .file   Ò  ˛ˇ  gfake              hname   P       fthunk  (      .text   `                       .data   ∞                        .bss    `	                       .idata$2                       .idata$4P       .idata$5(      .file     ˛ˇ  gfake              .text   `                       .data   ∞                        .bss    `	                       .idata$4                      .idata$5‡                      .idata$74                      .text   `      .data   ∞       .bss    `	      .idata$7l      .idata$58      .idata$4`      .idata$6Ç      .file   !  ˛ˇ  gcygming-crtend.c      Ã  –                       .text   `                       .data   ∞                        .bss    `	                           ‡  –                         Ó  @                          ˝  ¨                                                .rdata  Ä            ∞            »      .idata$2(       .idata$5∏      .idata$4‡      .idata$4       .idata$5¯      .idata$7‘      __xc_z             5  ∞          T  X          j  P          v  4          í              °              ∞  8          Ω  ∞          Œ  Ä          ‹  †          Û  –            X            †           -      	        <  Ä          [    @ ˇˇ   __xl_a  8           g  (          t            å            £  »          ≥  ∞      _cexit            «  P          Ê      ˇˇ       ˛     ˇˇ         ê          "             0      ˇˇ       J     ˇˇ       f  8           x  (      __xl_d  H           î  à       _tls_end   	        π  ‡          œ  †          ‹             Ó  P            (            8           $  0          <  ∏          G      	    memcpy  †          R  `	          l             }             £  @          º  H          ’  `      malloc  ®          Ù  8      _CRT_MT P             ∏            ¿          %  (           ;              I  Ë          d  ‘          á  ‡          û     ˇˇ       ∂  P          …  –          ›  p          Ë  ò            ®                      #  X           5  x          P  ∞          a  (           o             Ñ  0          û  h          ±  `      abort   ÿ          “            ¸  X             –   /***********************************************************************
+
+              Brief editor emulation for Borland C++ IDE.
+
+	This file contains a Turbo Editor Macro Language (TEML)
+script which emulates the Brief programmer's editor in the Borland
+C++ IDE.  A complete description of the TEML language and the Turbo
+Editor Macro Compiler (TEMC) can be found in the file "UTIL.DOC".
+
+	The TEMC compiler can be invoked from the DOS command line at
+follows:
+ 
+	  temc [-c] brief.tem <IDE configuration file>
+
+The optional -c switch can also be specified as /c, and can appear in
+any argument position on the command line. If you use this option,
+any existing command table in your configuration file is thrown away
+before the script file is merged with those already defined. The
+configuration file extensions is assumed to be .TC.  The configuration
+file need not exist. If it does not exist, it is created. 
+tcconfig.tc is the main configuration file.
+
+Most of the simple Brief commands have been fully implemented.  Most
+of the complex commands have been either partially implemented or not
+implemented at all. Below is a list of the commands that have been
+fully or partially implemented.
+
+IDE Binding   Brief Command              Comments
+-----------   ---------------	         -------------------------
+F4            Close Window               Closes the current window
+F5            Search                     
+F6            Replace
+F10           Command                    Activates system menu
+Shift-F5      Search Backward            Repeats previous search
+                                         Option to go backward can be selected
+Shift-F6      Repeat Replace             Repeats previous replace
+                                         Option to go backward can be selected
+Ins           Paste Scrap                Pastes current clipboard selection
+Del           Delete                     Deletes current character only
+PgDn          Page Down
+PgUp          Page Up
+UpAr          Cursor Up
+DnAr          Cursor Down
+Star          Undo
+Plus          Copy Block                 Copies block to clipboard
+Minus         Move Block                 Cuts block to clipboard
+Ctrl-D        Scroll Down
+Ctrl-E        Scroll Up
+Ctrl-G        Routines                   Activates the search menu
+                                         Find function can be selected here
+Ctrl-N        Next Error
+Ctrl-P        Error list                 Moves to previous error
+Ctrl-K        Delete To BOL              Deletes to beginning of line
+Ctrl-U        Redo
+Ctrl-W        Toggle Backup              Activates Options menu
+                                         Backup files can be toggled here
+Ctrl-F5       Case Sensitivity           Selects search dialog box
+                                         Case sensitivity can be toggled here
+Ctrl-F6       Toggle Regular Exp.        Selects search dialog box
+                                         Regular expressions can be toggled here
+Ctrl-bksp     Delete Prev Word
+Alt-A         Drop anchor                Sets beginning of block
+Alt-B         Buffer List                Lists ALL open windows
+Alt-C         Column mark                Sets beginning of *non-column* block
+Alt-D         Delete line
+Alt-E         Edit File
+Alt-G         Goto line                  Activates the search menu
+                                         Goto line can be selected here
+Alt-H         Help                       Context sensitive help
+Alt-I         Toggle Insert
+Alt-J+0       Goto BookMark(0)           Only marks 0-5 are supported
+Alt-J+1       Goto BookMark(1)             :
+Alt-J+2       Goto BookMark(2)             :
+Alt-J+3       Goto BookMark(3)             :
+Alt-J+4       Goto BookMark(4)             :
+Alt-J+5       Goto BookMark(5)           by this macro file
+Alt-K         Delete To EOL
+Alt-L         Mark Line
+Alt-M         Mark                       Sets beginning of block
+Alt-N         Next Buffer                Cycles to next open window
+Alt-O         New output file            Activates file menu
+                                         Save as... can be selected here
+Alt-P         Print Block
+Alt-Q         Quote                      Insert literal character
+Alt-R         Read Block
+Alt-S         Search
+Alt-T         Replace
+Alt-U         Undo
+Alt-V         Version                    Activates system menu
+                                         About can be selected here
+Alt-W         Write File
+Alt-X         Quit
+Alt-Z         DOS Shell                  Activates the file menu
+                                         OS Shell can be selected here
+Alt-0         Set BookMark(0)
+Alt-1         Set BookMark(1)
+Alt-2         Set BookMark(2)
+Alt-3         Set BookMark(3)
+Alt-4         Set BookMark(4)
+Alt-5         Set BookMark(5)
+Alt-F2        Zoom Window
+Alt-F5        Incremental Search         Prompts for search string
+                                         IDE does not support inc. search
+Alt-F6        Translate Backwards        Prompts for replace string
+                                         Option to go backward can be selected
+Alt-F10       Compile File
+Alt-BkSp      Delete Next Word
+
+****************************************************************/
+
+/******* Macros ********/
+
+MACRO MacScrollUp
+  ScrollScreenUp;
+  FixCursorPos;
+END;
+
+MACRO MacScrollDown
+  ScrollScreenDown;
+  FixCursorPos;
+END;
+
+MACRO MacPageUp
+  FixScreenPos;
+  PageScreenUp;
+  FixCursorPos;
+END;
+
+MACRO MacPageDown
+  FixScreenPos;
+  PageScreenDown;
+  FixCursorPos;
+END;
+
+MACRO MacDeleteLine
+  DeleteLine;
+  LeftOfLine;
+END;
+
+MACRO MacTopOfScreen
+  SetPrevPos;
+  TopOfScreen;
+END;
+
+MACRO MacBottomOfScreen
+  SetPrevPos;
+  BottomOfScreen;
+END;
+
+MACRO MacHomeCursor
+  SetPrevPos;
+  HomeCursor;
+END;
+
+MACRO MacEndCursor
+  SetPrevPos;
+  EndCursor;
+END;
+
+MACRO MacOpenLine
+  RightOfLine;
+  LiteralChar(13);
+END;
+
+
+MACRO MacSetBlockBeg
+  HideBlock;
+  SetBlockBeg;
+END;
+
+MACRO MacSetBlockEnd
+  HideBlock;
+  SetBlockEnd;
+  HighlightBlock;
+END;
+
+MACRO MacMarkLine
+  HideBlock;
+  SetTempPos;
+  RightOfLine;
+  CursorCharRight;
+  SetBlockEnd;
+  CursorCharLeft;
+  LeftOfLine;
+  SetBlockBeg;
+  HighlightBlock;
+  MoveToTempPos;
+END;
+
+MACRO MacMarkWord
+  HideBlock;
+  SetTempPos;
+  CursorRight;
+  WordLeft;
+  RightOfWord;
+  SetBlockEnd;
+  WordLeft;
+  SetBlockBeg;
+  HighlightBlock;
+  MoveToTempPos;
+END;
+
+MACRO MacMoveToBlockBeg
+  SetPrevPos;
+  MoveToBlockBeg;
+  CenterFixScreenPos;
+END;
+
+MACRO MacMoveToBlockEnd
+  SetPrevPos;
+  MoveToBlockEnd;
+  CenterFixScreenPos;
+END;
+
+MACRO MacMoveToPrevPos
+  SwapPrevPos;
+  CenterFixScreenPos;
+END;
+
+MACRO MacCopyBlock
+  CopyBlock;
+  HideBlock;
+  CenterFixScreenPos;
+END;
+
+MACRO MacMoveBlock
+  MoveBlock;
+  HighlightBlock;
+  CenterFixScreenPos;
+END;
+
+MACRO MacBreakLine
+  LiteralChar(13);
+  CursorCharLeft;
+END;
+
+MACRO MacDeleteNextWord
+  WordRight;
+  MacMarkWord;
+  DeleteBlock;
+  CenterFixScreenPos;
+END;
+
+MACRO MacDeletePrevWord
+  WordLeft;
+  MacMarkWord;
+  DeleteBlock;
+  CenterFixScreenPos;
+END;
+
+MACRO MacDeleteToBOL
+  SetPrevPos;
+  LeftOfLine;
+  SetBlockBeg;
+  MoveToPrevPos;
+  SetBlockEnd;
+  DeleteBlock;
+  CenterFixScreenPos;
+END;
+
+/******* Brief Key Bindings  ******/
+
+F4        : CloseWindow;
+F5        : GetFindString;
+F6        : Replace;
+F10       : Menu;
+
+Shift-F5  : RepeatSearch;
+Shift-F6  : RepeatSearch;
+
+Ins       : ClipPaste;
+Del       : DeleteChar;
+PgDn      : MacPageDown;
+PgUp      : MacPageUp;
+UpAr      : CursorUp;
+DnAr      : CursorDown;
+Star      : Undo;
+Plus      : MacCopyBlock;
+Minus     : MoveBlock;
+
+Ctrl-D    : MacScrollDown;
+Ctrl-E    : MacScrollUp;
+Ctrl-G    : SearchMenu;
+Ctrl-N    : NextError;
+Ctrl-P    : PrevError;
+Ctrl-K    : MacDeleteToBOL;
+Ctrl-U    : Redo;
+Ctrl-W    : OptionsMenu;
+Ctrl-F5   : GetFindString;
+Ctrl-F6   : GetFindString;
+Ctrl-bksp : MacDeletePrevWord;
+
+Alt-A     : SetBlockBeg;
+Alt-B     : WindowList;
+Alt-C     : MacSetBlockBeg;
+Alt-D     : MacDeleteLine;
+Alt-E     : OpenFile;
+Alt-G     : SearchMenu;
+Alt-H     : Help;
+Alt-I     : ToggleInsert;
+Alt-J+0   : MoveToMark(0);
+Alt-J+1   : MoveToMark(1);
+Alt-J+2   : MoveToMark(2);
+Alt-J+3   : MoveToMark(3);
+Alt-J+4   : MoveToMark(4);
+Alt-J+5   : MoveToMark(5);
+Alt-K     : DeleteToEOL;
+Alt-L     : MacMarkLine;
+Alt-M     : SetBlockBeg;
+Alt-N     : NextWindow;
+Alt-O     : FileMenu;
+Alt-P     : PrintBlock;
+Alt-Q     : LiteralChar;
+Alt-R     : ReadBlock;
+Alt-S     : GetFindString;
+Alt-T     : Replace;
+Alt-U     : Undo;
+Alt-V     : SystemMenu;
+Alt-W     : SaveFile;
+Alt-X     : Quit;
+Alt-Z     : FileMenu;
+Alt-0     : SetMark(0);
+Alt-1     : SetMark(1);
+Alt-2     : SetMark(2);
+Alt-3     : SetMark(3);
+Alt-4     : SetMark(4);
+Alt-5     : SetMark(5);
+Alt-F2    : ZoomWindow;
+Alt-F5    : GetFindString;
+Alt-F6    : GetFindString;
+Alt-F10   : CompileFile;
+Alt-BkSp  : MacDeleteNextWord;
+                                                                                                 _data_end__ __imp_fwrite __CTOR_LIST__ __imp___getmainargs _head_lib64_libkernel32_a libstdc___6_dll_iname __bss_end__ .refptr.mingw_initltsdrot_force GetTickCount __native_vcclrit_reason ___crt_xc_end__ RtlAddFunctionTable .refptr.__native_startup_lock __imp_EnterCriticalSection __imp__ZNSirsERi __fu1__ZSt3cin _ZNSolsEi _tls_index __native_startup_state ___crt_xc_start__ __imp_GetCurrentProcessId __imp___lconv_init __imp_TerminateProcess __lib64_libmsvcrt_os_a_iname ___CTOR_LIST__ .refptr.__dyn_tls_init_callback __imp_signal __rt_psrelocs_size __imp_QueryPerformanceCounter .refptr._ZSt4cout __imp_strlen __imp_malloc __mingw_winmain_nShowCmd mingw_pcinit .refptr._gnu_exception_handler _ZNSt8ios_base4InitC1Ev __file_alignment__ __imp_InitializeCriticalSection __lconv_init __imp__ZNSt8ios_base4InitD1Ev __getmainargs InitializeCriticalSection __imp_exit __imp_vfprintf __nm__ZSt4cout __major_os_version__ __imp___initenv __IAT_start__ __imp__cexit __imp_UnhandledExceptionFilter __imp_SetUnhandledExceptionFilter .refptr.mingw_app_type __imp__ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ __imp__onexit __DTOR_LIST__ RtlVirtualUnwind .refptr.__imp__acmdln __set_app_type __imp_Sleep __imp___p__acmdln LeaveCriticalSection __imp___setusermatherr __size_of_heap_reserve__ ___crt_xt_start__ __subsystem__ _amsg_exit __security_cookie_complement __imp_TlsGetValue __imp__ZSt3cin GetCurrentProcess __setusermatherr __imp_fprintf _ZNSt8ios_base4InitD1Ev __imp_VirtualProtect ___tls_end__ QueryPerformanceCounter __imp_VirtualQuery __imp__initterm mingw_initltsdyn_force _dowildcard __imp___iob_func __dyn_tls_init_callback __imp__ZSt4cout .refptr.__image_base__ _initterm __imp_strncmp _head_lib64_libmsvcrt_os_a .refptr._fmode __imp___acrt_iob_func __major_image_version__ __loader_flags__ __fu0__ZSt4cout _ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ ___chkstk_ms __native_startup_lock __mingw_winmain_hInstance GetStartupInfoA GetCurrentThreadId __rt_psrelocs_end __imp__get_invalid_parameter_handler __minor_subsystem_version__ __minor_image_version__ __imp___set_app_type mingw_initltsdrot_force .refptr.__xc_a __imp__ZNSt8ios_base4InitC1Ev .refptr.__xi_z .refptr._MINGW_INSTALL_DEBUG_MATHERR DeleteCriticalSection __imp_RtlCaptureContext __RUNTIME_PSEUDO_RELOC_LIST_END__ __imp_GetCurrentProcess .refptr.__xc_z ___crt_xt_end__ __security_cookie 

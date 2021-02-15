@@ -1,0 +1,1726 @@
+----------------
+ Class debugging      __DEBUG      PRECONDITION    CHECK
+           modes    -----------------------------------------------------------------
+
+                      0               Off           Off
+                      1               On            Off
+                      >1              On            On
+                      undefined       On            On
+
+
+
+
+
+                                  - 35 -
+
+
+
+
+
+
+                    -----------------------------------------------------------------
+
+                    When developing a class, set __DEBUG to 2 or leave it
+                    undefined. This gives you maximum checking when the
+                    code is still being worked on. When the class works
+                    properly, but the application that is going to use the
+                    class hasn't been completed, set __DEBUG to 1, so that
+                    incorrect calls from the application can be caught,
+                    without the additional overhead of the internal
+                    checking within the class. Once everything is working,
+                    set __DEBUG to 0 to remove all checking. Two versions
+                    of the .LIB file are provided that contain the class
+                    library code: one with PRECONDITIONs enabled, and one
+                    with no debugging. These are named TCLASDBX.LIB and
+                    TCLASSX.LIB, where X is replaced with the letter for
+                    the appropriate memory model: s, c, m, l, or h. The
+                    .LIB with DB in its name is the one with PRECONDITIONs
+                    enabled.
+
+
+
+===========================================================================
+Container class reference
+===========================================================================
+
+                    This section describes each class in the library as
+                    follows. We give the include file where it is defined,
+                    a diagram showing the parent of each class and
+                    immediate offspring, some introductory remarks, data
+                    members and member functions (with protoypes) listed
+                    alphabetically, what friendly relations exist, and,
+                    where appropriate, an example of the class's use. The
+                    members listed in the See also section belong to the
+                    class under discussion unless scope-qualified. Thus in
+                    the section on class X, you could find See also foo,
+                    Y::foo, and so on. The first foo refers to X::foo.
+                    Class derivations and class members are public unless
+                    otherwise noted as protected. We do not document
+                    destructors since they all perform the usual way. Most
+                    container classes have virtual destructors.
+
+
+
+
+
+
+
+
+
+
+
+                                  - 36 -
+
+
+                                                              AbstractArray
+
+
+
+===========================================================================
+AbstractArray                                                    abstarry.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍÍ»   ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³ Collection ÃÄÄ¶AbstractArrayÇÄÂÄ´   Array    ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍÍ¼ ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                    ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                                    ÀÄ´SortedArray ³
+                                                      ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                    The abstract class AbstractArray offers random access
+                    to the elements of the collection via an indexing
+                    mechanism that maps a range of integers to the array
+                    elements. Indexes can be positive or negative integers
+                    with arbitrary lower and upper bounds (within the range
+                    of int). Arrays derived from AbstractArray can be
+                    dynamically resized as elements are added to them. The
+                    data member delta determines how many additional
+                    elements are assigned to the array when overflow
+                    occurs. AbstractArray exists because the derived
+                    classes SortedArray and Array have enough in common to
+                    warrant combining the common properties into an
+                    abstract base class. Since the derived classes differ
+                    only in the implementation of the member functions
+                    detach and the subscript operator, the remaining
+                    functions can be encapsulated in AbstractArray.
+
+
+      Data members  =======================================================
+
+
+             delta  sizeType delta;                               protected
+
+                    delta represents the additional number of elements that
+                    will be assigned to the array if overflow occurs. If
+                    delta is zero, the array will not be resized following
+                    overflow.
+
+  lastElementIndex  int lastElementIndex;                         protected
+
+                    The index value of the last element added to the array.
+                    For an empty array this data member has the value
+                    (lowerbound - 1).
+
+        lowerbound  int lowerbound;                               protected
+
+
+
+
+
+
+                                  - 37 -
+
+
+AbstractArray
+
+
+
+                    The lower bound of the array index, returned by the
+                    lowerBound member function. lowerbound is the minimum
+                    legal value of the absolute index.
+
+                    See also: lowerBound
+
+        upperbound  int upperbound;                               protected
+
+                    The current upper bound of the array index, returned by
+                    the upperBound member function. upperbound is the
+                    maximum legal value of the absolute index.
+
+                    See also: upperBound
+
+
+  Member functions  =======================================================
+
+
+           destroy  void destroy( int atIndex );
+
+                    Removes the object at the given index. Whether the
+                    object itself is destroyed or not depends on the
+                    array's ownership status. If the array currently owns
+                    the object, the object will be destroyed, otherwise the
+                    object survives. destroy is implemented with detach(
+                    atIndex, DefDelete ).
+
+
+         arraySize  sizeType arraySize() const;
+
+                    Returns the current number of cells allocated
+                    (upperbound - lowerbound + 1).
+
+       constructor  AbstractArray( int anUpper, int aLower = 0, sizeType
+                    aDelta = 0 );
+
+                    Constructs and "zeroes" an array, given the upper and
+                    lower index bounds. The default lower bound is 0, the
+                    traditional origin for C arrays. The default delta is
+                    also zero, giving a fixed, nonresizable array. If delta
+                    is nonzero, run-time array overflow invokes the
+                    reallocate member function to provide more space (in
+                    increments of delta). A PRECONDITION is set to test if
+                    the lower bound is greater than or equal to the lower
+                    bound.
+
+            detach  virtual void detach( int atIndex, DeleteType dt =
+                    NoDelete );
+
+
+
+                                  - 38 -
+
+
+                                                              AbstractArray
+
+
+
+                    virtual void detach( Object& toDetach, DeleteType dt =
+                    NoDelete );
+
+                    The first version removes the object at atIndex; the
+                    second version removes the object toDetach. The value
+                    of dt and the current ownership setting determine
+                    whether the object itself will be deleted. DeleteType
+                    is defined in the base class TShouldDelete as enum {
+                    NoDelete, DefDelete, Delete }. The default value of dt,
+                    NoDelete, means that the object will not be deleted
+                    regardless of ownership. With dt set to Delete, the
+                    object will be deleted regardless of ownership. If dt
+                    is set to DefDelete, the object will only be deleted if
+                    the array owns its elements.
+
+                    See also: TShouldDelete::ownsElements
+
+      initIterator  virtual ContainerIterator& initIterator() const;
+
+                    Creates an external iterator for this array.
+
+                    See also: ContainerIterator class
+
+           isEqual  int isEqual( const Object& testObject ) const;
+
+                    Returns 1 if the testObject array is equal to the
+                    calling array. Equal means that the two arrays have the
+                    same object ID, the arrays' dimensions are equal, and
+                    that their components are equal in each index position.
+                    Otherwise, isEqual returns 0.
+
+        lowerBound  int lowerBound() const;
+
+                    Returns the array's lowerbound.
+
+          objectAt  Object& objectAt( int atIndex ) const;        protected
+
+                    Returns a reference to the element at the given index.
+
+                    See also: operator []
+
+       operator []  Object& operator []( int atIndex ) const;
+
+                    Returns a reference to the object at the given array
+                    index.
+
+   printContentsOn  void printContentsOn( ostream& outputStream ) const;
+
+
+
+
+                                  - 39 -
+
+
+AbstractArray
+
+
+
+                    Prints an array, with header and trailer, to the given
+                    stream.
+
+             ptrAt  Object *ptrAt( int atIndex ) const;           protected
+
+                    Returns a pointer to the element at the given index.
+
+        reallocate  void reallocate( sizeType newSize );          protected
+
+                    If delta is zero, reallocate gives an __EEXPANDFS
+                    error. Otherwise, reallocate tries to create a new
+                    array of size newSize (adjusted upwards to the nearest
+                    multiple of delta). The existing array is copied to the
+                    expanded array and then deleted. Unused elements in the
+                    new array are zeroed. An __ENOMEM error is invoked if
+                    there is insufficient memory for the reallocation.
+
+       removeEntry  void removeEntry( int loc );                  protected
+
+                    Reduces the array by one element. Elements from index
+                    (loc + 1) upwards are copied to positions loc, (loc +
+                    1), and so on. The original element at loc is lost.
+
+           setData  void setData( int loc, Object *data );        protected
+
+                    The given data replaces the existing element at the
+                    index loc.
+
+      squeezeEntry  void squeezeEntry( int squeezePoint );        protected
+
+                    Reduces the array by one element. As for removeEntry
+                    but squeezePoint is an index relative to the lower
+                    bound
+
+        upperBound  int upperBound() const;
+
+                    Returns the array's current upperbound.
+
+
+           Friends  =======================================================
+
+                    ArrayIterator is a friend of AbstractArray
+
+
+
+
+
+
+
+
+
+                                  - 40 -
+
+
+                                                                      Array
+
+
+
+===========================================================================
+Array                                                               array.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³AbstractArrayÃÄÄ¶   Array    º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The instance class Array is derived from class
+                    AbstractArray. An Array object defines an array in
+                    which the ordering of the elements is arbitrary. That
+                    is, the element at index i of the array need have no
+                    relationship to the element at index i + 1.
+
+                    Array adds the functions add and addAt. While add
+                    stores a given object at the next free place in the
+                    array (expanding the array if necessary), addAt stores
+                    the object at a specified index.
+
+
+           Example  =======================================================
+
+            Source   #include <iostream.h>
+                     #include <array.h>
+                     #include <strng.h>
+                     #include <assoc.h>
+
+                     int main()
+                     {
+                         Array a(2);
+
+                         String *s1 = new String("a string");
+                         String *s2 = new String("another string");
+                         Association *a1 = new Association(*s1,*s2);
+
+                         // Put some objects in the array
+                         a.add(*s1);
+                         a.add(*s2);
+                         a.add(*a1);
+
+                         // Print as a Container
+                         cout << "As a container:\n" << a << endl << endl;
+
+                         // Print as an Array
+                         cout << "As an array:\n";
+                         a.printContentsOn(cout);
+
+                         // Print as elements
+
+
+
+                                  - 41 -
+
+
+Array
+
+
+
+                         cout << "\nAs elements:\n";
+                         for (int i = 0; i < a.arraySize(); ++i)
+                             cout << a[i] << endl;
+                         return(0);
+                     }
+
+            Output   As a container:
+                     Array { a string,
+                         another atring,
+                          Association { a string, another string }
+                      }
+
+                     As an array:
+                     Array { a string,
+                         another atring,
+                          Association { a string, another string }
+                      }
+
+                     As elements:
+                     a string
+                     another string
+                     Association { a string, another string}
+
+
+  Member functions  =======================================================
+
+
+               add  virtual void add( Object& toAdd );
+
+                    Adds the given object at the next available index at
+                    the end of an array. Adding an element beyond the upper
+                    bound leads to an overflow condition. If overflow
+                    occurs and delta is nonzero, the array is expanded (by
+                    sufficient multiples of delta bytes) to accommodate the
+                    addition. If delta is zero, overflow gives an error.
+
+             addAt  void addAt( Object& toAdd, int atIndex );
+
+                    Writes the given object at the specified index. If that
+                    index is occupied, the previous object is deleted. If
+                    atIndex is beyond the upper bound, the array is
+                    expanded if delta is nonzero. If delta is zero,
+                    attempting to addAt beyond the upper bound gives an
+                    error.
+
+       constructor  Array( int anUpper, int aLower = 0, sizeType Delta = 0
+                    );
+
+
+
+
+                                  - 42 -
+
+
+                                                                      Array
+
+
+
+                    Constructs and "zeroes" an array by calling the base
+                    AbstractArray constructor.
+
+                    See also: AbstractArray::AbstractArray
+
+               isA  virtual classType isA() const;
+
+                    Returns arrayClass, the Arrays type ID.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "Array", the Array type ID string.
+
+
+
+===========================================================================
+ArrayIterator                                                    abstarry.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ContainerIteratorÃÄÄ¶  ArrayIterator   º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+                    Provides iterator functions to traverse objects of the
+                    class AbstractArray and its derived classes.
+                    ArrayIterator is a friend class of AbstractArray
+
+
+  Member functions  =======================================================
+
+
+       constructor  ArrayIterator( const AbstractArray& toIterate );
+
+                    Creates an iterator object for the given array.
+
+                    See also: restart
+
+           current  virtual Object& current();
+
+                    Returns the object at the current index of the
+                    iterator. If the current index doesn't refer to a valid
+                    object, NOOBJECT is returned.
+
+       operator ++  virtual Object& operator ++ ();
+                    virtual Object& operator ++ ( int );
+
+                    See ContainerIterator operator ++
+
+    operator int()  virtual operator int();
+
+
+
+                                  - 43 -
+
+
+ArrayIterator
+
+
+
+                    Conversion operator to test for end of iterator
+                    position.
+
+           restart  virtual void restart();
+
+                    Sets the current index of the iterator to the first
+                    nonempty object in the array.
+
+
+
+===========================================================================
+Association                                                         assoc.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³   Object   ÃÄÄ¶Association º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The Association class provides a simple mechanism for
+                    associating two objects, known as the value object and
+                    the key object, in one Association type object. These
+                    combined objects are typically stored in a Dictionary
+                    type object, which provides member functions to
+                    retrieve the value when given the key, providing the
+                    basic tools for many data-retrieval applications.
+
+
+  Member functions  =======================================================
+
+
+       constructor  Association( Object& key, Object& value );
+
+                    Constructs an association object from the given key and
+                    value objects.
+
+       constructor  Association( const Association& a );
+
+                    Copy constructor.
+
+         hashValue  virtual hashValueType hashValue() const;
+
+                    Returns the hash value of the association's key. See
+                    HashTable::hashValue for more details.
+
+               isA  virtual classType isA() const;
+
+                    Returns associationClass, the Association type ID.
+
+
+
+
+                                  - 44 -
+
+
+                                                                Association
+
+
+
+     isAssociation  virtual int isAssociation() const;
+
+                    Returns 1 for association objects (and 0 for other
+                    object types).
+
+           isEqual  virtual int isEqual( const Object& toObject ) const;
+
+                    Returns 1 if toObject and the calling association have
+                    equal keys, otherwise returns 0.
+
+               key  Object& key() const;
+
+                    Returns the key object of the association.
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "Association", the Association type ID string.
+
+           printOn  virtual void printOn( ostream& outputStream ) const;
+
+  operator << is a  Prints the association on the given output stream.
+ friend of Object.  printOn is really for internal use by the overloaded
+      See page 87.  operator <<.
+
+             value  Object& value() const;
+
+                    Returns the value object of the association.
+
+           Example  =======================================================
+
+            Source   // File TASSOC.CPP: Illustrates the Association class
+
+                     #include <string.h>     // For strlen()
+                     #include <strng.h>
+                     #include <assoc.h>
+                     #include <iostream.h>
+
+                     void identify(Object&);
+
+                     main()
+                     {
+                         char s1[21], s2[81];
+
+                         // Read a key
+                         cout << "Enter a key: ";
+                         cin >> s1;
+                         cin.get();          // Eat newline
+
+
+
+
+                                  - 45 -
+
+
+Association
+
+
+
+                         String str1(s1);
+                         identify(str1);
+
+                         // Read a value
+                         cout << "Enter a value: ";
+                         cin.getline(s2,81);
+                         s2[strlen(s2) - 1] = '\0';
+                         String str2(s2);
+                         identify(str2);
+
+                         Association a1(str1,str2);
+                         identify(a1);
+                         Association a2 = a1;
+                         identify(a2);
+
+                         cout << "Equal: " << a1.isEqual(a2) << endl;
+                     }
+
+                     void identify(Object& o)
+                     {
+                         // Echo an object and its type
+                         cout << "Value: " << o
+                              << ", Object type: " << o.nameOf()
+                              << endl << endl;
+                     }
+
+            Output   Enter a key: class
+                     Value: class, Object type: String
+
+                     Enter a value: A group of related objects
+                     Value: A group of related objects, Object type: String
+
+                     Value:  Association { class, A group of related
+                     objects }
+                     , Object type: Association
+
+                     Value:  Association { class, A group of related
+                     objects }
+                     , Object type: Association
+
+                     Equal: 1
+
+
+
+
+
+
+
+
+
+
+                                  - 46 -
+
+
+                                                                        Bag
+
+
+
+===========================================================================
+Bag                                                                   bag.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»  ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³ Collection ÃÄÄ¶    Bag     ÇÄÄ´    Set     ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼  ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                    A Bag is an unordered collection that may contain more
+                    than one of the same object. Bag also provides the base
+                    class for Set. Unlike Bags, Sets can contain only one
+                    copy of a any given object.
+
+
+  Member functions  =======================================================
+
+
+               add  virtual void add( Object& toAdd );
+
+                    Adds the given object at the next available index at
+                    the end of an array. Adding an element beyond the upper
+                    bound leads to an overflow condition. If overflow
+                    occurs and delta is nonzero, the array is expanded (by
+                    sufficient multiples of delta bytes) to accommodate the
+                    addition. If delta is zero, overflow gives an error.
+
+       constructor  Bag( sizeType bagSize = DEFAULT_BAG_SIZE );
+
+                    Constructs an empty bag. bagSize represents the initial
+                    number of slots allocated.
+
+            detach  virtual void detach( Object& toDetach, DeleteType dt =
+                    NoDelete );
+
+                    See Array::detach.
+
+        findMember  virtual Object& findMember( Object& toFind ) const;
+
+                    Returns the given object if found, otherwise returns
+                    NOOBJECT.
+
+         firstThat  virtual Object& firstThat( condFuncType testFuncPtr,
+                    void *paramList ) const;
+
+                    See also:   Container::firstThat, Object::firstThat
+
+             flush  void flush( DeleteType dt = DefDelete );
+
+
+
+
+
+                                  - 47 -
+
+
+Bag
+
+
+
+                    Removes all the elements from the bag without
+                    destroying the bag. The value of dt determines whether
+                    the elements themselves are destroyed. By default, the
+                    ownership status of the bag determines their fate, as
+                    explained in the detach member function. You can also
+                    set dt to Delete and NoDelete.
+
+                    See also: detach
+
+           forEach  void forEach( void ( *actionFuncPtr)(Object& o, void
+                    *), void *args );
+
+                    See also:   Container::forEach
+
+getItemsInContainer countType getItemsInContainer() const;
+
+                    Returns the number of items in the bag.
+
+         hasMember  virtual int hasMember( const Object& obj ) const;
+
+                    Returns 1 if the given object is found in the bag,
+                    otherwise returns 0.
+
+      initIterator  ContainerIterator& initIterator() const;
+
+                    Creates and returns an iterator for this bag.
+
+                    See also: ContainerIterator class
+
+               isA  virtual classType isA() const;
+
+                    Returns bagClass the Bag type ID.
+
+           isEmpty  int isEmpty() const;
+
+                    Returns 1 if a container has no elements; otherwise
+                    returns 0.
+
+          lastThat  virtual Object& lastThat( condFuncType testFuncPtr,
+                    void *paramList ) const;
+
+                    Returns a reference to the last object in the container
+                    that satisfies a given condition. You supply a
+                    testFuncPtr that returns true for a certain condition.
+                    You can pass arbitrary arguments via the paramList
+                    argument. NOOBJECT is returned if no object in the
+                    container meets the condition. Note that you are not
+                    involved directly with iterators: firstThat and
+
+
+
+                                  - 48 -
+
+
+                                                                        Bag
+
+
+
+                    lastThat create their own internal iterators, so you
+                    can simply treat them as "search" functions.
+
+                    See also:   firstThat, Object::firstThat,
+                    Container::lastThat
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "Bag", the Bag type ID string.
+
+      ownsElements  int ownsElements();
+                    void ownsElements( int del );
+
+                    See TShouldDelete::ownsElements
+
+
+
+===========================================================================
+BaseDate                                                            ldate.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»  ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³  Sortable  ÃÄÄ¶  BaseDate  ÇÄÄ´    Date    ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼  ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                    BaseDate is an abstract class derived from Sortable
+                    that provides basic date manipulation functions.
+
+
+  Member functions  =======================================================
+
+
+       constructor  BaseDate();                                   protected
+
+                    Creates a BaseDate object with the current system date.
+
+       constructor  BaseDate( unsigned char M, unsigned char D, unsigned Y
+                    );                                            protected
+
+                    Creates a BaseDate object with the given month, day,
+                    and year.
+
+       constructor  BaseDate( const BaseDate& BD );               protected
+
+                    Copy constructor.
+
+               Day  unsigned Day() const;
+
+                    Returns the day of the month.
+
+
+
+                                  - 49 -
+
+
+BaseDate
+
+
+
+         hashValue  virtual hashValueType hashValue() const;
+
+                    Returns the hash value of the date object. See
+                    HashTable::hashValue for more details.
+
+               isA  virtual classType isA() const = 0;
+
+                    A pure virtual function to return a classtype ID (to be
+                    defined in  derived classes).
+
+           isEqual  virtual int isEqual( const Object& testDate ) const;
+
+                    Returns 1 if the object represents the same date as
+                    testDate. Otherwise returns 0.
+
+        isLessThan  virtual int isLessThan( const Object& testDate ) const;
+
+                    Returns 1 if the object precedes testDate on the
+                    calendar.
+
+             Month  unsigned Month() const;
+
+                    Returns the month.
+
+            nameOf  virtual char *nameOf() const = 0;
+
+                    Pure virtual function to be defined by derived classes
+                    to return their object ID string.
+
+           printOn  virtual void printOn( ostream& outputStream ) const =
+                    0;
+
+  operator << is a  Pure virtual function to be defined in derived classes
+ friend of Object.  to print the date object on the given stream. printOn
+      See page 87.  is for internal use by the overloaded operator <<.
+
+            SetDay  void SetDay( unsigned char D );
+
+                    Sets the day to D.
+
+          SetMonth  void SetMonth( unsigned char M );
+
+                    Sets the month to M.
+
+           SetYear  void SetYear( unsigned Y );
+
+                    Sets the year to Y.
+
+
+
+
+                                  - 50 -
+
+
+                                                                   BaseDate
+
+
+
+              Year  unsigned Year() const;
+
+                    Returns the year.
+
+
+
+===========================================================================
+BaseTime                                                            ltime.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»  ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³  Sortable  ÃÄÄ¶  BaseTime  ÇÄÄ´    Time    ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼  ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                    BaseTime is an abstract class derived from Sortable
+                    that provides basic time manipulation functions.
+
+
+  Member functions  =======================================================
+
+
+       constructor  BaseTime();                                   protected
+
+                    Creates a BaseTime object with the current system time.
+
+       constructor  BaseTime( const BaseTime& BT );               protected
+
+                    Copy constructor.
+
+       constructor  BaseTime( unsigned char H, unsigned char M = 0,
+                              unsigned char S = 0, unsigned char HD = 0
+                              );                                  protected
+
+                    Creates a BaseTime object with the given hour, minutes,
+                    seconds, and hundredths of seconds.
+
+         hashValue  virtual hashValueType hashValue() const;
+
+                    Returns the hash value of the BaseTime object. See
+                    HashTable::hashValue for more details.
+
+              hour  unsigned hour() const;
+
+                    Returns the hour.
+
+        hundredths  unsigned hundredths() const;
+
+
+
+
+
+                                  - 51 -
+
+
+BaseTime
+
+
+
+                    Returns the hundredths of a second.
+
+               isA  virtual classType isA() const = 0;
+
+                    Pure virtual function for a derived class to return its
+                    class ID.
+
+           isEqual  virtual int isEqual( const Object& testTime ) const;
+
+                    Returns 1  if this object equals testTime; otherwise
+                    returns 0.
+
+        isLessThan  virtual int isLessThan( const Object& testTime ) const;
+
+                    Returns 1  if this object is less than testTime;
+                    otherwise returns 0 .
+
+            minute  unsigned minute() const;
+
+                    Returns the minute.
+
+            nameOf  virtual char *nameOf() const = 0;
+
+                    Pure virtual function to be defined by derived classes
+                    to return their object ID string.
+
+           printOn  virtual void printOn( ostream& outStream ) const = 0;
+
+  operator << is a  Pure virtual function to be defined in derived classes
+ friend of Object.  to print the time object on the given stream. printOn
+      See page 87.  is for internal use by the overloaded operator <<.
+
+            second  unsigned second() const;
+
+                    Returns the seconds.
+
+           setHour  void setHour( unsigned char H );
+
+                    Sets the hour to H.
+
+     setHundredths  void setHundredths( unsigned char HD );
+
+                    Sets the hundredths of a second to HD.
+
+         setMinute  void  setMinute( unsigned char M );
+
+                    Sets the minutes.
+
+
+
+
+                                  - 52 -
+
+
+                                                                   BaseTime
+
+
+
+         setSecond  void  setSecond( unsigned char S );
+
+                    Sets the seconds.
+
+
+
+===========================================================================
+Btree                                                               btree.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ Collection ÃÄÄ¶   Btree    º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The class Btree, derived from Collection, implements
+                    the B-tree, a popular data structure offering efficient
+                    storage and retrieval with large, dynamic volumes of
+                    data. (A detailed account of Turbo C++ development of
+                    B-tree theory is beyond the scope of this manual: see
+                    BTREE.CPP and D. E Knuth's The Art of Computer
+                    Programming, Volume 3, 6.2.3.). Btree makes use of
+                    several auxiliary, noncontainer friend classes: Node,
+                    Item, InnerNode, and LeafNode (the last two being
+                    derived from Node). You can study these in btree.h.
+                    Here, we will just outline the members of the Btree
+                    class, which should suffice for most applications.
+
+
+  Member functions  =======================================================
+
+
+               add  void add( Object& );
+
+                    Add the given object to the B-tree.
+
+       constructor  Btree( int ordern = 3 );
+
+                    Creates a B-tree of order ordern (default order is 3).
+
+       decrNofKeys  void decrNofKeys();                           protected
+
+                    Decrements the itemsInContainer data member
+
+            detach  void detach( Object& toDetach, DeleteType dt = NoDelete
+                    );
+
+
+
+
+
+
+                                  - 53 -
+
+
+Btree
+
+
+
+                    Removes the given object from the B-tree. The fate of
+                    the removed object depends on the argument dt. See
+                    TShouldDelete for details.
+
+        findMember  virtual Object& findMember( const Object& toFind )
+                    const;
+
+                    Returns the given object if found, otherwise returns
+                    NOOBJECT.
+
+             flush  void flush( DeleteType dt = DefDelete );
+
+                    Flushes (empties) the B-tree. The fate of the removed
+                    objects depends on the argument dt. See TShouldDelete
+                    for details.
+
+         hasMember  virtual int hasMember( const Object& obj ) const;
+
+                    Returns 1  if the given object is found in the B-tree,
+                    otherwise returns 0.
+
+         hashValue  virtual hashValueType hashValue() const;
+
+                    Returns the hash value of this B-tree. See
+                    HashTable::hashValue for more details.
+
+             i_add  long i_add( const Object& obj );              protected
+
+                    Adds the given object to the tree and returns the index
+                    in the tree at which the object was inserted.
+
+       incrNofKeys  void incrNofKeys();                           protected
+
+                    Increments the itemsInContainer data member
+
+      initIterator  virtual ContainerIterator& initIterator() const;
+
+                    Creates an iterator for this B-tree.
+
+                    See also: Container::initIterator
+
+               isA  virtual classType isA() const;
+
+                    Returns btreeClass, the Btree class ID
+
+           isEqual  virtual int isEqual( const Object& testObject ) const;
+
+                    Returns 1  if testObject is the same as this object.
+
+
+
+                                  - 54 -
+
+
+                                                                      Btree
+
+
+
+            nameOf  virtual char *nameOf() const;
+
+                    Returns "Btree", the Btree class ID string
+
+       operator []  Object& operator[]( long i ) const;
+
+                    Returns the root at index i
+
+             order  int order();
+
+                    Returns the order of the B-tree.
+
+           printOn  virtual void printOn( ostream& outputStream ) const;
+
+  operator << is a  Sends the formatted B-tree data to the given output
+ friend of Object.  stream. printOn is for internal use by the overloaded
+      See page 87.  operator <<.
+
+              rank  long rank( const Object& obj ) const;
+
+                    Returns the rank of the given object in the B-tree.
+
+
+           Friends  =======================================================
+
+                    Node, InnerNode, and LeafNode are friends of Btree.
+
+
+
+===========================================================================
+BtreeIterator                                                       btree.h
+===========================================================================
+
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ»
+                    ³ContainerIteratorÃÄÄ¶  BtreeIterator   º
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼
+
+                    The class BtreeIterator is derived from
+                    ContainerIterator. Its members follow the same scheme
+                    as those for the other container iterators.
+
+
+
+
+
+
+
+
+
+
+
+                                  - 55 -
+
+
+BtreeIterator
+
+
+
+  Member functions  =======================================================
+
+
+       constructor  BtreeIterator( const Btree& toIterate );
+
+                    See ContainerIterator constructor
+
+           current  virtual Object& current();
+
+                    See ContainerIterator::current
+
+       operator ++  virtual Object& operator ++();
+                    virtual Object& operator ++( int );
+
+                    See ContainerIterator::operator ++
+
+      operator int  virtual operator int();
+
+                    Conversion operator to test for end of iterator
+                    position.
+
+           restart  virtual void restart();
+
+                    See ContainerIterator::restart
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 56 -
+
+
+                                                                 Collection
+
+
+
+===========================================================================
+Collection                                                        collect.h
+===========================================================================
+
+                                                     ÚÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                                   ÚÄ´AbstractArray³
+                                                   ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                   ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                                   ÃÄ´  HashTable  ³
+                                                   ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                    ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ» ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ³ Container  ÃÄÄ¶ Collection ÇÄÅÄ´    List     ³
+                    ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼ ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                   ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                                   ÃÄ´ DoubleList  ³
+                                                   ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                   ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                                   ÃÄ´    Bag      ³
+                                                   ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                                   ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                                   ÀÄ´    Btree    ³
+                                                     ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                    Collection is an abstract class derived from the
+                    abstract class Container. This means that although
+                    Collection is more specialized than Container, it still
+                    cannot be used directly for creating useful objects but
+                    exists only as a further stepping stone towards usable,
+                    derived instance classes.
+
+                    Collection inherits five pure virtual functions (flush,
+                    initIterator, isA, nameOf and getItemsInContainer),
+                    that simply await definitions down the road by derived
+                    instance classes.
+
+                    Collection extends the functionality of Container in
+                    several areas by adding both virtual and pure virtual
+                    member functions. The extra pure virtual functions are
+                    add and detach. Instance classes ultimately derived
+                    from Collection, therefore, will need to provide
+                    appropriate member functions for adding and removing
+                    elements.
+
+                    The other (non-pure) virtual member functions added by
+                    Collection are destroy, hasMember, and findMember. The
+                    last two provide the key difference between Collection
+                    and Container. A Collection-derived object can
+                    determine if any given object is a member (with
+
+
+
+                                  - 57 -
+
+
+Collection
+
+
+
+                    hasMember) and, by using an iterator, can locate a
+                    member object within the collection (with findMember).
+
+                    The offspring of Collection refine these access methods
+                    in various ways, and add other functions. In most
+                    applications, you will be dealing directly with a
+                    particular derived class of Collection, chosen to match
+                    your needs: sorted and unsorted arrays, hash tables,
+                    bags, sets, dictionaries, and single and double lists.
+                    However, it is useful to have a feel for how these
+                    instance classes build up from abstract classes, and
+                    why it is useful to have intermediate abstract classes.
+
+
+  Member functions  =======================================================
+
+
+               add  virtual void add( Object& o ) = 0;
+
+                    Pure virtual function to be defined in derived classes
+                    to add an object to a collection.
+
+       constructor  Uses the Container base constructor.
+
+           destroy  void destroy( const Object& o );
+
+                    Removes an object from a Collection. Whether the object
+                    itself is destroyed or not depends on the ownership
+                    status of the collection. If the collection currently
+                    owns the object, the object will be destroyed,
+                    otherwise the object survives. destroy is implemented
+                    with detach( o, DefDelete );
+
+                    See also:   TShouldDelete::ownsElements
+
+            detach  virtual void detach( Object& o, DeleteType dt =
+                    NoDelete) = 0;
+
+                    Pure virtual function to be defined in derived classes
+                    to remove an object from a collection. The destruction
+                    of the object depends both on the ownership status and
+                    the value (Delete, NoDelete, or DefDelete) passed via
+                    the dt argument.
+
+                    See also:   destroy, TShouldDelete::ownsElements
+
+        findMember  virtual Object& findMember( const Object& testObject )
+                    const;
+
+
+
+                                  - 58 -
+
+
+                                                                 Collection
+
+
+
+                    Returns the test object if it is in the collection,
+                    otherwise returns NOOBJECT.
+
+         hasMember  virtual int hasMember( const Object& o ) const;
+
+                    Returns 1  if the collection contains the given object.
+
+
+
+===========================================================================
+Container                                                         contain.h
+===========================================================================
+
+                                 ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                               ÚÄ´ Collection ³
+                               ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿  ÉÍÍÍÍÍÍÍÍÍÍÍÍ» ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿
+³   Object   ÃÄÄ¶ Container  ÇÄÅÄ´   Stack    ³
+ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ  ÈÍÍÍÍÍÍÍÍÍÍÍÍ¼ ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                               ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                               ÃÄ´   PriorityQueue    ³
+                               ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                               ³
+                               ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿ ÚÄÄÄÄÄÄÄÄÄÄÄÄ¿ 
+                               ÀÄ´   Deque    ÃÄ´   Queue    ³
+                                 ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ ÀÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                 
+
+                    The abstract class Container, derived directly from
+                    Object, is the base for all the container classes.
+                    Container has a second pure virtual base class (not
+                    shown) called TShouldDelete. Container provides the
+                    following functionality:
+
+                    1. A container can store objects of other classes,
+                       known as elements or items. (The objects in a
+                       container are sometimes called "members" of the
+                       container, but this usage can lead to ambiguities in
+                       C++.) A container can flush itself by removing all
+                       its elements.
+
+                    2. A container can determine the number of objects it
+                       holds. Empty containers are allowed.
+
+                    3. Container is also derived from TShouldDelete
+                       (multiple inheritance), which lets you control the
+                       ownership of a container's elements. By default, a
+                       container owns its elements, meaning that it will
+
+
+
+                                  - 59 -
+
+
+Container
+
+
+
+                       destroy them when its destructor is called or when
+                       it is flushed.
+
+                    4. A container can create external iterators, objects
+                       of type ContainerIterator, which can be used to
+                       traverse the container, element by element. With
+                       external iterators, you need to handle the scanning
+                       of the elements yourself. Other iterators, known as
+                       internal iterators, are generated automatically by
+                       certain member functions. These do their own loop
+                       tests and can perform arbitrary actions on each
+                       element (forEach). Member functions are also
+                       available for scanning the container until a certain
+                       condition is satisfied (firstThat, lastThat).
+
+                    5. A container can test if it is equal to another
+                       container.
+
+                    6. A container can display its elements on streams in a
+                       formatted way. A printOn function is provided from
+                       which the usual overloaded << output operator can be
+                       obtained.
+
+                    Strictly speaking, some of the above member functions
+                    are pure virtual functions that need to be defined in
+                    derived classes. See Collection class for a more
+                    detailed discussion.
+
+                    Specialized containers are derived to two ways:
+                    directly derived are the classes Stack, PriorityQueue,
+                    and Deque (from which Queue is derived). Derived
+                    indirectly via another abstract class, Collection, are
+                    AbstractArray, HashTable, Bag, Btree, List, and
+                    DoubleList.
+
+  itemsInContainer  countType itemsInContainer;                   protected
+
+                    Holds the current number of elements in the container.
+
+                    See also: getItemsInContainer
+
+
+  Member functions  =======================================================
+
+
+       constructor  Container();
+
+                    Creates an empty container.
+
+
+
+                                  - 60 -
+
+
+                                                                  Container
+
+
+
+         firstThat  virtual Object& firstThat( condFuncType testFuncPtr,
+                    void *paramList ) const;
+
+                    Returns a reference to the first object in the
+                    container that satisfies a given condition. You supply
+                    a testFuncPtr that returns true for a certain
+                    condition. You can pass arbitrary arguments via the
+                    paramList argument. NOOBJECT is returned if no object
+                    in the container meets the condition. Note that you are
+                    not involved directly with iterators: firstThat and
+                    lastThat create their own internal iterators, so you
+                    can simply treat them as "search" functions.
+
+                    See also:   lastThat, Object::firstThat
+
+             flush  virtual void flush( DeleteType dt = DefDelete ) = 0;
+
+                    A pure virtual function to be defined in derived
+                    classes. Flushing means removing all the elements from
+                    the container without destroying it. The value of dt
+                    determines whether the elements themselves are
+                    destroyed. By default, the ownership status of the
+                    container determines their fate. You can also set dt to
+                    Delete and NoDelete.
+
+                    See also: TShouldDelete::ownsElements
+
+           forEach  virtual void forEach( iterFuncType actionFuncPtr, void
+                    *args );
+
+                    forEach creates an internal iterator to execute the
+                    given action function for each element in the
+                    container. The args argument lets you pass arbitrary
+                    data to the action function.
+
+getItemsInContainer virtual countType getItemsInContainer() const = 0;
+
+                    Pure virtual function to be defined by derived classes
+                    to return the number of elements in a container.
+
+         hashValue  virtual hashValueType hashValue() const = 0;
+
+                    A pure virtual function to be defined by derived
+                    classes to return the hash value of an object. See
+                    HashTable::hashValue for more details.
+
+      initIterator  virtual ContainerIterator& initIterator() const = 0;
+
+
+
+
+                                  - 61 -
+
+
+Container
+
+
+
+                    Pure virtual function to be defined in derived classes
+                    to initialize an external container iterator.
+
+               isA  virtual classType isA() const = 0;
+
+                    Pure virtual function to be defined in derived classes
+                    to return their class ID.
+
+           isEmpty  virtual int isEmpty() const = 0;
+
+                    Pure virtual function to be defined in derived classes.
+                    Returns 1  if a container has no elements; otherwise
+                    returns 0.
+
+           isEqual  virtual int isEqual( const Object& testObject ) const;
+
+                    Returns 1  if the testObject is a container of the same
+                    type and size as this container, and with the same
+                    objects in the same order. Otherwise returns 0.
+
+          lastThat  virtual Object& lastThat( condFuncType testFuncPtr,
+                    void *paramList ) const;
+
+                    Returns a reference to the last object in the container
+                    that satisfies a given condition. You supply a
+                    testFuncPtr that returns true for a certain condition.
+                    You can pass arbitrary arguments via the paramList
+                    argument. NOOBJECT is returned if no object in the
+                    container meets the condition. Note that you are not
+                    involved directly with iterators: firstThat and
+                    lastThat create their own internal iterators, so you
+                    can simply treat them as "search" functions.
+
+                    See also:   firstThat, Object::firstThat
+
+            nameOf  virtual char *nameOf() const = 0;
+
+                    Pure virtual function to be defined by derived classes
+                    to return their object type ID string (usually the
+                    unique class name).
+
+       printHeader  virtual void printHeader( ostream& outputStream )
+                    const;
+
+                    Sends a standard header for containers to the output
+                    stream (called by printOn).
+
+                    See also: printOn, printSeparator, printTrailer
+
+
+
+                                  - 62 -
+
+
+                                                                  Container
+
+
+
+           printOn  virtual void printOn( ostream& outputStream ) const;
+
+  operator << is a  Sends a formatted representation of the container to
+ friend of Object.  the given output stream. printOn is for internal use by
+      See page 87.  the overloaded operator <<.
+
+                    See also: printHeader, printSeparator, printTrailer
+
+    printSeparator  virtual void printSeparator( ostream& outputStream )
+                    const;
+
+                    Sends to the output stream a separator (comma) between
+                    elements in a container (called by printOn).
+
+                    See also: printOn, printHeader, printTrailer
+
+      printTrailer  virtual void printTrailer( ostream& outputStream )
+                    const;
+
+                    Sends to the output stream a standard trailer (a
+                    closing brace) for a container (called by printOn).
+
+                    See also: printOn, printHeader, printSeparator
+
+
+           Friends  =======================================================
+
+                    ContainerIterator is a friend of Container.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                                  - 63 -
+
+
+ContainerIterator
+
+
+
+===========================================================================
+ContainerIterator                                                 contain.h
+===========================================================================
+
+                                          ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                        ÚÄ´HashTableIterator ³
+                                        ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                    ÉÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ» ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                    ºContainerIteratorÇÄÅÄ´   ListIterator   ³
+                    ÈÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍÍ¼ ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                        ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                        ÃÄ´DoubleListIterator³
+                                        ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                        ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                        ÃÄ´  BtreeIterator   ³
+                                        ³ ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+                                        ³ ÚÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄ¿
+                                        ÀÄ´  ArrayIterator   ³
+                                          ÀÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÄÙ
+
+                    ContainerIterator is an abstract class declared as a
+                    friend of Container. Container classes have
+                    initIterator member functions that create
+                    ContainerIterator-derived objects. These provide the
+                    basic mechanisms for traversing the elements in a
+                    container: incrementing through the container;
+                    returning positional information; testing for
+                    conditions, and so on. The member functions for
+                    ContainerIterator are all pure virtual and are defined
+                    in derived classes. See page 11 for more on the
+                    ContainerIterator hierarchy.
+
+
+  Member functions  =======================================================
+
+
+           current  virtual Object& current() = 0;
+
+                    Pure virtual function to be defined in derived classes
+                    to return the current element. If the current element
+                    is empty or invalid, NOOBJECT is returned.
+
+      operator int  virtual operator int() = 0;
+
+                    Pure virtual function to be defined by derived classes
+                    to provide a conversion operator to test for end of
+                    iteration condition.
+
+
+
+
+                                  - 64 -
+
+
+                                                          ContainerIterator
+
+
+
+       operator ++  virtual Object& operator ++() = 0;
+                    virtual Object& operator ++( int ) = 0;
+
+                    Advances the iterator one position in the container.
+                    The first version returns the object referred to before
+                    incrementing; the second version returns the object
+                    referred to after incrementing. The int argument is a
+                    dummy used to distinguish the two operators (see the
+                    section on Operator Overloading in the Programmer's
+                    Guide).
+
+           restart  virtual void restart() = 0;
+
+                    Pure virtual function to be refined in derived classes
+                    to set the current index of the iterator to the first
+                    nonempty element in the container.
+
+
+
+===========================================================================
+Date                                                                ldate.h
+===========================================================================
+
+                  

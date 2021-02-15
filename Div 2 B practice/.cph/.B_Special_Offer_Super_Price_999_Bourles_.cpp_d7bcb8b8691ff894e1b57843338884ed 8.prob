@@ -1,0 +1,28 @@
+#include <bits/stdc++.h>
+using namespace std;
+typedef long long int ll;
+//int  t[1002][1002];
+typedef pair<int,int>ii;
+void solve()
+{
+    ll p,d;
+    cin>>p>>d;
+    string low=to_string(p-d);
+    ll high=p;
+    string h=to_string(p);
+    ll len=(h.length()-low.length());
+    string start="";
+    for(int i=0;i<len;i++)
+    start+='0';
+
+    low=start+low;
+    cout<<start<<endl;
+    for(int i=low.length()-1;i>=0;i--)
+    {
+        for(int j=9;j>=0;j--)
+        {
+             string str=low;
+             str[i]=j+48;
+             ll f=stoi(str);
+             ll s=stoi(low);
+      

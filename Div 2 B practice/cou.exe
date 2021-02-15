@@ -1,0 +1,1013 @@
+/*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  BTREE.CPP                                                             */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( CHECKS_H )
+#include <Checks.h>
+#endif  // CHECKS_H
+
+#if !defined( __BTREE_H )
+#include <BTree.h>
+#endif  // __BTREE_H
+
+#ifndef __STDLIB_H
+#include <stdlib.h>
+#endif
+
+#ifndef __IOSTREAM_H
+#include <iostream.h>
+#endif
+
+/*
+
+Implementation notes:
+
+This implements B-trees with several refinements.  Most of them can be found
+in Knuth Vol 3, but some were developed to adapt to restrictions imposed
+by C++.  First, a restatement of Knuth's properties that a B-tree must
+satisfy, assuming we make the enhancement he suggests in the paragraph
+at the bottom of page 476.  Instead of storing null pointers to non-existent
+nodes (which Knuth calls the leaves) we utilize the space to store keys.
+Therefore, what Knuth calls level (l-1) is the bottom of our tree, and
+we call the nodes at this level LeafNodes.  Other nodes are called InnerNodes.
+The other enhancement we have adopted is in the paragraph at the bottom of
+page 477: overflow control.
+
+The following are modifications of Knuth's properties on page 478:
+
+i)  Every InnerNode has at most Order keys, and at most Order+1 sub-trees.
+ii) Every LeafNode has at most 2*(Order+1) keys.
+iii)An InnerNode with k keys has k+1 sub-trees.
+iv) Every InnerNode that is not the root has at least InnerLowWaterMark keys.
+v)  Every LeafNode that is not the root has at least LeafLowWaterMark keys.
+vi) If the root is a LeafNode, it has at least one key.
+vii)If the root is an InnerNode, it has at least one key and two sub-trees.
+viii)All LeafNodes are the same distance from the root as all the other
+    LeafNodes.
+ix) For InnerNode n with key n[i].key, then sub-tree n[i-1].tree contains
+    all keys <= n[i].key, and sub-tree n[i].tree contains all keys >= n[i].key.
+x)  Order is at least 3.
+
+The values of InnerLowWaterMark and LeafLowWaterMark may actually be set
+by the user when the tree is initialized, but currently they are set
+automatically to:
+        InnerLowWaterMark = ceiling(Order/2)
+        LeafLowWaterMark  = Order - 1
+
+If the tree is only filled, then all the nodes will be at least 2/3 full.
+They will almost all be exactly 2/3 full if the elements are added to the
+tree in order (either increasing or decreasing).  [Knuth says McCreight's
+experiments showed almost 100% memory utilization.  I don't see how that
+can be given the algorithms that Knuth gives.  McCreight must have used
+a different scheme for balancing.  [ No, he used a different scheme for
+splitting: he did a two-way split instead of the three way split as we do
+here.  Which means that McCreight does better on insertion of ordered data,
+but we should do better on insertion of random data.]]
+
+It must also be noted that B-trees were designed for DISK access algorithms,
+not necessarily in-memory sorting, as we intend it to be used here.  However,
+if the order is kept small (< 6?) any inefficiency is negligible for
+in-memory sorting.  Knuth points out that balanced trees are actually
+preferable for memory sorting.  I'm not sure that I believe this, but
+it's interesting.  Also, deleting elements from balanced binary trees, being
+beyond the scope of Knuth's book (p. 465), is beyond my scope.  B-trees
+are good enough.
+
+
+A B-tree is declared to be of a certain ORDER (4 by default).  This number
+determines the number of keys contained in any interior node of the tree.
+Each interior node will contain ORDER keys, and therefore ORDER+1 pointers
+to sub-trees.  The keys are numbered and indexed 1 to ORDER while the
+pointers are numbered and indexed 0 to ORDER.  The 0th ptr points to the
+sub-tree of all elements that are less than key[1].  Ptr[1] points to the
+sub-tree that contains all the elements greater than key[1] and less than
+key[2].  etc.  The array of pointers and keys is allocated as ORDER+1
+pairs of keys and nodes, meaning that one key field (key[0]) is not used
+and therefore wasted.  Given that the number of interior nodes is
+small, that this waste allows fewer cases of special code, and that it
+is useful in certain of the methods, it was felt to be a worthwhile waste.
+
+The size of the exterior nodes (leaf nodes) does not need to be related to
+the size of the interior nodes at all.  Since leaf nodes contain only
+keys, they may be as large or small as we like independent of the size
+of the interior nodes.  For no particular reason other than it seems like
+a good idea, we will allocate 2*(ORDER+1) keys in each leaf node, and they
+will be numbered and indexed from 0 to 2*ORDER+1.  It does have the advantage
+of keeping the size of the leaf and interior arrays the same, so that if we
+find allocation and de-allocation of these arrays expensive, we can modify
+their allocation to use a garbage ring, or something.
+
+Both of these numbers will be run-time constants associated with each tree
+(each tree at run-time can be of a different order).  The variable `order'
+is the order of the tree, and the inclusive upper limit on the indices of
+the keys in the interior nodes.  The variable `order2' is the inclusive
+upper limit on the indices of the leaf nodes, and is designed
+    (1) to keep the sizes of the two kinds of nodes the same;
+    (2) to keep the expressions involving the arrays of keys looking
+        somewhat the same:   lower limit        upper limit
+          for inner nodes:        1                order
+          for leaf  nodes:        0                order2
+        Remember that index 0 of the inner nodes is special.
+
+Currently, order2 = 2*(order+1).
+
+ picture: (also see Knuth Vol 3 pg 478)
+
+           +--+--+--+--+--+--...
+           |  |  |  |  |  |
+ parent--->|  |     |     |
+           |  |     |     |
+           +*-+*-+*-+--+--+--...
+            |  |  |
+       +----+  |  +-----+
+       |       +-----+  |
+       V             |  V
+       +----------+  |  +----------+
+       |          |  |  |          |
+ this->|          |  |  |          |<--sib
+       +----------+  |  +----------+
+                     V
+                    data
+
+It is conceptually VERY convenient to think of the data as being the
+very first element of the sib node.  Any primitive that tells sib to
+perform some action on n nodes should include this `hidden' element.
+For InnerNodes, the hidden element has (physical) index 0 in the array,
+and in LeafNodes, the hidden element has (virtual) index -1 in the array.
+Therefore, there are two `size' primitives for nodes:
+Psize       - the physical size: how many elements are contained in the
+              array in the node.
+Vsize       - the `virtual' size; if the node is pointed to by
+              element 0 of the parent node, then Vsize == Psize;
+              otherwise the element in the parent item that points to this
+              node `belongs' to this node, and Vsize == Psize+1;
+
+Parent nodes are always InnerNodes.
+
+These are the primitive operations on Nodes:
+
+append(elt)     - adds an element to the end of the array of elements in a
+                  node.  It must never be called where appending the element
+                  would fill the node.
+split()         - divide a node in two, and create two new nodes.
+splitWith(sib)  - create a third node between this node and the sib node,
+                  divvying up the elements of their arrays.
+pushLeft(n)     - move n elements into the left sibling
+pushRight(n)    - move n elements into the right sibling
+balanceWithRight() - even up the number of elements in the two nodes.
+balanceWithLeft()  - ditto
+
+
+To allow this implementation of btrees to also be an implementation of
+sorted arrays/lists, the overhead is included to allow O(log n) access
+of elements by their rank (`give me the 5th largest element').
+Therefore, each Item keeps track of the number of keys in and below it
+in the tree (remember, each item's tree is all keys to the RIGHT of the
+item's own key).
+
+[ [ < 0 1 2 3 > 4 < 5 6 7 > 8 < 9 10 11 12 > ] 13 [ < 14 15 16 > 17 < 18 19 20 > ] ]
+   4  1 1 1 1   4   1 1 1   5   1  1  1  1      7  3   1  1  1    4    1  1  1
+*/
+
+//====== Btree functions ========
+
+void Btree::finishInit( int O )
+{
+    if( O < 3 )
+        ClassLib_error( __EORDER3 );
+    ownsElements( 0 );
+    root = 0;
+    Order = O;
+    Order2 = 2 * (O+1);
+    Leaf_MaxIndex = Order2 - 1;     // item[0..Order2-1]
+    Inner_MaxIndex = Order;         // item[1..Order]
+    //
+    // the low water marks trigger an exploration for balancing
+    // or merging nodes.
+    // When the size of a node falls below X, then it must be possible to
+    // either balance this node with another node, or it must be possible
+    // to merge this node with another node.
+    // This can be guaranteed only if (this->size() < (maxSize()-1)/2).
+    //
+    //
+    Leaf_LowWaterMark = ((Leaf_MaxIndex+1            // == maxSize()
+                                         )-1) / 2    // satisfies the above
+                                                  - 1; // because we compare
+                                                     // lowwatermark with last
+
+    Inner_LowWaterMark = (Order-1) / 2;
+}
+
+Btree::Btree(int O) : itemsInContainer(0)
+{
+    finishInit(O);
+}
+
+Btree::~Btree(void)
+{
+    if( root != 0 )
+        delete root;
+}
+
+void Btree::flush( DeleteType dt )
+{
+    int oldValue = ownsElements();
+    ownsElements( delObj(dt) );
+    if( root != 0 )
+        delete root;
+    itemsInContainer = 0;
+    root = 0;
+    ownsElements( oldValue );
+}
+
+int Btree::hasMember( Object& o ) const
+{
+    if( !o.isSortable() )
+        ClassLib_error( __ENOTSORT );
+    if( root == 0 )
+        return 0;
+    else
+        {
+        Node* loc;
+        int idx;
+        return root->found(&(Sortable&)o, &loc, &idx) != NOOBJECT;
+        }
+}
+
+long Btree::rank( const Object& o ) const
+{
+    if( !o.isSortable() )
+        ClassLib_error( __ENOTSORT );
+    if( root == 0 )
+        return -1;
+    else
+        return root->findRank(&(Sortable&)o);
+}
+
+Object& Btree::findMember( Object& o ) const
+{
+    if( !o.isSortable() )
+        ClassLib_error(__ENOTSORT);
+    if( root == 0 )
+        return NOOBJECT;
+    else
+        {
+        Node* loc;
+        int idx;
+        return root->found(&(Sortable&)o, &loc, &idx);
+        }
+}
+
+void Btree::printOn( ostream& out ) const
+{
+    if( root == 0 )
+        out << "<empty>" ;
+    else
+        root->printOn(out);
+}
+
+extern "C" void __ErrorMessage( const char * );
+
+int Btree::isEqual( const Object& obj ) const
+{
+    if( obj.isA() == btreeClass )
+        {
+        __ErrorMessage( "Btree isEqual not implemented\n" );
+        exit(1);
+        }
+    return 0;
+
+    // two btrees are equal only if they have the same number of
+    // elements, and they are all equal.  The structure of the tree
+    // itself doesn't enter into it.
+}
+
+
+long Btree::i_add( const Object& o )
+{
+    long r;
+    if( !o.isSortable() )
+        ClassLib_error( __ENOTSORT );
+    if( root == 0 )
+        {
+        root = new LeafNode( 0, &(Sortable&)o, this );
+        CHECK( root != 0 );
+        incrNofKeys();
+        r = 0;
+        }
+    else
+        {
+        Node* loc;
+        int idx;
+        if( root->found(&(Sortable&)o, &loc, &idx) != NOOBJECT )
+            {
+            // loc and idx are set to either where the object
+            // was found, or where it should go in the Btree.
+            // Nothing is here now, but later we might give the user
+            // the ability to declare a B-tree as `unique elements only',
+            // in which case we would handle an exception here.
+            // cerr << "Multiple entry warning\n";
+            }
+        else
+            {
+            CHECK( loc->isLeaf );
+            }
+        if( loc->isLeaf )
+            {
+            if( loc->parent == 0 )
+                r = idx;
+            else
+                r = idx + loc->parent->findRank_bu( loc );
+            }
+        else
+            {
+            InnerNode *iloc = (InnerNode*)loc;
+            r = iloc->findRank_bu( iloc->getTree( idx ) );
+            }
+        loc->add( &(Sortable&)o, idx );
+        }
+    CHECK( r == rank( (Sortable&)o ) || (Sortable&)o == (*this)[r] );
+    return r;
+}
+
+void Btree::add( Object& o )
+{
+    if( !o.isSortable() )
+        ClassLib_error( __ENOTSORT );
+    if (root == 0)
+        {
+        root = new LeafNode( 0, &(Sortable&)o, this );
+        CHECK( root != 0 );
+        incrNofKeys();
+        }
+    else
+        {
+        Node* loc;
+        int idx;
+        if( root->found(&(Sortable&)o, &loc, &idx) != NOOBJECT )
+            {
+            // loc and idx are set to either where the object
+            // was found, or where it should go in the Btree.
+            // Nothing is here now, but later we might give the user
+            // the ability to declare a B-tree as `unique elements only',
+            // in which case we would handle an exception here.
+            }
+        loc->add( &(Sortable&)o, idx );
+        }
+}
+
+void Btree::detach( Object& o, DeleteType dt )
+{
+    if( !o.isSortable() )
+        ClassLib_error(__ENOTSORT);
+    if( root == 0 )
+        return;
+
+    Node* loc;
+    int idx;
+    Object* obj = &(root->found( &(Sortable&)o, &loc, &idx ));
+    if( *obj == NOOBJECT )
+        return;
+    loc->remove( idx );
+    if( delObj(dt) )
+        delete obj;
+}
+
+void Btree::rootIsFull()
+{
+    // the root of the tree is full; create an InnerNode that
+    // points to it, and then inform the InnerNode that it is full.
+    Node* oldroot = root;
+    root = new InnerNode( 0, this, oldroot );
+    CHECK( root != 0 );
+    oldroot->split();
+}
+
+void Btree::rootIsEmpty()
+{
+    if( root->isLeaf )
+        {
+        LeafNode* lroot = (LeafNode*)root;
+        CHECK( lroot->Psize() == 0 );
+        delete lroot;
+        root = 0;
+        }
+    else {
+        InnerNode* iroot = (InnerNode*)root;
+        CHECK(iroot->Psize() == 0);
+        root = iroot->getTree(0);
+        root->parent = 0;
+        delete iroot;
+        }
+}
+
+Item::Item()
+{
+    nofKeysInTree = 0;
+    tree = 0;
+    key = 0;
+}
+
+Item::Item(Node* n, Sortable* o)
+{
+    nofKeysInTree = n->nofKeys()+1;
+    tree = n;
+    key = o;
+}
+
+Item::Item(Sortable* o, Node* n)
+{
+    nofKeysInTree = n->nofKeys()+1;
+    tree = n;
+    key = o;
+}
+
+Item::~Item()
+{
+}
+
+//
+//====== Node functions ======
+//
+
+Node::Node(int isleaf, InnerNode* P, Btree* T)
+{
+    // nofElts = 0;
+    last = -1;
+    /*dbg*/debugKey = 1017; // !*!*!* not for distribution
+    isLeaf = isleaf;
+    parent = P;
+    if( P == 0 )
+        {
+        CHECK( T != 0 );
+        tree = T;
+        }
+    else
+        tree = P->tree;
+}
+
+Node::~Node()
+{
+}
+
+//
+//===== BtreeIterator methods =====
+//
+
+void BtreeIterator::restart()
+{
+    index = 0;
+}
+
+Object& BtreeIterator::operator++()
+{
+    return beingIterated[++index];
+}
+
+Object& BtreeIterator::operator++( int )
+{
+    return beingIterated[index++];
+}
+
+Object& BtreeIterator::current()
+{
+    return beingIterated[index];
+}
+
+
+ContainerIterator&
+Btree::initIterator() const
+{
+    return *( (ContainerIterator *)new BtreeIterator( *this ) );
+}
+
+BtreeIterator::~BtreeIterator()
+{
+}
+
+
+BtreeIterator::operator int()
+{
+    return index < beingIterated.getItemsInContainer();
+}
+                                                                                                                                                                                                                                                                                                         /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  BABSTARY.CPP                                                          */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( TEMPLATES )
+#define TEMPLATES
+#endif
+
+#if !defined( CHECKS_H )
+#include <Checks.h>
+#endif  // CHECKS_H
+
+#if !defined( __ABSTARRY_H )
+#include <AbstArry.h>
+#endif  // __ABSTARRY_H
+
+#ifndef __IOSTREAM_H
+#include <iostream.h>
+#endif
+
+#ifndef __STDLIB_H
+#include <stdlib.h>
+#endif
+
+#if !defined( __MEM_H )
+#include <mem.h>
+#endif  // __MEM_H
+
+inline int isZero( const Object& o )
+{
+    return o == NOOBJECT;
+}
+
+int AbstractArray::isEqual( const Object& obj ) const
+{
+    PRECONDITION( isA() == obj.isA() );
+    AbstractArray& test = (AbstractArray&)obj;
+    if( lowerBound() != test.lowerBound() ||
+        upperBound() != test.upperBound()
+      )
+        return 0;
+
+    ContainerIterator& iter1 = initIterator();
+    ContainerIterator& iter2 = test.initIterator();
+    while( iter1 && iter2 )
+        if( iter1.current() != iter2.current() )
+            {
+            delete &iter1;
+            delete &iter2;
+            return 0;
+            }
+        else
+            {
+            iter1++;
+            iter2++;
+            }
+
+    delete &iter1;
+    delete &iter2;
+    return 1;
+}
+
+void AbstractArray::printContentsOn( ostream& outputStream ) const
+{
+    ContainerIterator& printIterator = initIterator();
+    printHeader( outputStream );
+    while( printIterator != 0 )
+        {
+        Object& arrayObject = printIterator++;
+        if( arrayObject != NOOBJECT )
+            {
+            arrayObject.printOn( outputStream );
+            if( printIterator != 0 )
+                printSeparator( outputStream );
+            else
+                break;
+            }
+        }
+    printTrailer( outputStream );
+    delete &printIterator;
+}
+
+                                                                                                                                                                                                       last_alg 	 0  ˘  Ó   „  
+unspec_strings XÓ  
+unspecv_strings ÆÓ  stringop_strategy 	›k  max 	ﬁ|   alg 	ﬂﬁ  noalign 	‡	u   $  stringop_algs 4	⁄¨  unknown_size 	‹ﬁ   size 	·º   k  º  	   ¨  processor_costs à	Ê›  add 	Á|   lea 	Ë|  shift_var 	È|  shift_const 	Í|  mult_init 	ÎÚ  mult_bit 	Ì|  $divide 	ÓÚ  (movsx 	u  <movzx 	Òu  @large_insn 	Ú|  Dmove_ratio 	Û|  Hmovzbl_load 	ı|  Lint_load 	ˆ  Pint_store 	˘  \fp_move 	˚|  hfp_load 	¸  lfp_store 	˛  xmmx_move 	 |  Ñmmx_load 	  àmmx_store 	  êxmm_move 	|  òymm_move 	|  úzmm_move 	|  †sse_load 	Ú  §sse_unaligned_load 		Ú  ∏sse_store 	
+Ú  Ãsse_unaligned_store 	Ú  ‡mmxsse_to_integer 	|  Ùssemmx_to_integer 	|  ¯gather_static 	|  ¸gather_per_elt 	|   scatter_static 	|  scatter_per_elt 	|  l1_cache_size 	|  l2_cache_size 	|  prefetch_block 	|  simultaneous_prefetches 	|  branch_cost 	|  fadd 	|   fmul 	|  $fdiv 	|  (fabs 	|  ,fchs 	|  0fsqrt 	|  4sse_op 	"|  8addss 	#|  <mulss 	$|  @mulsd 	%|  Dfmass 	&|  Hfmasd 	'|  Ldivss 	(|  Pdivsd 	)|  Tsqrtss 	*|  Xsqrtsd 	+|  \reassoc_int 	,|  `reassoc_fp 	,|  dreassoc_vec_int 	,&|  hreassoc_vec_fp 	,7|  lmemcpy 	3!  pmemset 	3"!  xcond_taken_branch_cost 	4|  Äcond_not_taken_branch_cost /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  ASSOC.CPP                                                             */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( CHECKS_H )
+#include <Checks.h>
+#endif  // CHECKS_H
+
+#if !defined( __ASSOC_H )
+#include <Assoc.h>
+#endif  // __ASSOC_H
+
+#ifndef __IOSTREAM_H
+#include <iostream.h>
+#endif
+
+Association::~Association()
+{
+    if( !ownsElements() )
+        return;
+    if( &aKey != ZERO )
+        delete &aKey;
+    if( &aValue != ZERO )
+        delete &aValue;
+}
+
+void Association::printOn( ostream& outputStream ) const
+{
+    outputStream << " " << nameOf() << " { ";
+    aKey.printOn( outputStream );
+    outputStream << ", ";
+    aValue.printOn( outputStream );
+    outputStream << " }\n";
+}
+
+int Association::isEqual( const Object& toObject ) const
+{
+    return aKey == ( (Association&)toObject ).key();
+}
+
+                                                                                                                                                                            AL /X86_TUNE_SSE_PACKED_SINGLE_INSN_OPTIMAL 0X86_TUNE_SSE_TYPELESS_STORES 1X86_TUNE_SSE_LOAD0_BY_PXOR 2X86_TUNE_INTER_UNIT_MOVES_TO_VEC 3X86_TUNE_INTER_UNIT_MOVES_FROM_VEC 4X86_TUNE_INTER_UNIT_CONVERSIONS 5X86_TUNE_SPLIT_MEM_OPND_FOR_FP_CONVERTS 6X86_TUNE_USE_VECTOR_FP_CONVERTS 7X86_TUNE_USE_VECTOR_CONVERTS 8X86_TUNE_SLOW_PSHUFB 9X86_TUNE_AVOID_4BYTE_PREFIXES :X86_TUNE_USE_GATHER ;X86_TUNE_AVOID_128FMA_CHAINS <X86_TUNE_AVX256_UNALIGNED_LOAD_OPTIMAL =X86_TUNE_AVX256_UNALIGNED_STORE_OPTIMAL >X86_TUNE_AVX128_OPTIMAL ?X86_TUNE_AVX256_OPTIMAL @X86_TUNE_DOUBLE_WITH_ADD AX86_TUNE_ALWAYS_FANCY_MATH_387 BX86_TUNE_UNROLL_STRLEN CX86_TUNE_SHIFT1 DX86_TUNE_ZERO_EXTEND_WITH_AND EX86_TUNE_PROMOTE_HIMODE_IMUL FX86_TUNE_FAST_PREFIX GX86_TUNE_READ_MODIFY_WRITE HX86_TUNE_MOVE_M1_VIA_OR IX86_TUNE_NOT_UNPAIRABLE JX86_TUNE_PARTIAL_REG_STALL KX86_TUNE_PROMOTE_QIMODE LX86_TUNE_PROMOTE_HI_REGS MX86_TUNE_HIMODE_MATH NX86_TUNE_SPLIT_LONG_MOVES OX86_TUNE_USE_XCHGB PX86_TUNE_USE_MOV0 QX86_TUNE_NOT_VECTORMODE RX86_TUNE_AVOID_VECTOR_DECODE SX86_TUNE_BRANCH_PREDICTION_HINTS TX86_TUNE_QIMODE_MATH UX86_TUNE_PROMOTE_QI_REGS VX86_TUNE_EMIT_VZEROUPPER WX86_TUNE_LAST X ƒ  ä  	  W 
+ix86_tune_features 	üz  ix86_arch_indices ü  	"1  X86_ARCH_CMOV  X86_ARCH_CMPXCHG X86_ARCH_CMPXCHG8B X86_ARCH_XADD X86_ARCH_BSWAP X86_ARCH_LAST  ƒ  A  	   
+ix86_arch_features 	,1  
+x86_prefetch_sse 	;ƒ  _dont_use_tree_here_ 
+x86_mfence 	Y°  w  reg_class ü  	*®  NO_REGS  AREG DREG CREG BREG SIREG DIREG AD_REGS CLOBBERED_REGS Q_REGS 	NON_Q_REGS 
+TLS_GOTBASE_REGS INDEX_REGS LEGACY_REGS GENERAL_REGS FP_TOP_REG FP_SECOND_REG FLOAT_REGS SSE_FIRST_REG NO_REX_SSE_REGS SSE_REGS EVEX_SSE_REGS BND_REGS ALL_SSE_REGS MMX_REGS FP_TOP_SSE_REGS FP_SECOND_SSE_REGS FLOAT_SSE_REGS FLOAT_INT_REGS INT_SSE_REGS FLOAT_INT_SSE_REGS MASK_EVEX_REGS MASK_REGS  MOD4_SSE_REGS !ALL_REGS "LIM_REG_CLASSES # ß  |  Ω  	  P ≠  
+dbx_register_map 	=Ω  
+dbx64_register_map 	>Ω  
+svr4_dbx_register_map 	?Ω  processor_type ü  	⁄Ï  PROCESSOR_GENERIC  PROCESSOR_I386 PROCESSOR_I486 PROCESSOR_PENTIUM PROCESSOR_LAKEMONT PROCESSOR_PENTIUMPRO PROCESSOR_PENTIUM4 PROCESSOR_NOCONA PROCESSOR_CORE2 PROCESSOR_NEHALEM 	PROCESSOR_SANDYBRIDGE 
+PROCESSOR_HASWELL PROCESSOR_BONNELL PROCESSOR_SILVERMONT PROCESSOR_KNL PROCESSOR_KNM PROCESSOR_SKYLAKE PROCESSOR_SKYLAKE_AVX512 PROCESSOR_CANNONLAKE PROCESSOR_ICELAKE_CLIENT /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  ARRAY.CPP                                                             */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( CHECKS_H )
+#include <Checks.h>
+#endif  // CHECKS_H
+
+#if !defined( __ARRAY_H )
+#include <Array.h>
+#endif  // __ARRAY_H
+
+void Array::add( Object& toAdd )
+{
+    lastElementIndex++;
+    while( ptrAt( lastElementIndex ) != ZERO &&
+           lastElementIndex <= upperbound
+         )
+        lastElementIndex++;
+
+    if( lastElementIndex > upperbound )
+        reallocate( lastElementIndex - lowerbound + 1 );
+
+    setData( lastElementIndex, &toAdd );
+    itemsInContainer++;
+    CHECK( itemsInContainer > 0 );
+}
+
+void Array::addAt( Object& toAdd, int atIndex )
+{
+    PRECONDITION( atIndex >= lowerbound );
+    if( atIndex > upperbound )
+        reallocate( atIndex - lowerbound + 1 );
+
+    if( ptrAt( atIndex ) != ZERO )
+        {
+        delete ptrAt( atIndex );
+        }
+
+    setData( atIndex, &toAdd );
+}
+                                                      w    O   ˚      ../../../../../src/gcc-8.1.0/libgcc/config/i386  cygwin.S     	ê+@     Ù ""gY0uKgg0=L"" £   ù  ˚      C:/mingw810/x86_64-810-posix-seh-rt_v6-rev0/mingw64/mingw/include C:/mingw810/src/gcc-8.1.0/include ../.././gcc C:/mingw810/src/gcc-8.1.0/gcc/config/i386 C:/mingw810/src/gcc-8.1.0/libgcc ../../../../../src/gcc-8.1.0/libgcc  crtdefs.h   stdlib.h   malloc.h   process.h   getopt.h   time.h   hashtab.h   insn-constants.h   i386.h   i386-opts.h   libgcc2.h   gbl-ctors.h   libgcc2.c                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     ˇˇˇˇ x †      ,       ê+@     2       AÇAÄn¿A¬                                                                                                                                                                                                                                                                                                                                                                                                                                                              ../../../../../src/gcc-8.1.0/libgcc/config/i386/cygwin.S C:\mingw810\x86_64-810-posix-seh-rt_v6-rev0\build\gcc-8.1.0\x86_64-w64-mingw32\libgcc GNU AS 2.30                                                                                                                                                                                                                                                                                                                                                                      .file   M   ˛ˇ  gcrtexe.c              Q                                q              |   †                        £   ∞                        …   ¿                        Ô   ê                          Ä                        .  Ä                        L             W  @                        m                           ô  0          ¶  p                    envp           argv           argc                æ  /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  ABSTARRY.CPP                                                          */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( CHECKS_H )
+#include <Checks.h>
+#endif  // CHECKS_H
+
+#if !defined( __ABSTARRY_H )
+#include <AbstArry.h>
+#endif  // __ABSTARRY_H
+
+#ifndef __IOSTREAM_H
+#include <iostream.h>
+#endif
+
+#ifndef __STDLIB_H
+#include <stdlib.h>
+#endif
+
+#if !defined( __MEM_H )
+#include <mem.h>
+#endif  // __MEM_H
+
+AbstractArray::AbstractArray( int anUpper, int aLower, sizeType aDelta )
+{
+    PRECONDITION( anUpper >= aLower );
+    lastElementIndex = aLower - 1;
+    lowerbound = aLower;
+    upperbound = anUpper;
+    delta = aDelta;
+
+    theArray = new Object *[ arraySize() ];
+    if( theArray == 0 )
+        ClassLib_error(__ENOMEM);
+
+    for( int i = 0; i < arraySize(); i++ )
+        {
+        theArray[ i ] = ZERO;
+        }
+}
+
+AbstractArray::~AbstractArray()
+{
+    PRECONDITION( theArray != 0 );
+    if( ownsElements() )
+        for( int i = 0; i < arraySize(); i++ )
+            if( theArray[ i ] != ZERO )
+                delete theArray[ i ];
+    delete [] theArray;
+}
+
+void AbstractArray::detach( Object& toDetach, DeleteType dt )
+{
+    detach( find( toDetach ), dt );
+}
+
+void AbstractArray::detach( int atIndex, DeleteType dt )
+{
+    PRECONDITION( atIndex >= lowerbound &&
+                  atIndex <= upperbound && theArray != 0
+                );
+
+    if( ptrAt(atIndex) != ZERO )
+        {
+        if( delObj(dt) )
+            delete ptrAt(atIndex);
+        itemsInContainer--;
+        }
+    removeEntry(atIndex);
+    if( atIndex <= lastElementIndex )
+        lastElementIndex--;
+    CHECK( itemsInContainer != UINT_MAX );
+}
+
+void AbstractArray::flush( DeleteType dt )
+{
+    if( delObj(dt) )
+        for( unsigned i = 0; i <= zeroBase(upperbound); i++ )
+            if( theArray[i] != ZERO )
+                delete theArray[i];
+
+    for( unsigned i = 0; i <= zeroBase(upperbound); i++ )
+        theArray[i] = ZERO;
+
+    itemsInContainer = 0;
+    lastElementIndex = lowerbound-1;
+}
+
+inline unsigned nextDelta( unsigned sz, unsigned delta )
+{
+    return (sz%delta) ? ((sz+delta)/delta)*delta : sz;
+}
+
+void AbstractArray::reallocate( sizeType newSize )
+{
+    PRECONDITION( newSize > arraySize() );
+    if( delta == 0 )
+        ClassLib_error(__EEXPANDFS);
+
+    sizeType adjustedSize = arraySize() +
+                            nextDelta( newSize - arraySize(), delta );
+    Object **newArray = new Object *[ adjustedSize ];
+    if( newArray == 0 )
+        ClassLib_error(__ENOMEM);
+
+    memcpy( newArray, theArray, arraySize() * sizeof( theArray[0] ) );
+
+    for( int i = arraySize(); i < adjustedSize; i++ )
+        newArray[i] = ZERO;
+
+    delete [] theArray;
+    theArray = newArray;
+    upperbound = adjustedSize + lowerbound - 1;
+}
+
+void AbstractArray::setData( int loc, Object *data )
+{
+    PRECONDITION( loc >= lowerbound && loc <= upperbound );
+    theArray[ zeroBase(loc) ] = data;
+}
+
+void AbstractArray::insertEntry( int loc )
+{
+    PRECONDITION( loc >= lowerbound && loc <= upperbound );
+    memmove( theArray + zeroBase(loc) + 1,
+             theArray + zeroBase(loc),
+             (upperbound - loc)*sizeof( theArray[0] )
+           );
+}
+
+void AbstractArray::removeEntry( int loc )
+{
+    if( loc >= lastElementIndex )
+        theArray[zeroBase(loc)] = ZERO;
+    else
+        squeezeEntry( zeroBase(loc) );
+}
+
+void AbstractArray::squeezeEntry( int squeezePoint )
+{
+    PRECONDITION( squeezePoint >= 0 &&
+                  squeezePoint <= zeroBase(lastElementIndex)
+                );
+
+    memmove( theArray + squeezePoint,
+             theArray + squeezePoint + 1,
+             (zeroBase(lastElementIndex)-squeezePoint)*sizeof( theArray[0] )
+           );
+        theArray[zeroBase(lastElementIndex)] = ZERO;
+}
+
+int AbstractArray::find( const Object& o )
+{
+    if( o == NOOBJECT )
+        return INT_MIN;
+
+    for( int index = 0; index < arraySize(); index++ )
+        if( *(theArray[index]) == o )
+            return boundBase(index);
+    return INT_MIN;
+}
+
+inline int isZero( const Object *o )
+{
+    return o == &NOOBJECT;
+}
+
+int AbstractArray::isEqual( const Object& testObject ) const
+{
+    PRECONDITION( isA() == testObject.isA() );
+    AbstractArray& test = (AbstractArray&)testObject;
+    if( lowerbound != test.lowerbound || upperbound != test.upperbound )
+        return 0;
+
+    for( int i = 0; i < arraySize(); i++ )
+        {
+        if( isZero(theArray[i]) != isZero(test.theArray[i]) )
+            return 0;
+        if( *(theArray[i]) != *(test.theArray[i]) )
+            return 0;
+        }
+    return 1;
+}
+
+ContainerIterator& AbstractArray::initIterator() const
+{
+    return *( (ContainerIterator *)new ArrayIterator( *this ) );
+}
+
+void AbstractArray::printContentsOn( ostream& outputStream ) const
+{
+    ContainerIterator& printIterator = initIterator();
+    printHeader( outputStream );
+    while( printIterator != 0 )
+        {
+        Object& arrayObject = printIterator++;
+        if( arrayObject != NOOBJECT )
+            {
+            arrayObject.printOn( outputStream );
+            if( printIterator != 0 )
+                printSeparator( outputStream );
+            else
+                break;
+            }
+        }
+    printTrailer( outputStream );
+    delete &printIterator;
+}
+
+ArrayIterator::ArrayIterator( const AbstractArray& toIterate ) :
+    beingIterated( toIterate ),
+    currentIndex( toIterate.lowerbound )
+{
+    restart();
+}
+
+ArrayIterator::~ArrayIterator()
+{
+}
+
+ArrayIterator::operator int()
+{
+    return currentIndex <= beingIterated.upperbound;
+}
+
+Object& ArrayIterator::current()
+{
+    if ( currentIndex <= beingIterated.upperbound )
+        return beingIterated.objectAt( currentIndex );
+    else
+        return NOOBJECT;
+}
+
+void ArrayIterator::scan()
+{
+    if( currentIndex > beingIterated.upperbound )
+        return;
+
+    while( ++currentIndex <= beingIterated.upperbound &&
+           beingIterated.objectAt( currentIndex ) == NOOBJECT )
+        ;   // empty body
+}
+
+void ArrayIterator::restart()
+{
+    currentIndex = beingIterated.lowerbound;
+    if( beingIterated.objectAt( currentIndex ) == NOOBJECT )
+        scan();
+}
+
+Object& ArrayIterator::operator ++ ( int )
+{
+    Object& res = (currentIndex <= beingIterated.upperbound) ?
+        beingIterated.objectAt( currentIndex ) : NOOBJECT;
+
+    scan();
+
+    return res;
+}
+
+Object& ArrayIterator::operator ++ ()
+{
+    scan();
+    return (currentIndex <= beingIterated.upperbound) ?
+        beingIterated.objectAt( currentIndex ) : NOOBJECT;
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                       .data   `                        .bss    @	                      .file   „  ˛ˇ  gpesect.c              G  ∞                           a  –          t            É  @          ò  –          µ  P          Õ  ê          ‡               @          	  ‡      .text   ∞     ÷  	             .data   `                        .bss    P	                       .xdata  ¥     H                 .pdata  ‘     x                .file   ˜Turbo C Project File   2 F…        À   Ã   Õ   Œ    º   Ω   æ   ø   “   ”   ‘   ÷  @ ◊    ÿ   Ò   Ú   Û   Ù  ı   ˆ   Ä  ˜   ¯   ˘   ˙    ∞      ÷  ◊ ÿ   Ÿ  ⁄  €  ˚   ¥  ¸  ˝   ˛   ˇ               d	  
+              † ° ¢  £ § • ¶ ß ®  ∞ ± ≤ ≥  ©  ™ ´  ¨  ≠  Æ  Ø  µ  ∂            Ä                  "  #  $  %  & ˇ'  +   k  [ ] ^ b c d e f g h  m  n  o q  s  u  v w  x y z { |  é  } ~  Ä Å Ç É  Ñ Ö Ü  á  à ä ã ç ê ë í ì      -D ..\..\LIB                                                           .Ä ..\..\INCLUDE;..\..\..\INCLUDE                                                                                                  /Ä  :\BC3\LIB;..\LIB                                                                                                               0 32  1 25   2 100  3 __DEBUG=0;_BUILDRTLDLL                                                                                                         4 *                             5 *                             6 *                             7 *                             8 *                             9 *                             : *                             ; *                             < *                             = *                             > *                             ? *                             @Ä                                                                                                                                 A                                                                                                                                D 32767   E 8192    F                                                                                                                                C .CPP G   ˇˇ  3   Ã|P
+ ’ ~GREP                                   grep                                                                            -n+ $MEM(64) $NOSWAP $PROMPT $CAP MSG(GREP2MSG)void *.c                                                                                                                                                 Œˇ~Turbo Assembler                        TASM                                                                            /MX /ZI /O $TASM                                                                                                                                                                                        œˇ Turbo ~Debugger                         td                                                                              $EXENAME                                                                                                                                                                                                –ˇ Turbo ~Profiler                         tprof                                                                           $EXENAME                                                                                                                                                                                                —ˇR~esource Compiler                      RC                                                                              $RC                                                                                                                                                                                                     “ˇ~Import Librarian                       IMPLIB                                                                          $IMPLIB                                                                                                                                                                                                 ”ˇˇˇ                                                                                                                                                                                                                                                                                                                                 5 `	   y|P      ˛   ..\..\SOURCE\ABSTARRY.CPP TARRY.CPP                                             L K J      {|P∑       '   ..\..\SOURCE\ARRAY.CPP ARRAY.CPP                                                I H G      }|P
+     %   ..\..\SOURCE\ASSOC.CPP ASSOC.CPP                                                F E D      É|P>  -   È  ..\..\SOURCE\BTREE.CPP BTREE.CPP                                                C B A      â|PE     æ  ..\..\SOURCE\BTREEINN.CPP EEINN.CPP                                             @ ? >      ç|P2  	   _  ..\..\SOURCE\BTREELFN.CPP EELFN.CPP                                             = < ;     ! è|Pj          ..\..\SOURCE\COLLECT.CPP LLECT.CPP                                              : 9 8     # ë|P     Ç   ..\..\SOURCE\CONTAIN.CPP NTAIN.CPP                                              7 6 5     % ï|P.     ∆   ..\..\SOURCE\DBLLIST.CPP LLIST.CPP                                              4 3 2     * ò|Pê       %   ..\..\SOURCE\DEQUE.CPP DEQUE.CPP                                                1 0 /     - ú|P}      "   ..\..\SOURCE\DICT.CPP \DICT.CPP                                                 . - ,     6 •|PÎ  
+   è   ..\..\SOURCE\HASHTBL.CPP SHTBL.CPP                                              + * )     8 ®|P*  v   >   ..\..\SOURCE\LDATE.CPP LDATE.CPP                                                ( ' &     ? ¨|P     Ä   ..\..\SOURCE\LIST.CPP \LIST.CPP                                                 % $ #     A Ø|P      :   ..\..\SOURCE\LTIME.CPP LTIME.CPP                                                " !       F ±|P≈       *   ..\..\SOURCE\MEMMGR.CPP EMMGR.CPP                                                      H ≥|PÊ     U   ..\..\SOURCE\OBJECT.CPP BJECT.CPP                                                      L ∂|P‹       0   ..\..\SOURCE\SORTARRY.CPP TARRY.CPP                                                    O ∏|Ps          ..\..\SOURCE\STACK.CPP STACK.CPP                                                       R ª|Pß  	   R   ..\..\SOURCE\STRNG.CPP STRNG.CPP                                                       V À|P¬     d   ..\..\SOURCE\TIMER.CPP TIMER.CPP                                                      Ä  …∫ vG®  ABSTARRY.CPP  √uGõ  ARRAY.CPP PP  √uG‚  ASSOC.CPP BJ  √uG8  BABSTARY.CPP  √uGˆ  BSO                        6 ¿Z   YívX:ˇ‡ƒßàjI-Ù’¶="äo:Ô‘∂üÄÇÊ d
+‚
+ƒ
+ß
+ã
+\	Û	ÿ	ıA	'		ıÿæ°◊%π¯	Óœ≥íta›nE*
+ÍQÑËeGé(
+€rW@ø§!∂ Í ˇˇ∂    W ÛY9X «NP ÈuH< ªä>ˇˇNG.CPP    S aöI √£6ˇˇˇˇˇ..\..\INCLUDE\TIMER.H ˇˇˇˇˇ..\..\SOURCE\TIMER.CPP ˇ§{I..\..\..\INCLUDE\STRING.H    S aöI √£6 ÈuHT 1sI ÍÉ<	 õjŸ AsI Fî£
+ :sI @y gŸ ÙÄ6 ≤{IU §{I ìl=ˇˇFî£ˇ1sI..\..\INCLUDE\STRNG.H ˇaöI..\..\SOURCE\STRNG.CPP    P √uGQ SÅG ÍÉ< ÈuH	 õjŸ  vM
+ :sI Fî£ @y gŸ ÙÄ6 ≤{I T43 ∑qG) \X8' ÏYG ìl= √£6 √uGˇˇ≤{IˇSÅG..\..\INCLUDE\STACK.H ˇ√uG..\..\SOURCE\STACK.CPP    M êêKN µZI ÍÉ< ÈuH	 õjŸ AsI Fî£
+ :sI @y gŸ ÙÄ6 ≤{I ™eO √uG  vM T4 ìl=ˇˇÍÉ< ÈuH	 õjŸˇµZI..\..\INCLUDE\SORTARRY.H ˇêêK..\..\SOURCE\SORTARRY.CPP ˇæ<..\..\..\INCLUDE\ALLOC.H ˇjdŸ..\..\..\INCLUDE\MALLOC.H    I ©TH Fî£ ÍÉ< ÈuH	 õjŸ
+ :sI @y gŸ ÙÄ6 ≤{I ìl== nIJ jdŸK æ<ˇˇAsI Fî£ˇ©TH..\..\SOURCE\OBJECT.CPP    G lH5 ÇÄ6 √£6 ÈuH) \X8' ÏYG	 õjŸ ìl= gŸˇˇÇÄ6 √£6 ÈuHˇlH..\..\SOURCE\MEMMGR.CPP    B ùsIC =sI; —t ÈuH< ªä> AsI Fî£ ÍÉ<	 õjŸ
+ :sI @y gŸ ÙÄ6 ≤{ID H≠5E ¬©5= nI> Òe=ˇˇ3 ∑qG) \ˇ¬©5..\..\..\INCLUDE\GENERIC.H ˇH≠5..\..\..\INCLUDE\IOMANIP.H ˇ=sI..\..\INCLUDE\LTIME.H ˇùsI..\..\SOURCE\LTIME.CPP    @ ºçH' ÏYG	 õjŸ ÈuH3 ∑qG) \X8 ìl= gŸ √£6 √uG ÍÉ<
+ :sI Fî£ @y ÙÄ6 ≤{I  vM T4ˇˇÍÉ<
+ :sIˇºçH..\..\SOURCE\LIST.CPP    9 ßsI: /sI; —t ÈuH< ªä> AsI Fî£ ÍÉ<	 õjŸ
+ :sI @y gŸ ÙÄ6 ≤{I= nI> Òe=ˇˇNCLUDE\LD   9 ßsI: /ˇÒe=..\..\..\INCLUDE\STDIO.H ˇnI..\..\..\INCLUDE\STRSTREA.H ˇªä>..\..\..\INCLUDE\DOS.H ˇ—t..\..\..\INCLUDE\ASSERT.H ˇ/sI..\..\INCLUDE\LDATE.H ˇßsI..\..\SOURCE\LDATE.CPP    7 TfN2 UfN' ÏYG	 õjŸ ÈuH ÍÉ< Fî£ √uG
+ :sI @y gŸ ÙÄ6 ≤{I  vM T43 ∑qG) \X8 ìl= √£64 ÕÅM5 ÇÄ6ˇˇ vM T43 ∑qGˇTfN..\..\SOURCE\HASHTBL.CPP ˇÇÄ6..\..\INCLUDE\STDTEMPL.H    . √uG 4sI ÍÉ< ÈuH	 õjŸ
+ :sI Fî£ @y gŸ ÙÄ6 ≤{I T4/ √uG0 SÅG' ÏYG1 ßöI2 UfN √uG  vM3 ∑qG) \X8 ìl= √£64 ÕÅM5 ÇÄ6ˇˇuG0 SÅG' ÏYG1ˇÕÅM..\..\INCLUDE\VECTIMP.H ˇ∑qG..\..\INCLUDE\LIST.H ˇUfN..\..\INCLUDE\HASHTBL.H ˇßöI..\..\INCLUDE\BAG.H ˇSÅG..\..\INCLUDE\SET.H ˇ√uG..\..\INCLUDE\DICT.H ˇ√uG..\..\SOURCE\DICT.CPP    + ÊvG, /yI ÍÉ< ÈuH	 õjŸ  vM
+ :sI Fî£ @y gŸ ÙÄ6 ≤{I T4( gsG √uG) \X8' ÏYG ìl= √£6ˇˇX8ˇ/yI..\..\INCLUDE\DEQUE.H ˇÊvG..\..\SOURCE\DEQUE.CPP    & ÏeO' ÏYG	 õjŸ ÈuH( gsG ÍÉ<
+ :sI Fî£ @y gŸ ÙÄ6 ≤{I √uG  vM T4) \X8 ìl= √£6ˇˇ<
+ :sI ˇ\X8..\..\INCLUDE\MEMMGR.H ˇgsG..\..\INCLUDE\DBLLIST.H ˇÏYG..\..\INCLUDE\RESOURCE.H ˇÏeO..\..\SOURCE\DBLLIST.CPP    $ ÒôI √£6 ÈuH  vM ÍÉ<	 õjŸ
+ :sI Fî£ @y gŸ ÙÄ6 ≤{I T4ˇˇõjŸ
+ :sI Fî£ˇÒôI..\..\SOURCE\CONTAIN.CPP    " NvG √uG ÍÉ< ÈuH	 õjŸ
+ :sI Fî£ @y gŸ ÙÄ6 ≤{I  vM T4ˇˇ:sI Fî£ @yˇNvG..\..\SOURCE\COLLECT.CPP      ⁄v‹ √£6 ÈuH ∑qG AsI Fî£ ÍÉ<	 õjŸ
+ :sI @y gŸ ÙÄ6 ≤{I √uG  vM T4 ìl=ˇˇ@y gŸ ÙÄ6ˇ⁄v‹..\..\SOURCE\BTREELFN.CPP     kU‚ √£6 ÈuH ∑qG AsI Fî£ ÍÉ<	 õjŸ
+ :sI @y gŸ ÙÄ6 ≤{I √uG  vM T4 ìl=ˇˇ@y gŸ ÙÄ6ˇkU‚..\..\SOURCE\BTREEINN.CPP     (vG √£6 ÈuH ∑qG AsI Fî£ ÍÉ<	 õjŸ
+ :sI @y gŸ ÙÄ6 ≤{I √uG  vM T4 ìl=ˇˇy gŸ ÙÄ6ˇAsI..\..\INCLUDE\SORTABLE.H ˇ∑qG..\..\INCLUDE\BTREE.H ˇ(vG..\..\SOURCE\BTREE.CPP     √uG √£6 ÈuH 4sI ÍÉ<	 õjŸ
+ :sI Fî£ @y gŸ ÙÄ6 ≤{I T4ˇˇgŸ ÙÄ6 ≤{Iˇˇ4sI..\..\INCLUDE\ASSOC.H ˇ√uG..\..\SOURCE\ASSOC.CPP     √uG √£6 ÈuH P[G ÍÉ<	 õjŸ
+ :sI Fî£ @y gŸ ÙÄ6 ≤{I ™eO √uG  vM T4ˇˇ@y gŸ ÙÄ6 ≤{IˇP[G..\..\INCLUDE\ARRAY.H ˇ√uG..\..\SOURCE\ARRAY.CPP     [wO √£6 ÈuH ™eO √uG ÍÉ<	 õjŸ
+ :sI Fî£ @y gŸ ÙÄ6 ≤{I  vM T4 ìl=ˇˇ                      ˇìl=..\..\..\INCLUDE\STDLIB.H ˇT4..\..\INCLUDE\SHDDEL.H ˇ vM..\..\INCLUDE\CONTAIN.H ˇ≤{I..\..\..\INCLUDE\MEM.H ˇÙÄ6..\..\..\INCLUDE\IOSTREAM.H ˇgŸ..\..\..\INCLUDE\_NULL.H ˇ@y..\..\..\INCLUDE\STDDEF.H ˇFî£..\..\INCLUDE\CLSDEFS.H ˇ:sI..\..\INCLUDE\OBJECT.H ˇõjŸ..\..\..\INCLUDE\LIMITS.H ˇÍÉ<..\..\INCLUDE\CLSTYPES.H ˇ√uG..\..\INCLUDE\COLLECT.H ˇ™eO..\..\INCLUDE\ABSTARRY.H ˇÈuH..\..\..\INCLUDE\_DEFS.H ˇ√£6..\..\INCLUDE\CHECKS.H ˇ[wO..\..\SOURCE\ABSTARRY.CPP \..\INCLUDE\_DE7 ¿M   ˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇˇú ¶ ß ® ≤ ≥ ¥ æ ø ¿ Õ Œ œ ⁄ € ‹ Á Ë È Û Ù ı ˛ ˇ  
+#$%/01=>?KLMYZ[hijwxyÉÑÖèêëõúù™´ú TIMER.OBJ   STRNG.OBJ   STACK.OBJ   SORTARRY.OBJ   OBJECT.OBJ   MEMMGR.OBJ   LTIME.OBJ   LIST.OBJ   LDATE.OBJ   HASHTBL.OBJ   DICT.OBJ   DEQUE.OBJ   DBLLIST.OBJ   CONTAIN.OBJ   COLLECT.OBJ   BTREELFN.OBJ   BTREEINN.OBJ   BTREE.OBJ   ASSOC.OBJ   ARRAY.OBJ   ABSTARRY.OBJ                       ˇˇ                                                                                                                                                                                                                                                                                                                                                                                                                                                                     Turbo C Project File   2 F…        À   Ã   Õ   Œ    º   Ω   æ   ø   “   ”   ‘   ÷  @ ◊    ÿ   Ò   Ú   Û   Ù  ı   ˆ   Ä  ˜   ¯   ˘   ˙    ∞      ÷  ◊ ÿ   Ÿ  ⁄  €  ˚   ¥  ¸  ˝   ˛   ˇ               d	  
+              † ° ¢  £ § • ¶ ß ®  ∞ ± ≤ ≥  ©  ™ ´  ¨  ≠  Æ  Ø  µ  ∂            Ä                  "  #  $  %  & ˇ'  +   k  [ ] ^ b c d e f g h  m  n  o q  s  u  v w  x y z { |  é  } ~  Ä Å Ç É  Ñ Ö Ü  á  à ä ã ç ê ë í ì      -D ..\..\LIB                                                           .Ä ..\..\INCLUDE;..\..\..\INCLUDE                                                                                                  /Ä  :\BC3\LIB;..\LIB                                                                                                               0 32  1 25   2 100  3 TEMPLATES; __DEBUG=0;_BUILDRTLDLL                                                                                              4 *                             5 *                             6 *                             7 *                             8 *                             9 *                             : *                             ; *                             < *                             = *                             > *                             ? *                             @Ä                                                                                                                                 A                                                                                                                                D 32767   E 8192    F                                                                                                                                C .CPP G   ˇˇ  3   D|P
+ ’ ~GREP                                   grep                                                                            -n+ $MEM(64) $NOSWAP $PROMPT $CAP MSG(GREP2MSG)void *.c                                                                                                                                                 Œˇ~Turbo Assembler                        TASM                                                                            /MX /ZI /O $TASM                                                                                                                                                                                        œˇ Turbo ~Debugger                         td                                                                              $EXENAME                                                                                                                                                                                                –ˇ Turbo ~Profiler                         tprof                                                                           $EXENAME                                                                                                                                                                                                —ˇR~esource Compiler                      RC                                                                              $RC                                                                                                                                                                                                     “ˇ~Import Librarian                       IMPLIB                                                                          $IMPLIB                                                                                                                                                                                                 ”ˇˇˇ                                                                                                                                                                                                                                                                                                                                 5     —{P}      &   ..\..\SOURCE\BDICT.CPP BDICT.CPP                                                       ”{Po      F   ..\..\SOURCE\BABSTARY.CPP STARY.CPP                                             L K J     ⁄{P      2   ..\..\SOURCE\BSORTARY.CPP RTARY.CPP                                             I H G    ! ‹{P
+     %   ..\..\SOURCE\ASSOC.CPP ASSOC.CPP                                                F E D    # Â{P>  -   È  ..\..\SOURCE\BTREE.CPP BTREE.CPP                                                C B A    & Ì{PE     æ  ..\..\SOURCE\BTREEINN.CPP EEINN.CPP                                             @ ? >    ( Û{P2  	   _  ..\..\SOURCE\BTREELFN.CPP EELFN.CPP                                             = < ;    * ı{Pj          ..\..\SOURCE\COLLECT.CPP LLECT.CPP                                              : 9 8    , ¯{P     Ç   ..\..\SOURCE\CONTAIN.CPP NTAIN.CPP                                              7 6 5    .  |P.     ∆   ..\..\SOURCE\DBLLIST.CPP LLIST.CPP                                              4 3 2    4 |PÎ  
+   è   ..\..\SOURCE\HASHTBL.CPP SHTBL.CPP                                              . - ,    8 |P*  v   >   ..\..\SOURCE\LDATE.CPP LDATE.CPP                                                + * )    ? |P     Ä   ..\..\SOURCE\LIST.CPP \LIST.CPP                                                 ( ' &    A |P      :   ..\..\SOURCE\LTIME.CPP LTIME.CPP                                                % $ #    F  |P≈       *   ..\..\SOURCE\MEMMGR.CPP EMMGR.CPP                                               " !      H $|PÊ     U   ..\..\SOURCE\OBJECT.CPP BJECT.CPP                                                     L 0|P¬     d   ..\..\SOURCE\TIMER.CPP TIMER.CPP                                                      O 3|Pß  	   R   ..\..\SOURCE\STRNG.CPP STRNG.CPP                                                      Ä  …∫ vG®  ABSTARRY.CPP  √uGõ  ARRAY.CPP PP  √uG‚  ASSOC.CPP BJ  √uG8  BABSTARY.CPP  √uGˆ  BSO                 ABSTARRY.CP6 †S   ªpU7˙ﬁ¡¢ÑcG+¯ﬁ¬§ämOûÅb©C%‘
+älPT
+∏
+°	8
+
+	Ç	kÁÈMgÀîI,ˇˇˇˇ´vY?~ètU9˙ÁcÙÀ∞êpã◊
+nÎÕb±ñ« F+® ® ˇ§{I..\..\..\INCLUDE\STRING.H    P aöI √£6 ÈuHQ 1sI ÍÉ< õjŸ AsI	 Fî£ :sI
+ @y gŸ ÙÄ6 ≤{IR §{I ìl=ˇˇFî£ˇ1sI..\..\INCLUDE\STRNG.H ˇaöI..\..\SOURCE\STRNG.CPP    M ÛY9N «NP ÈuH< ªä>ˇˇìl== nIˇ©TH..\..\Sˇ«NP..\..\INCLUDE\TIMER.H ˇÛY9..\..\SOURCE\TIMER.CPP ˇæ<..\..\..\INCLUDE\ALLOC.H ˇjdŸ..\..\..\INCLUDE\MALLOC.H    I ©TH	 Fî£ ÍÉ< ÈuH õjŸ :sI
+ @y gŸ ÙÄ6 ≤{I ìl== nIJ jdŸK æ<ˇˇAsI	 Fî£ˇ©TH..\..\SOURCE\OBJECT.CPP    G lH ÇÄ6 √£6 ÈuH1 \X8 ÏYG õjŸ ìl= gŸˇˇÇÄ6 √£6 ÈuHˇlH..\..\SOURCE\MEMMGR.CPP    B ùsIC =sI; —t ÈuH< ªä> AsI	 Fî£ ÍÉ< õjŸ :sI
+ @y gŸ ÙÄ6 ≤{ID H≠5E ¬©5= nI> Òe=ˇˇ7 ∑qG1 \ˇ¬©5..\..\..\INCLUDE\GENERIC.H ˇH≠5..\..\..\INCLUDE\IOMANIP.H ˇ=sI..\..\INCLUDE\LTIME.H ˇùsI..\..\SOURCE\LTIME.CPP    @ ºçH ÏYG õjŸ ÈuH7 ∑qG1 \X8 ìl= gŸ √£6 √uG ÍÉ< :sI	 Fî£
+ @y ÙÄ6 ≤{I  vM T4ˇˇÍÉ< :sIˇºçH..\..\SOURCE\LIST.CPP    9 ßsI: /sI; —t ÈuH< ªä> AsI	 Fî£ ÍÉ< õjŸ :sI
+ @y gŸ ÙÄ6 ≤{I= nI> Òe=ˇˇNCLUDE\LD   9 ßsI: /ˇÒe=..\..\..\INCLUDE\STDIO.H ˇnI..\..\..\INCLUDE\STRSTREA.H ˇªä>..\..\..\INCLUDE\DOS.H ˇ—t..\..\..\INCLUDE\ASSERT.H ˇ/sI..\..\INCLUDE\LDATE.H ˇßsI..\..\SOURCE\LDATE.CPP    5 TfN6 UfN ÏYG õjŸ ÈuH ÍÉ<	 Fî£ √uG :sI
+ @y gŸ ÙÄ6 ≤{I  vM T47 ∑qG1 \X8 ìl= √£6 ÕÅM ÇÄ6ˇˇ vM T47 ∑qGˇ∑qG..\..\INCLUDE\LIST.H ˇUfN..\..\INCLUDE\HASHTBL.H ˇTfN..\..\SOURCE\HASHTBL.CPP    / ÏeO ÏYG õjŸ ÈuH0 gsG ÍÉ< :sI	 Fî£
+ @y gŸ ÙÄ6 ≤{I √uG  vM T41 \X8 ìl= √£6ˇˇ< :sI	 ˇ\X8..\..\INCLUDE\MEMMGR.H ˇgsG..\..\INCLUDE\DBLLIST.H ˇÏeO..\..\SOURCE\DBLLIST.CPP    - ÒôI √£6 ÈuH  vM ÍÉ< õjŸ :sI	 Fî£
+ @y gŸ ÙÄ6 ≤{I T4ˇˇõjŸ :sI	 Fî£ˇÒôI..\..\SOURCE\CONTAIN.CPP    + NvG √uG ÍÉ< ÈuH õjŸ :sI	 Fî£
+ @y gŸ ÙÄ6 ≤{I  vM T4

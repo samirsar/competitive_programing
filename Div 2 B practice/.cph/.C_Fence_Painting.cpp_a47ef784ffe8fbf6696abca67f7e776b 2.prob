@@ -1,0 +1,18 @@
+_ZERODIVIDE      131 /* 80x87 divide by zero         */
+#define FPE_OVERFLOW        132 /* 80x87 arithmetic overflow    */
+#define FPE_UNDERFLOW       133 /* 80x87 arithmetic underflow   */
+#define FPE_INEXACT         134 /* 80x87 precision loss         */
+#define FPE_STACKFAULT      135 /* 80x87 stack overflow         */
+#define FPE_EXPLICITGEN     140 /* When SIGFPE is raise()'d     */
+
+/* 
+            SIGSEGV signal error types.
+*/
+#define SEGV_BOUND          10  /* A BOUND violation (SIGSEGV)  */
+#define SEGV_EXPLICITGEN    11  /* When SIGSEGV is raise()'d    */
+
+/* 
+            SIGILL signal error types.
+*/
+#define ILL_EXECUTION       20  /* Illegal operation exception  */
+#define ILL_EXPLICITGEN 

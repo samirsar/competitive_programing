@@ -1,0 +1,911 @@
+nge when keys
+    // are moved.
+    PRECONDITION( Psize() >= rightsib->Vsize() );
+    PRECONDITION( parent->getTree(pidx) == rightsib );
+    int newThisSize = (Psize() + rightsib->Vsize())/2;
+    int noFromThis = Psize() - newThisSize;
+    pushRight( noFromThis, rightsib, pidx );
+
+}
+
+void InnerNode::balanceWith( InnerNode* rightsib, int pindx )
+{
+    // PINDX is the index of the parent item whose key will change when
+    // keys are shifted from one InnerNode to the other.
+    if( Psize() < rightsib->Vsize() )
+        rightsib->balanceWithLeft( this, pindx );
+    else
+        balanceWithRight( rightsib, pindx );
+}
+
+void InnerNode::decrNofKeys( Node *that )
+{
+    // THAT is a child of THIS that has just shrunk by 1
+    int i = indexOf( that );
+    item[i].nofKeysInTree--;
+    if( parent != 0 )
+        parent->decrNofKeys( this );
+    else
+        tree->decrNofKeys();
+}
+
+long InnerNode::findRank( Sortable* what ) const
+{
+    // recursively look for WHAT starting in the current node
+
+    if ( *what < *getKey(1) )
+        return getTree(0)->findRank(what);
+    long sum = getNofKeys(0);
+    for( int i = 1; i < last; i++ )
+        {
+        if( *what == *getKey(i) )
+            return sum;
+        sum++;
+        if( *what < *getKey(i+1) )
+            return sum + getTree(i)->findRank(what);
+        sum += getNofKeys(i);
+        }
+    if( *what == *getKey(last) )
+        return sum;
+    sum++;
+    // *what > getKey(last), so recurse on last item.tree
+    return sum + getTree(last)->findRank(what);
+}
+
+long InnerNode::findRank_bu( const Node *that ) const
+{
+    // findRank_bu is findRank in reverse.
+    // whereas findRank looks for the object and computes the rank
+    // along the way while walking DOWN the tree, findRank_bu already
+    // knows where the object is and has to walk UP the tree from the
+    // object to compute the rank.
+    int L = indexOf( that );
+    long sum = 0;
+    for( int i = 0; i < L; i++ )
+        sum += getNofKeys(i);
+    return sum + L + (parent == 0 ? 0 : parent->findRank_bu( this ));
+}
+
+LeafNode*InnerNode::firstLeafNode()
+{
+    return getTree(0)->firstLeafNode();
+}
+
+Object& InnerNode::found(Sortable* what, Node** which, int* where )
+{
+    // recursively look for WHAT starting in the current node
+    for( int i = 1 ; i <= last; i++ )
+        {
+        if( *getKey(i) == *what )
+            {
+            // then could go in either item[i].tree or item[i-1].tree
+            // should go in one with the most room, but that's kinda
+            // hard to calculate, so we'll stick it in item[i].tree
+            *which = this;
+            *where = i;
+            return *getKey(i);
+            }
+        if( *getKey(i) > *what )
+            return getTree(i-1)->found(what, which, where);
+        }
+    // *what > *(*this)[last].key, so recurse on last item.tree
+    return getTree(last)->found( what, which, where );
+}
+
+void InnerNode::incrNofKeys( Node *that )
+{
+    // THAT is a child of THIS that has just grown by 1
+    int i = indexOf( that );
+    item[i].nofKeysInTree++;
+    if( parent != 0 )
+        parent->incrNofKeys( this );
+    else
+        tree->incrNofKeys();
+}
+
+#pragma warn -rvl
+
+int InnerNode::indexOf( const Node *that ) const
+{
+    // returns a number in the range 0 to this->last
+    // 0 is returned if THAT == tree[0]
+    for( int i = 0; i <= last; i++ )
+        if( getTree(i) == that )
+            return i;
+    CHECK( 0 );
+}
+
+#pragma warn .rvl
+
+void InnerNode::informParent()
+{
+    if( parent == 0 )
+        {
+        // then this is the root of the tree and nees to be split
+        // inform the btree.
+        PRECONDITION( tree->root == this );
+        tree->rootIsFull();
+        }
+    else
+        parent->isFull( this );
+}
+
+void InnerNode::isFull(Node *that)
+{
+    // the child node THAT is full.   We will either redistribute elements
+    // or create a new node and then redistribute.
+    // In an attempt to minimize the number of splits, we adopt the following
+    // strategy:
+    //  * redistribute if possible
+    //  * if not possible, then split with a sibling
+    if( that->isLeaf )
+        {
+        LeafNode *leaf = (LeafNode *)that;
+        LeafNode *left, *right;
+        // split LEAF only if both sibling nodes are full.
+        int leafidx = indexOf(leaf);
+        int hasRightSib = (leafidx < last)
+                                && ((right=(LeafNode*)getTree(leafidx+1))
+                                          != 0);
+        int hasLeftSib  = (leafidx > 0)
+                                && ((left=(LeafNode*)getTree(leafidx-1))
+                                         != 0);
+        int rightSibFull = (hasRightSib && right->isAlmostFull());
+        int leftSibFull  = (hasLeftSib  && left->isAlmostFull());
+        if( rightSibFull )
+            {
+            if( leftSibFull )
+                {
+                // both full, so pick one to split with
+                left->splitWith( leaf, leafidx );
+                }
+            else if( hasLeftSib )
+                {
+                // left sib not full, so balance with it
+                leaf->balanceWithLeft( left, leafidx );
+                }
+            else
+                {
+                // there is no left sibling, so split with right
+                leaf->splitWith( right, leafidx+1 );
+                }
+            }
+        else if( hasRightSib )
+            {
+            // right sib not full, so balance with it
+            leaf->balanceWithRight( right, leafidx+1 );
+            }
+        else if( leftSibFull )
+            {
+            // no right sib, and left sib is full, so split with it
+            left->splitWith( leaf, leafidx );
+            }
+        else if( hasLeftSib )
+            {
+            // left sib not full so balance with it
+            leaf->balanceWithLeft( left, leafidx );
+            }
+        else
+            {
+            // neither a left or right sib; should never happen
+            CHECK(0);
+            }
+        }
+    else {
+        InnerNode *inner = (InnerNode *)that;
+        // split INNER only if both sibling nodes are full.
+        int inneridx = indexOf(inner);
+        InnerNode *left, *right;
+        int hasRightSib = (inneridx < last)
+                                && ((right=(InnerNode*)getTree(inneridx+1))
+                                          != 0);
+        int hasLeftSib  = (inneridx > 0)
+                                && ((left=(InnerNode*)getTree(inneridx-1))
+                                         != 0);
+        int rightSibFull = (hasRightSib && right->isAlmostFull());
+        int leftSibFull  = (hasLeftSib  && left->isAlmostFull());
+        if( rightSibFull )
+            {
+            if( leftSibFull )
+                {
+                left->splitWith( inner, inneridx );
+                }
+            else if( hasLeftSib )
+                {
+                inner->balanceWithLeft( left, inneridx );
+                }
+            else
+                {
+                // there is no left sibling
+                inner->splitWith(right, inneridx+1);
+                }
+            }
+        else if( hasRightSib )
+            {
+            inner->balanceWithRight( right, inneridx+1 );
+            }
+        else if( leftSibFull )
+            {
+            left->splitWith( inner, inneridx );
+            }
+        else if( hasLeftSib )
+            {
+            inner->balanceWithLeft( left, inneridx );
+            }
+        else {
+            CHECK(0);
+            }
+        }
+}
+
+void InnerNode::isLow( Node *that )
+{
+    // the child node THAT is <= half full.  We will either redistribute
+    // elements between children, or THAT will be merged with another child.
+    // In an attempt to minimize the number of mergers, we adopt the following
+    // strategy:
+    //  * redistribute if possible
+    //  * if not possible, then merge with a sibling
+    if( that->isLeaf )
+        {
+        LeafNode *leaf = (LeafNode *)that;
+        LeafNode *left, *right;
+        // split LEAF only if both sibling nodes are full.
+        int leafidx = indexOf(leaf);
+        int hasRightSib = (leafidx < last)
+                                && ((right=(LeafNode*)getTree(leafidx+1))
+                                          != 0);
+        int hasLeftSib  = (leafidx > 0)
+                                && ((left=(LeafNode*)getTree(leafidx-1))
+                                         != 0);
+        if( hasRightSib
+            && (leaf->Psize() + right->Vsize()) >= leaf->maxPsize())
+            {
+            // then cannot merge,
+            // and balancing this and rightsib will leave them both
+            // more than half full
+            leaf->balanceWith( right, leafidx+1 );
+            }
+        else if( hasLeftSib
+            && (leaf->Vsize() + left->Psize()) >= leaf->maxPsize())
+            {
+            // ditto
+            left->balanceWith( leaf, leafidx );
+            }
+        else if( hasLeftSib )
+            {
+            // then they should be merged
+            left->mergeWithRight( leaf, leafidx );
+            }
+        else if( hasRightSib )
+            {
+            leaf->mergeWithRight( right, leafidx+1 );
+            }
+        else
+            {
+            CHECK(0); // should never happen
+            }
+        }
+    else
+        {
+        InnerNode *inner = (InnerNode *)that;
+        //
+        int inneridx = indexOf(inner);
+        InnerNode *left, *right;
+        int hasRightSib = (inneridx < last)
+                                && ((right=(InnerNode*)getTree(inneridx+1))
+                                          != 0);
+        int hasLeftSib  = (inneridx > 0)
+                                && ((left=(InnerNode*)getTree(inneridx-1))
+                                         != 0);
+        if( hasRightSib
+            && (inner->Psize() + right->Vsize()) >= inner->maxPsize())
+            {
+            // cannot merge
+            inner->balanceWith( right, inneridx+1 );
+            }
+        else if( hasLeftSib
+            && (inner->Vsize() + left->Psize()) >= inner->maxPsize())
+            {
+            // cannot merge
+            left->balanceWith( inner, inneridx );
+            }
+        else if( hasLeftSib )
+            {
+            left->mergeWithRight( inner, inneridx );
+            }
+        else if( hasRightSib )
+            {
+            inner->mergeWithRight( right, inneridx+1 );
+            }
+        else
+            {
+            CHECK(0);
+            }
+        }
+}
+
+LeafNode*InnerNode::lastLeafNode()
+{
+    return getTree(last)->lastLeafNode();
+}
+
+void InnerNode::mergeWithRight( InnerNode* rightsib, int pidx )
+{
+    PRECONDITION( Psize() + rightsib->Vsize() < maxIndex() );
+    if( rightsib->Psize() > 0 )
+        rightsib->pushLeft( rightsib->Psize(), this, pidx );
+    rightsib->setKey( 0, parent->getKey( pidx ) );
+    appendFrom( rightsib, 0, 0 );
+    parent->incNofKeys( pidx-1, rightsib->getNofKeys(0)+1 );
+    parent->removeItem( pidx );
+    delete rightsib;
+}
+
+long InnerNode::nofKeys() const
+{
+    long sum = 0;
+    for( int i = 0; i <= last; i++)
+        sum += getNofKeys(i);
+    return sum + Psize();
+}
+
+Object& InnerNode::operator[]( long idx ) const
+{
+    for( int j=0; j <= last; j++ )
+        {
+        long R;
+        if( idx < (R = getNofKeys(j)) )
+            return (*getTree(j))[idx];
+        if( idx == R )
+            {
+            if( j == last )
+                return NOOBJECT;
+            else
+                return *getKey(j+1);
+            }
+        idx -= R+1; // +1 because of the key in the node
+        }
+    return NOOBJECT;
+}
+
+void InnerNode::printOn(ostream& out) const
+{
+    out << " [ " << "/" << getNofKeys(0) << *getTree(0);
+    for( int i = 1; i <= last; i++ )
+        {
+        //*!*!*!*!* not for distribution!
+        CHECK( getTree(i)->debugKey == 1017 );
+        if( i > 1 )
+            CHECK( *getKey(i-1) <= *getKey(i) );
+        out << *getKey(i) << "/" << getNofKeys(i) << *getTree(i);
+        }
+    out << " ] ";
+}
+
+void InnerNode::pushLeft( int noFromThis, InnerNode* leftsib, int pidx )
+{
+    // noFromThis==1 => moves the parent item into the leftsib,
+    // and the first item in this's array into the parent item
+    PRECONDITION( parent->getTree(pidx) == this );
+    PRECONDITION( noFromThis > 0 && noFromThis <= Psize() );
+    PRECONDITION( noFromThis + leftsib->Psize() < maxPsize() );
+    setKey( 0, parent->getKey(pidx) ); // makes appendFrom's job easier
+    leftsib->appendFrom( this, 0, noFromThis-1 );
+    shiftLeft( noFromThis );
+    parent->setKey( pidx, getKey(0) );
+    parent->setNofKeys( pidx-1, leftsib->nofKeys() );
+    parent->setNofKeys( pidx, nofKeys() );
+}
+
+void InnerNode::pushRight(int noFromThis, InnerNode* rightsib, int pidx)
+{
+    PRECONDITION( noFromThis > 0 && noFromThis <= Psize() );
+    PRECONDITION( noFromThis + rightsib->Psize() < rightsib->maxPsize() );
+    PRECONDITION( parent->getTree(pidx) == rightsib );
+    //
+    // The operation is three steps:
+    //  Step I.  Make room for the incoming keys in RIGHTSIB.
+    //  Step II. Move the items from THIS into RIGHTSIB.
+    //  Step III.Update the length of THIS.
+    //
+    // Step I.: make space for noFromThis items
+    //
+    int start = last - noFromThis + 1;
+    int tgt, src;
+    tgt = rightsib->last + noFromThis;
+    src = rightsib->last;
+    rightsib->last = tgt;
+    rightsib->setKey( 0, parent->getKey( pidx ) ); incNofKeys(0);
+    while( src >= 0 )
+        {
+        // do this kind of assignment on InnerNode Items only when
+        // the parent fields
+        // of the moved items do not change, as they don't here.
+        // Otherwise, use setItem so the parents are updated appropriately.
+        rightsib->getItem(tgt--) = rightsib->getItem(src--);
+        }
+
+    // Step II.Move the items from THIS into RIGHTSIB
+    for( int i = last; i >= start; i-- )
+        {
+        // this is the kind of assignment to use when parents change
+        rightsib->setItem(tgt--, getItem(i));
+        }
+    parent->setKey( pidx, rightsib->getKey(0) );
+    decNofKeys(0);
+    CHECK( tgt == -1 );
+
+    // Step III.
+    last -= noFromThis;
+
+    // Step VI.  update nofKeys
+    parent->setNofKeys( pidx-1, nofKeys() );
+    parent->setNofKeys( pidx, rightsib->nofKeys() );
+}
+
+void InnerNode::remove( int index )
+{
+    PRECONDITION( index >= 1 && index <= last );
+    LeafNode* lf = getTree(index)->firstLeafNode();
+    setKey( index, lf->item[0] );
+    lf->removeItem(0);
+}
+
+void InnerNode::removeItem( int index )
+{
+    PRECONDITION( index >= 1 && index <= last );
+    for( int to = index; to < last; to++ )
+        item[to] = item[to+1];
+    last--;
+    if( isLow() )
+        {
+        if( parent == 0 )
+            {
+            // then this is the root; when only one child, make the child
+            // the root
+            if( Psize() == 0 )
+                tree->rootIsEmpty();
+            }
+        else
+            parent->isLow( this );
+        }
+}
+
+void InnerNode::shiftLeft( int cnt )
+{
+    if( cnt <= 0 )
+        return;
+    for( int i = cnt; i <= last; i++ )
+        getItem(i-cnt) = getItem(i);
+    last -= cnt;
+}
+
+void InnerNode::split()
+{
+    // this function is called only when THIS is the only descendent
+    // of the root node, and THIS needs to be split.
+    // assumes that idx of THIS in Parent is 0.
+    InnerNode* newnode = new InnerNode( parent );
+    CHECK( newnode != 0 );
+    parent->append( getKey(last), newnode );
+    newnode->appendFrom( this, last, last );
+    last--;
+    parent->incNofKeys( 1, newnode->getNofKeys(0) );
+    parent->decNofKeys( 0, newnode->getNofKeys(0) );
+    balanceWithRight( newnode, 1 );
+}
+
+void
+InnerNode::splitWith( InnerNode *rightsib, int keyidx )
+{
+    // THIS and SIB are too full; create a NEWnODE, and balance
+    // the number of keys between the three of them.
+    //
+    // picture: (also see Knuth Vol 3 pg 478)
+    //              keyidx keyidx+1
+    //           +--+--+--+--+--+--...
+    //           |  |  |  |  |  |
+    // parent--->|  |     |     |
+    //           |  |     |     |
+    //           +*-+*-+*-+--+--+--...
+    //            |  |  |
+    //       +----+  |  +-----+
+    //       |       +-----+  |
+    //       V             |  V
+    //       +----------+  |  +----------+
+    //       |          |  |  |          |
+    // this->|          |  |  |          |<--sib
+    //       +----------+  |  +----------+
+    //                     V
+    //                    data
+    //
+    // keyidx is the index of where the sibling is, and where the
+    // newly created node will be recorded (sibling will be moved to
+    // keyidx+1)
+    //
+    PRECONDITION( keyidx > 0 && keyidx <= parent->last );
+    // I would like to be able to prove that the following assertion
+    // is ALWAYS true, but it is beyond my time limits.  If this assertion
+    // ever comes up False, then the code to make it so must be inserted
+    // here.
+    // assert(parent->getKey(keyidx) == rightsib->getKey(0));
+    // During debugging, this came up False, so
+    rightsib->setKey(0,parent->getKey(keyidx));
+    int nofKeys        = Psize() + rightsib->Vsize();
+    int newSizeThis    = nofKeys / 3;
+    int newSizeNew     = (nofKeys - newSizeThis) / 2;
+    int newSizeSib     = (nofKeys - newSizeThis - newSizeNew);
+    int noFromThis     = Psize() - newSizeThis;
+    int noFromSib      = rightsib->Vsize() - newSizeSib;
+    // because of their smaller size, this InnerNode may not have to
+    // give up any elements to the new node.  I.e., noFromThis == 0.
+    // This will not happen for LeafNodes.
+    // We handle this by pulling an item from the rightsib.
+    CHECK( noFromThis >= 0 );
+    CHECK( noFromSib >= 1 );
+    InnerNode* newNode = new InnerNode(parent);
+    CHECK( newNode != 0 );
+    if( noFromThis > 0 )
+        {
+        newNode->append( getItem(last) );
+        parent->addElt( keyidx, getKey(last--), newNode );
+        if( noFromThis > 2 )
+            this->pushRight( noFromThis-1, newNode, keyidx );
+        rightsib->pushLeft( noFromSib, newNode, keyidx+1 );
+        }
+    else
+        {
+        // pull an element from the rightsib
+        newNode->append( rightsib->getItem(0) );
+        parent->addElt( keyidx+1, rightsib->getKey(1), rightsib);
+        rightsib->shiftLeft(1);
+        parent->setTree( keyidx, newNode );
+        rightsib->pushLeft( noFromSib-1, newNode, keyidx+1 );
+        }
+    parent->setNofKeys( keyidx-1, this->nofKeys() );
+    parent->setNofKeys( keyidx, newNode->nofKeys() );
+    parent->setNofKeys( keyidx+1, rightsib->nofKeys() );
+    if( parent->isFull() )
+        parent->informParent();
+}
+                                                                                                                                                                                                                                                                                                                                                                                            start__ __imp_DeleteCriticalSection __imp__set_invalid_parameter_handler .refptr.__CTOR_LIST__ __imp_fputc VirtualQuery ___crt_xi_start__ __imp__ZNSirsERx .refptr.__imp__fmode __imp__ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE13_M_set_lengthEy __imp__amsg_exit ___crt_xi_end__ __imp__errno .refptr.__imp___initenv _tls_start __mingw_winmain_lpCmdLine .refptr._matherr _ZNSaIcED2Ev _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE11_M_capacityEy .refptr.__RUNTIME_PSEUDO_RELOC_LIST__ __mingw_oldexcpt_handler _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_disposeEv __imp_GetCurrentThreadId .refptr.mingw_initltssuo_force _ZNSaIcEC1Ev GetCurrentProcessId TlsGetValue TerminateProcess __imp___cxa_rethrow _head_libstdc___6_dll __bss_start__ __imp_MultiByteToWideChar __imp__ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc __imp___C_specific_handler ___RUNTIME_PSEUDO_RELOC_LIST_END__ RtlLookupFunctionEntry __size_of_heap_commit__ __imp_GetLastError .refptr._dowildcard __imp_free ___mb_cur_max/*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  BSORTARY.CPP                                                          */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( TEMPLATES )
+#define TEMPLATES
+#endif
+
+#if !defined( __SORTABLE_H )
+#include <Sortable.h>
+#endif  // __SORTABLE_H
+
+#if !defined( __ARRAYS_H )
+#include <Arrays.h>
+#endif  // __ARRAYS_H
+
+void BI_ISObjectVector::add( Object _FAR *o )
+{
+    if( count_ >= lim )
+        resize( count_+1 );
+    unsigned loc = count_++;
+    while( loc > 0 && *(Sortable _FAR *)o < *(Sortable _FAR *)(data[loc-1]) )
+        {
+        data[loc] = data[loc-1];
+        loc--;
+        }
+    data[loc] = o;
+}
+
+unsigned BI_ISObjectVector::find( void _FAR * obj ) const
+{
+    unsigned lower = 0;
+    unsigned upper = count_-1;
+    if( count_ != 0 )
+        {
+        while( lower < upper && upper != UINT_MAX )
+            {
+            unsigned middle = (lower+upper)/2;
+            if( *(const Sortable _FAR *)(data[middle]) ==
+                *(const Sortable _FAR *)obj
+              )
+                return middle;
+            if( *(const Sortable _FAR *)(data[middle]) <
+                *(const Sortable _FAR *)obj
+              )
+                lower = middle+1;
+            else
+                upper = middle-1;
+            }
+        }
+    if( lower == upper &&
+        *(const Sortable _FAR *)(data[lower]) == *(const Sortable _FAR *)obj
+      )
+        return lower;
+    else
+        return UINT_MAX;
+}
+                                                                      __imp_strlen __bigtens_D2A __imp_malloc __mingw_winmain_nShowCmd _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev mingw_pcinit .refptr._gnu_exception_handler _ZNSt8ios_base4InitC1Ev __file_alignment__ __imp__ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE10_M_disposeEv __imp_InitializeCriticalSection _ZSt19__throw_logic_errorPKc __lconv_init __imp__ZNSt8ios_base4InitD1Ev __getmainargs InitializeCriticalSection ___lc_codepage_func __imp_exit _ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE7_M_dataEPc __imp_vfprintf __nm__ZSt4cout __major_os_version__ __imp_IsDBCSLeadByteEx _head_libgcc_s_seh_1_dll __imp___initenv _ZNSirsERx __imp__ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEED1Ev __IAT_start__ __imp__cexit __imp_UnhandledExceptionFilter __imp_SetUnhandledExceptionFilter .refptr.mingw_app_type __imp__ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ __imp__onexit __DTOR_LIST__ RtlVirtualUnwind .refptr.__imp__acmdln WideCharToMultiByte __set_app_type __imp_Sleep __imp___p__acmdln LeaveCriticalSection __imp___setusermatherr __size_of_heap_reserve__ ___crt_xt_start__ __subsystem__ _amsg_exit __security_cookie_complement __imp_TlsGetValue __imp__ZSt3cin GetCurrentProcess __setusermatherr __imp_fprintf __imp__ZNSolsEx MultiByteToWideChar __imp__ZNSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE11_M_capacityEy _ZNSt8ios_base4InitD1Ev __imp_VirtualProtect _ZNKSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE7_M_dataEv ___tls_end__ QueryPerformanceCounter __imp_VirtualQuery __imp__initterm __cxa_begin_catch mingw_initltsdyn_force _dowildcard __imp___iob_func __imp_localeconv localeconv __dyn_tls_init_callback __imp__ZSt4cout .refptr.__image_base__ _initterm __imp_strncmp _head_lib64_libmsvcrt_os_a .refptr._fmode __imp___acrt_iob_func __major_image_version__ __loader_flags__ __fu0__ZSt4cout __imp__ZNKSt7__cxx1112basic_stringIcSt11char_traitsIcESaIcEE6lengthEv .refptr.__tens_D2A _ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ ___chkstk_ms __native_startup_lock __mingw_winmain_h/*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  BDICT.CPP                                                             */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( TEMPLATES )
+#define TEMPLATES
+#endif
+
+#if !defined( __ASSOC_H )
+#include <Assoc.h>
+#endif  // __ASSOC_H
+
+#if !defined( __DICT_H )
+#include <Dict.h>
+#endif  // __DICT_H
+
+#if !defined( __IOSTREAM_H )
+#include <iostream.h>
+#endif  // __IOSTREAM_H
+
+#if !defined( __CLSTYPES_H )
+#include <ClsTypes.h>
+#endif  // __CLSTYPES_H
+
+void Dictionary::add( Object& objectToAdd )
+{
+    if( !objectToAdd.isAssociation() )
+        ClassLib_error( __ENOTASSOC );
+    else
+        Set::add( objectToAdd );
+}
+
+Association& Dictionary::lookup( const Object& toLookUp ) const
+{
+    Association toFind( (Object&)toLookUp, NOOBJECT );
+    toFind.ownsElements(0);
+
+    Association& found = (Association&)findMember( toFind );
+    return found;
+}
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ˜Mº7ßôï¬®a%z&¹r”F?KÖV·ÃÛWO‚²¥¦º’#•¦E¢zÂs04é [£cˆÎÜàª[ü¼Rİ50ôZ“ê:  ÁdŒui1„40(Ó³ysò<u[6³õ:Xø`éæ[Ğ¹R7áİ	CmĞóIîVW­Ç]Ã®×¡‚ª¸¤lK¥+XîÁ«0¶19{gÉšµg«öM“ kş&Äi5}£!‡„)oqê9²—İá­õPïÂ\z–Ë·ÃuK ¸£Æ@”/g›uÑâ¨ñûÜU¬\Ïx¼[j‹Y…Ùå¦®ag-†õ UUÁÜz>zÊj˜W6IêÒØ={‹\˜mÕÁIopG·Ö/‹i#/ï˜*‹ƒÛ½® |×«çTUSoáwyk\ØMzš"Ğ$DöÛ’2¥7ó¾ùÌ9¯˜tTêY²@d>V¥ƒ…Sûªå0`Õz¹ÓÎrÏÖÍÌo¢DEìfFåşNı«Ñs„ïÉ¶€Aˆ²z¶œ©À ^>†ÂîÔiÕê(¢¼ÚYVõt³,év=Ë‘5¸*ºÎïGSØ¡gùP}l'ËyóÒ`&Èg›;ä“Ï›Ã!:¹úç-i²(f“´:›¼2#»x‘œ9ºj0á¢Ë˜ö“ùäÔQ¢pPÙfìÃƒpàNòw1?äéÍ.¿œr WGImDÊé´˜ sÕtµ—g,$­fö‚»¶hÃBˆå^Ÿ±,
+6á¨I)ğÔ?âÅ±pPàw4‡qf…åŞ’1çàaÍÙ‹ÿ»Ã-ÁFììhÓèk­Ù‡£ UÕÂË˜ó*f¶r
+2m›)È²¼Zm<Ì¶aL €¹i¹¯zóf7ê^ rl7‹H.8Web¦­Ön­®İì‚;rÊY6/&å;Eb¶ÍçŞêBÇÀ³æØ’9LÑÿÖVû)ÓB$ğA4}JÛmx«Ï%§çól4ömñÖ }Sæ|Qº|œä¬/â<ºÀæŞùDÁÓy¶Í‚g 3:LåõœE¶ÊJ©h¾ÒE#[œ¤¼Xj¥.‘ 4!íR¿V±$)_#ºÌVé
+lr5¹Š— ;lh¦¥:‡+¸Î<ëJ&¦$&X§`x¹Šeş#¼€¯Ú¾Zç¾çg™ÿ‚øÌ¦†Ş ÜÛòØèa‰º)g>aQÎÚÒ”¼d^tOwiĞLz£È^¨ïªñ“?b£›uÙ¯ày¡¿Ó­¼¦½å˜wuÙZ8¢ä- #	€]­·®ş©#ù\Û°r¨ª…·ê@‰ œ×.Å^¨¬ª†W¹àÒ:¨³˜,¯tH•Ûãòa^œ›`½vËæoÅV7Q:®ÇØáÆÜlVlsuN¸ø°RÒñ^¦*\÷9IàmU>ø¾¶­ªî¯§Ûn¡2£	˜`A×ökŠKØ¼¤¬rWZ$§˜Ÿö–»	WñÂ¨XéÌTVÀ]ı°2JÊÂ„Í‡E‘Ùê¦aaadÛZ¬wtŒY¡X~h[V9I•[\•ÅEXäèÀÍ]ŒuM
+¨ëšĞj,fR@¥XÀ$j9¯ËSA%Ì‘ÚEÇb,PtBÚ¥¾2i„a¹–ÜK]¬ö5¨÷f¹É Şkwwc?µ6à@bS' sssóø¦?ßàhëlì¢Š&¬™+‡úè®%z‹">­•÷å¢µÎÉ]Bx)Ÿ5ògxYu7{yÓ›õ>>bdŞK8v+Ş‹ab‡ø×.âQ_&Š´‡{âA_†]¨g€bxHhÏ
+n¡gƒœ·£sş	\çÅ¼÷™`™×!§_‘®µa4Ã36ë-ËBÂ¼±ıvÊÈà ,:e¤'q³¯µÏÇ·œÛ€øaÜvzÒÅgê>/ºş ›½jŞ€ZAów-âĞ|"™³>wfn¦zW7ÿï´@öœxrğÿãË2Ù³çYæ[2ç^2wéÜ‹èAŠeeiÎE³2s.É±cÉ(`³fİ€$^Í¼ááÊB–™³aÖõ³ÖÏ¢¤ÕŠd—&Áo\¼Ş<#]ƒ Çbñ^„WŠXîà°
+[~3%®•xÜYy–k´ÙV.hÎÕPgn–%3ç†Y$BÈ$>øi¨ÌœKÁÇ~Pæ]”Y³ôìùs’4)ÚEÃªc,\>aä °ÃBƒ\à‘ÜE‹À˜
+–_Ê¶’>€gäÿÏu ½P=ƒUã¿Åò§¹sğß‚	'½¢eI>lxÚóØ{nnkYÕFc8kÜ×‚ÇÚ+ü/ôê,IæëÌrå•-·õlki)Úä»òÊ}	B2Øß‘¨TÑåV©Ã«hVŒƒg;¼!×–ŠpºØö<_Kæ`Ô\aÈâÑ’I°‘»*¹gç+Oˆ¼«ÁRİ±¦pste+™
+çKA+ââ²ˆËI•HàL6Ê#(=ãF?*Àô”p$êŒo<È¥ŠA¢)¶,(I¡m	ğô–†ötÆ†òTy{ù»şW[€ÎrÑ7zĞ {³gä‚CÒµ\Úy0uĞ5×~W†kn~_fç\ûˆknÎCñoÁÿH¼î*¹ÿ[¥õñæ|*t%+Wı4çÿ8¥W6ãm*h]‰û/ø˜W‹cS¸7Œ”†ëf™²0Ë”}„	|
+€~ cpxæø£¥2-tbX'Å@Æ¯/áÿ‘)p¾œ‘)p~œá)pè‰ú Ìdú¬$œ)øø€C¥¡ñ‘x1¶çTÀ!ôÉ¤Ó™Ê"Üº¿ŒTdÎ8Ç!ÈòB~&)š–jF$˜CƒPê;àL—^Š€M"‹°œ>Üº†¿GjtŠr]Œê›Ç	OÒç&@"SPÑÏ–Ls/p†'Á¡×İğÉ-†ƒ
+IÒùÍMa'Áùô$œÉb/Ç1Ÿ7cŸÇ9G€C–:®+ù:‡Ş+ÛƒxGl/{\ƒÎràŒiTÀÁEwŒN:¢Ú4*|­AƒàĞ'Ï¹ .ëzğñÁYÛr™õ“à¬äïK’VBz¦edl ùeS(’q*e¦S®•ØÚ–÷^KJjáÊ^„€5“™Z>E’¿FR2-µøŸGY†kÊEíîÔ~L!öÇ1	êiwGö´ûZh•³=nvd;EŸ;>t“[ª(ÍõEà8SVT¤á<ĞI•U©—V5³UV-B–°jiU²¥°*ÙÄx)«’-…UUO¤ã)küÔÖp­l¤F¥\ßBIé¢@DŸA0vòŸ«x®ú'Z¾@£á ¥¡Py«ÕJÊ¨ ,¿fUJM€µ:ü™ê]ÉZ„":¦À¡>µh
+œÛãÄ´›ÔÍ´lÄ%Aİ¯á \ÀÀw ½\QÑ{9fª+P&£¨bÑdQÁ©„âRôj8ŠÊ§phTsU­†£¨î!ˆ¦á•ÀÖ+DQ=­á(ªÙ3Ğ¯^­Êu¨®k×pÕc€Ğ×¯„{Ae.W!Và(ªı€Œ,UTäµfY/h8Šª,Ş¢ùáGÓR}AÃQTYè€üš5ŠAe¶F•†£¨îÄ¡YãaPÁ`òRº¾ªá(ª
+ìj¾vòr}EÃQT31(ªH1Û~Fà(ª½RQUÊ\.l¹IEÕÈ˜V_êÈK•ëIGQÁõ†ñí3QËdy³†ŸÖpÕ€0‡¢ºJJ’µÈ¦pU	 ESøü­¢ºˆæQÛÀÔ¬á	GQ½
+È°æ´âVzé±wÛ¢zz­–ûA….A^ŠşGQİˆã
+e¾YÃç4Eµ|>f EÕ*³¬i8Šê9@è{p¢¾Pq<† —Òğ-GQåc·ÕjTTyú¥¨6h8Šj; L³F 	³†×pÕc€Ø§¨åUØ*8Šê@àQ‚Ğª¦)×¯4EE_FÓ¨ŠÓRí×pÕc€85kĞ#%tuòRÖ¸g¢º>­\•À7×r¶ø¢¤H“•Şò/j8Šê/€8´¶¼²È.âR–a" pU; NÍémøˆ†£¨b~ô
+eù?Cˆ¹\=¢z"‡¢Ú*³†ëñ˜Oà(ª¿$¢i˜¾¾^Öpˆ*Œ56‹ØÑIÓ,NèVx	¾n€JÓ!;ñk5‹3”ÈrÌÆI×ôfqz)«•İúÜ˜´sZ•«‡íĞFQLL8ªN? œväS;Ë´Ì¦ÿ¸ÅE8jŞ‡¸àC³.ã¥fŒ$Kğ!âe¼èœG |ŒùJŸÿ ÎaàœMâø2pÔø Mºç¥X[>ŸÏçqàL¦™‚ÏxVzRãƒ©FÒ¥ôéÉšLŸÀÎdúäÂ—IÖd|nÎ+Sğùgà¼4ŸÙÍÎLÁ§8§§àó4p²àÆ“•‹Zí[Sğù(phh2>g€“œÉìÓp¾<:ŸÎ‚)øœNá|ê®DŸ9Ÿ¯§t
+>‹¯Â^À|ú€ãœ‚ÏOS6Ÿørê|>œŠ)ø¼œSğ©[Š^t
+>ßNÓ|–b~½{
+>w'¢ñIßNÿ8­SğNï|r¯Á“¾)ølNŸÆ'}Ø%q&óçû€s÷|fcl'œÉøÜœƒSğy^âLÆÇ¹_ä‚Ï½g2>¯çÈ|*1[$œÉøÎƒSğù¾Ä™ŒÏ«À¡=VÑÿ¤÷Ÿy×	œÉø”gTã“~ü¢¯4?3E¹¾
+œ1Oz}èKÏ„3™>4Lh|Òûá€óÊ|J°Jx}
+>ïÎ™)ø<LÄ&íç¯^‰2g²r Îì)ø\·
+cÊ|}'a²zÿ-p.‚Ï‚"ÆŸôv®ı‚édåúp–OÁççÀ)‚ÏFL‡é×ØD¹ÒëspœSğy8Sği-Á˜2Ÿg€ãŸ‚Ï’ÕS&á³’Ÿ„€Á‡àfrŞK1ãÕ>£02Ív3-73‘RóùÈÉ‡­l£YwÁºK±+ (%dU–RJµl€¬}	I	‘»è½HrŸuù&Îg O)ù¡²ö~$%DrîCÒÈy‰3=õ0ğ)¥V`€¬=ˆ¤„œ•³İÄ9aâœcâ|÷Ûà<ÛÄyÌÄ™™8S}u>€¤Ñ9&Î'Mœ©’|D½¯­5q6qÎ2q5q>mâì4q&Ëuf&Î'Lœ©¡î™k‹tÎòIñ1àˆ{œ¢mó”GÅïE»8Ä¥c-L*¤\‘•ëW—•®åÏ+a|Ş~ğ» STœâS€8¡!şLmèğ5¾gïÇ°Ekj‚1ö5¢B˜íKzĞ‡øüàTBı2¯©i4*®Œ8‘Ã9§{&%ŸŒì†"¢?Ì×…È˜Zç6GôÏÈAÅ$]êÉÈw5;ã# ü™nhU®/;•+‰Œªr9&Û¤[ã«rù‘/Ê…HÊ¥ôyJÓg/¾ÖÔênš>V¤>dãu.ú¼ éC' qf[W‡3ı<AØÇ‘Ş>Ò7t’_©lèD°áÛÑ9ô˜æip"bOæ€æ4’÷ë×ÊòüV ·¼ òRQ§):ËvúÍ>ø¼&	H²}¨•@}ÜĞvŒ,¸@åc‡du!$eòaNjø§ê´Ğ³ú˜´OïÛ°Ï''³,ûàÈ>*ŒöD"ø¨VRñÙãğáIÊNø9p å"kë—²ÄŸ€3ğd8—•ÂÑÄõ>ªzPqk Ä¯š âD§¡Cê ±#‡$éı˜Ğ™êâ$j›=I×ôêŸÍO¹Ô~ÿæò2-ı¹ù!­.¨¯#íõKí1j¥à?3D–Ò/Õ·Ø õìï¥¯ÿêµ¥ü02S´ÎÉúº·ã‡cÊÎéúpé?k4}bøÖHOD×Fè~+Õ)×ÇûèåIíÎ!‰#J} Óˆò:µGé¤„ö6C˜"N¹™r;ãŞ"  ³Ïƒc–ò(³}ş/pŒÕz.¾qZ³ÕœñR¾qÔ%	™–³qGC½\¦¥ ÿSÆ8Şù*<ÈáåJ±ÀLôu¾rçd8rÛaUâ˜Rv.«bW=rtYH$]BV…K³<×'	Q©Ï.ò±Éùø\e“áÀ¥
+víÚE<È*iÇeà ‹_gÅ‘¾ê†EÛÁ‡£ñ­ëä³{Ê7Š¸·,ÅUÏÅ7¨‰ó>*nçò]ä5“Û§ÜEÒ'Çñî*šÇEŞwV>Ò>´ÖöéÀWîR[2¾ÑÖ$ì“~$]G+;ØÒ§µALEù¯9k³åioÑø,mz–§ò/Õ*¿®µJjqÆKÍ<2Y«”­©¤¢59¡sÊlYZµE³*ª=Ø).Ò-‹$ı
+fl>ê¥ñ‰Â4m®. ä«¤ƒñ:‹Ñi•³úªœoœÔ,vöù™BôciæcÒ{4kğ×Vğ‚v;>áÕLò2¼åĞ$Ö R¾œ#
+G³† "k,0š©éY#MI¥5È7D¯ÆÇäìt¶fj{d_ıR£ù§4kˆßüÄGVñ2Í,‡#|wÅ‘¶G"yÀ‘Ö~p ôM@^§Í¾v-Ô Dµ8Ãhdú\ëf@œz@ü`I\SçÏPœ_Nı$8ªu‰Ï ÌZ ©Ep.µ£iÈçH6LÍ£FĞŠ„Îéfë8Í…UIŸ60!K¯'€C§QE-“?›¯Ÿ§ ‚ÎêóÒ[h&#øš˜¨Ş†Î¼	>g÷–¿Ó¼¥7ÖK?÷óÏs¥w:~)O˜dî÷5MœËT?Œ¡;/û5ì#ô9ûx1oÃÆ‰İ— âQÒ¹½–RÎ•j‰ê•±µ1à8»HñQ^§[c/Œ;ıU€SÉ²Ğ<Şx©1%ª‰ZvRµìÑj™Z@ÊLO)£@¥Ì´ÇbªúÇ4ËcúkMŞ` 4¶ÖÍÖHç	„³8¤‚nÕ²!:4ò	@œ•U‰ê 	ÎÃ€Œpè—ëqÆEÔ©ª¡•ëVh1Ó®sé4-^ET]”iuAs#ã¥ê¢]«Â1¶peg:³.fD°s¼<É»U¹œh°4l§³³¹\ÔÆ—Zõ;U]¤™(}Õô!€õë\ô©X¥×Y×õ!Lã¥ôùµ¦OÓ˜Ædóp‚Yëà?Ü>´²i)pê%„ïñ_¨Õû„­€ŒpvN)é8û 3@>ˆÇ‚tœû6@¾È¨ò œz1z¯^ËÏÂoRZ®<"TÒLeUÿdµ,Ç‹VÍ{Óx¸œ]Ü§yo/¤â€IÒ¥j‡¦…Â{›ñÍË$ıJJ¦â¨<ÀcægBâPûH7³˜Í)£ÿqgZŞ‡ÿFVéÀùÑRğğ)åR-¥ğwbCb»Xêƒ-èC­[øå©«PâØ È´|Náj‰Ck‘LŞÛù(;ÏÓì¬¿¬©²×keW9zx>ËNuJ5)êô98†¹Ç¡:¥9²¨Ó5ÆÊ’j‘ÉrÂ†ÄÌhTïTÛ¢ŞÿÑ„ ìó€f1ç—K@Ş—NÏ>æ2©^tÒö%÷±µºĞÖ”‚{3ñÑÆ¨GíCyå2@Ji¯Ñ Y[€¤„Hé­ÊÎIú+&éGLÒéœƒQúÅ&é‘iI§ßÀyÍa“t:­aÀYk7Iï–ô—LÒ™¤˜¤g›¤÷MK:Í7åZsĞ$ı¨Iú[˜DI*Yï¦%ı'&éÃ&ét&Ç áÚ×LÒéWØFŞ+G«·ãó'MÒ˜¤6IO˜¤œ–ôgLÒûLÒ™¤?o’~hZÒGMÒ{MÒš¤?k’~xZÒ7I˜¤›¤?n’~dZÒO˜¤ÓœÄàc¥LÒ1I?:-é˜¤×›¤÷™¤?`’>2-é#&é;MÒ{MÒ¿f’~bZÒ4I÷›¤GLÒ›¤NKúQ“tIz«Iú}&é'§%ıˆIz™IúN“ô&écÓ’şU“ô"“t¿Iúí&é‰iI¿ß$İa’î4Ißm’~zZÒ™¤ç›¤—™¤ßd’~fZÒï3I·›¤™¤o0I§ ã÷I“t0Héë&éó$SúÕ5g05@JóMÒiÇ^âÈÙEÎ´Ê~·I:íU¥ÛMÒÏ`›KâÈ]ı°˜Xi†h+Pıô­¶[âÄJÁÎ5tLz‚BàĞj¯1ğºD /Ó¼%İ“P¹w1é*@®²@g±_#¤\jh´ÖH}[‡ĞÕêæ9­ì}V®)..?­¤dÙÓí©Ötæd±$*±êü NÅ‡ã|3	‚_” d‘ÎØÄHYù*öÉœÌt'L6LciÃ£oÃ†Í†ù
+ÇMº”¥ÙŸ=Êß=Ö¼?³’ú'ñbùàü¡ì¤3õâ"*û>„Ckd‡0•}†'šT>GÚ§şmìäŒhöI³b•;9eš}øzœDh—²Ï›Fûğ_}N2»d=cõSØçjàÏOeÁgrû‚†çÃ>¼ûT¼û,ÎÙvºZùo¨‰·™D¯ÕkÅÏb‰&Æ^4ÂmHe×ª@‹(ß8¢•]ËÒ"j÷`Rßg\Kh†KçÏ+©VôKv.5õ½k’úgÙŞ55ïÕ4Ôv34}´İŒÃ¦¿*HkK=¦?bw¦'ı IzIz¡Iúr]ºw¤ŞU{ïûëÕié˜Ò9İ©aÕ5Ô'ˆzOÓ¯
+œu¯+ûğ>J÷Š™ÊuNõŞ«8+OX3††l¬wêµ	}ÄW»Êªç$=f’Nç
+²JÏ ŒÈÚgMÒ‡§%=b’NÏÚ²JO›¤?`’~pZÒÛMÒO˜¤'LÒ¿j’~hZÒ[MÒGLÒÇLÒš¤–ô&“ô£&é'MÒ‡MÒLKz½Iú“ôQ“ôn“ô£Ó’¾Û$ı°Iú	“ô÷˜¤LKúN“ôC&é#&é&éô¾4ºÌLãà$£L­IúA“ô£&éE&é£Ó’î7I6I§±ÒĞ¬½Ø$ıä´¤ûLÒé¼ºAVéa“tZ’HÙÓMKºÇ$½Ï$ıIzã©QzbZÒ+LÒ{MÒš¤Ó×ØŒÒOOKºÓ$=b’>l’ş Iú™iIßh’Şj’~À$ı‹&éôP÷Ü[\™Iz½IzŸIú°IzÎ´¤—š¤ï4Iï5Iï3I·OKz‘Iºß$=b’~«Izş´¤/7I÷˜¤·š¤×š¤;¦%½Ğ$İi’^o’î4I/œ–ô“ô2“ô&é…&éEÓ’î0I/2I÷›¤Ûuér5A?r=Õ*Rç£V‘I²d­¥BS.ÓèIM<å:—U$‘ò>s’U¤®³z‹6IgYvêùÏVvµâø+–«4G­A&YI%T-ŸgİÊ7,tJÁx™ÊuNs›¯+ÎÚJÊ©Vv
+RZ¯J¡ kérŒ“–ÏÄˆ/,/F«¯\âë¤jg3ömÆ&9l*E:’Ï|À 0Zúı·±¯EöÛ®éC| <¥(G¿š€C{Â”›î«¤„^‡?à˜÷¾ç.àĞq*RÚ½8yfr…‚8~3ö1PÙ!Ú)Ô ²”‚BÖ…\›“ÎHi"µK•×©:]“ƒ"¨Ö9°7( xS©1ˆ÷’ì‡áÖÇ›IR}0ö=@ê%g„Ş°ÖO¯åoÀORCS ˆòpqB¥¤»´¡€¼§Ïm„ş$Õ€¨7ÇÕG 9Œ(•K@¾ ˆZ‘	È·©7pş ‡$EÃ4óŸP'1’ÏCª|~È˜AŸÜë	Ã‰/ğ¬ÚNï•¦[58jŞ"ø\	ˆšÅ	È@Ô{[r3 Ê[À¹Q|ÑW<ÁT†sµ¬Ûg? t	}(vAPÍ:äß‰ğ9¤â3ˆÚgÒŸä|IT	@¨İè|²6¦–t! ª—ÖhÂ©iPéÖ(Î@Hpp€•¾yLùºw Çi°s jÇLhx; ùÎw¢v’Î )2Ôû× 1ÖÎC€d=ˆxû^Ùç€Ğ%4”?éÍÄÉ…s8õ@ '	BúÌM€jç‚d¹ q‚D§Úˆt2¢ñ?0/Mnƒ÷ GÍaUz¥§²–ÑKº}¾œƒKD¯% _äò0 … Ğ¥ÿºtIè£ã,½Aßµœ€”ÊM@1Èº£gŞˆš™ª ¤H+;éñ-@zuú ‡€®ëó ²N¢Ş'œ' ¡¹Ÿî™óğ	>Ÿå€ˆ/<¨ZŞÙG§ÚHAV=Qt¾ˆó #š'„ğz3¸Š“!JÖ¿Ç¯á ›Ä¨sòpü¡–ƒA¼)ßÓ¢Ko§×99 	â¤Õ Ï{ QsldàŠRR2È(évşG@ì†’~ÆœI²ä4)÷‡€¨}Áù—€=áÏ€ Hù¬1Ô÷çvRŸ<IJæ|9 Ã†º(„Zî½7B:ë¥ØNT†r5æ½xÓ¿ÁÖÌÄ‰)%ıNà4P}Œø@aÁ9ĞG ù°AŸNÄ`± !oÒ=ê»€Œ"Ê{>ƒ¬ŸršÏ¾c¿äŒ&¨¬›é¿Ò‡b—â@¥—} }Z¯…ñ«fEÀÕõqçAç j$ƒ³N@)% ÄØ?Qƒ5¾B”’ê j–(ŞâDÍäu@ìªÌr|9õ%j™~V/Ô^ÂĞCÎND+)q^
+]zI×âaŸh¬»³±#ÂZ|nI×mØÈˆFEßÈë`«ãÄX_ÿH$3¹ìÇ9ˆNõ Ô
+ô¶üK@dY+`yPáOÚp ‡‘Ôù rÀ )„.°’T7¤tkì ÄŸ•Ìy â[:IõQ@(ªkø@zDÀ!yŒ=	È˜AŸWˆ÷ÅùM@oYàF¯e ºzÖ¯—t% ê›EBÖ&@²À\×°2—NÕ H‘Aç eœ÷2ªáğ™Z
+õ-ÂbAšÆPßkWód±û@uD£"Èw éƒB`.møC@Îd-Ü"z~]Ã@Œ³å@jöá-7”ÚâÊsœuY· "Îb);·ƒ†1@†¥vÈÀõ!@Æ’e5Ò,—.İ[>‡¡_„Ì¡[şû€Ç¯ŸBÚ	œ ?A€ºÈVm™8ŒGœS:¿ÈrH;¡áE[ÑKJ±„AŸR@Ô.– ÚB8†Ö½j•34Îa@úÔ×;ïä¤&‹{B#cNPèÖ¸8p9cD„}¨4ä›€Œi|ò=@<éÏòº5Ù¿¤¸Tºû3 9ª¹Ñ–”8WrÚ€³>@újÇ˜AV%pÄ‰Mø4ïíÆ×	Ğ¾3Ûy¨d…Qç
+„Î}€8­àc€D¤¾ç ¡K÷Ÿo› OB^'JAØÏÒ;#y–»Ø®³f@zcÁF@Zí€°Ë’ù˜mØµ'ŒÙWW'_¤0Øgpô™°XÅÁ>œAàôAœ^§G ¡”^öÇ¡K‡¼H¾ÁÎ„NÁ¡ù€:(?«ää)Uöy7	OÃ×î„åú8€sÒÀù@†úª„Ì.ø ÎºQ;¥¢ rQT/z#@tkÕC€88ÏÂ²N¢÷{ä„¬^Ó¹¿©N¼iJıTG’.lÖ6:Gnèi	†ºC-ø¹y™lëlîRñPCCwxJµ·u†U¼¹;Ô¡%`6L¶ÅkCm{BímM~píã7¹=¡Î¦öp7Ã'‚øõŞ¶˜|¼`ew¸¿‡»RÑµÅÚcÑ¦î®X°¹«»Ìù¶ÑYĞöu¾¬hO×TXÒ)R…á·…;B-á`C¿QLÍ‡"‘ ÿâP'p›NE”=xJI‚•Şª­;‚Şª@-ıR{…{sİÖ`%~aÚ]S#ìÎé,¥º%üÄ&~òHT”ÑHÁ¦.õ53ÔHŒ¾(‡Åo€Ğ{ÌÚñ%¶¶=øğ€ÈbUq›©©H@F·‡_ê6Ò—%ÍøM¨ÚÇ i­ÒJÇV±«½)ÜÛÑ^L7³këÀYCÎ¿fÎæw©¦í¼P\šÎ›qÛ€»£­³2ÅXò—¥öòßÒ™ÄŠ-=A”!‰µuuªìMbäëtò³;å.—ŒyñéAı—êEÛÀ¦°öãö¼+ó¯´…Ã{ÛàüR»{Ñ®èÉFA¥Á`{K/K‰úÊ`Ç®´šÕøÜIkâ…Ÿ·6µYÎ3¼voc V\L­(ëµÅ¢ŞF·»°Õh:mÁ.ôáP‡·6X[tÖ¢-éZF±Î÷úÛ±u-@Bgáms»÷Ô«	[¨?âVµöBE4öö®	»"Ñâµ(,XÂ>p ŠyrÜU¢`ñš ×ˆTt»kHøyg©tÄ ›,—YˆI£µ¹Öi:O¬tİJiï×‹*L®”ê*TéÚî0åÁQ›á•aÔª»”º@wu TÖ×´©•çl‘òb7&m…MaKI©$S©§‰uwQí ;ìŠÀ={ÏY#áÄ¼j‹…].g]ó’’`°¹}ècp@Wt¾\ìBñÖµ/F‡¡!ú¿S­zÛ¸ luKÖƒ=-=øph¸IhÏ­iÛÓE½Ú4¼=ß:úSß¡ÊrÎš6¶S¯½=eï×§ÓöL<”6ªo/-ğ|rÕ5.A¿¡ûÂh¿^ŠâÕA|é+Á‡¨Úñ™éù0ß'>ÿ\“4.)Wûè[£š\ñyå¨kJ}(<;ÂMm!L±2ië¾S#'wTBRI`!İ×y¯MıŞô¬¯œ%¹¿*EÕ6Ãô¦±İ]³­-PÂ'gËR´˜‹9N›{êYgy®º¤âÕÜghµãõº˜EÃWa·’`@Í-¦ÄRÓõôA¬×§˜$—·phœ~öŒ™³Û}–áàRå
+ÄJ0ë×½’v*°"qZÏL-’ÁÜ|§º„ÄZ×úœ|ûçüöbçc’¦E˜§uEŞ±¢hîz{yêÚ®çë¿èŞÍâ©á`lR•z¶<º˜úSÎ6ÀÁF§ZÜYòtêŒ¥]‘}¢ÓW8*ñúŠİ²“:Iùœ‰ty²OJ×ÀS¸©>u'VfXÚ](ª,fş“·U,âP„tKy¬
+ÏÒ½3ÓÕSŞ6¸‘»ÇQ„kYS9(Mh¿/ä6İÚÅN¦pp×Şé¬@D	”±n­•ƒ×b­ë^Ê›h†”Øúpg¨¡=lköîŒvóì½7ñh'ö†±‹ƒM›`[4ˆM`¶·İÆ÷!ÜŠå¦¶'Öf^ìM ·¸Lå†¢ü™¸Êr»×`ì	»÷ÈÍŒÜÒéÿ›ê¦[ú)úNv7ß¬6÷Séòtjš—¦ë§&í¦Î‘FIKçízç„:HÙ¡›^Ë~'•¦ğŒÉ‘hëd­©4iïĞ¬½šCˆÆT£µ¦ÁXéT‚áÔ\¡¼:iäÂZ<ïiêêÀûûá(¶éá:!läc¡7µõ$jÚõ×ıÛĞ•b½/6ùş
+B´ò˜vu'·9ßT ¶VÍ/ÎÕçÌJQaôÌ›Ù´u-ª¶Û‘ÂşõLMalpcóÒEmm,¸ÕW½ÙåIOCĞ+~ÒG|ï4yc^|¹Â áßj¹f¨õmñdâ©PW³h§Ó¸óm”w–	¾Ú×”8ÿœ•Îçm›\ÓõüqÔuœşvy’Zï€‰ÒÄ\osó›à7mJtšdû<ÉNH€^‚¶Õ­¬Œş£ç…Ø©Oêe.Ä¾·^€Á=©.ì¶z’3]èİuU¦snX|JŞ^×”>¬”Vªµ×ñ$'á]Áye®k~!·Û5[ÓL)yOéüîê'·Öó¾íTšĞß=ıdÍijDOJå’óœİS=(å›AÉZŸ_ÆIƒÎ÷ÂmÃ'•àÂî÷'ÕA	L¥o|ßíøäò\H1ª~Îº-¯)rvÅãœ7Ûõ>ëÜöõ“ê`êmz­ èv§Ş­WeI×.Ä.º2Á_K*ºØ³mŸdî%A/Ãùİ¾ORı<3NÒø|o¹+‚wŸoÖºÖgİ²×¥ŸEçr¶mıd»Ó ÁÇÆÿ¤î;õº’çN«k·ù“Œp¡%©2™ûœw¸9¯}ŞOWcÓ¦ıt541RÑ rA¶ÿ“üáBIĞËğßõ1@’şÛª¨[ñl’JqVË¹>Hâ~Î¤Jjºû6ó'kgïˆ±ÒíÓâóş˜ É˜†¿Òÿ¯±“¯U&{øÑ„6>Ÿ«'¥núkğ‰·3n¿ıvz½+ØÒŞÕ€“4MxÜ5@èM
+¼“ò2G°¼¶º&èójñŠöğ!ÜÄ:öÛñŒs"FøU¯¼¶§ñ §ë¶6z9'$eNY¨v„;càØ¦ß¶D›Cmí=İa¶5,ïê¤³û5áÆ®î¦ÿ¯´kënÓÂü¡ú$õ¥é£#ãV§Š£Zr^÷PXËT€t¸ØQ}¿™Ùˆ´É‹°;;;óÍ,ì7Ğ±e=Lü´Ñ ïx˜†BÃ¦Q÷ø!£!›Rà® >˜;„*zè–GÑ´Oxºô	ß©kÏ>ÂWZ;ül/Âë™ßÆ&)5<¶ãÄ—tY6æô)”´8Ô§ZL_¼ıãëÛ!ñ†ƒ9êüòÃª»ªÍKÚ
+Î½=‹Ş@ˆ¡)ºøõúı/W£q©Ç§‡íòS¬Ö›øéî³zŒWŸ2µñÃİ˜b¤fn0Š‹®¢—ßÅ)Ãï³ÓùcJg«İ^jÿ®x¤¥bÏäJÛ"ç4–lñÇXŞ½¿ŒtÙ)n‘ÿcğˆ˜l1f½˜öğ±CR‘Úë“»Õeï|ÚDö4^â7dtêíæJD¥’,sà$~OEÑ£ë;Á6joQÛÕÆ±úpı‰zEı&ÚÜF•…ô’(_±ÙÇI;:©û¼ÊÖ±1ˆÁáÇÓ±â¬RÓ­¹îşPßf>"Lî sáO.0¦AKñWÁpÍ:vREjÙ<*2QÚ#±¬]FË¸vuÕ• ¯±÷âCguRŸÀà*ÿ/¿o@
+$†ŸáZvRğHµÓø¬€ iG¼0 ½±ÍŸ–&àÁsMÌŸ>Û7M³¯Y?öN&™%i™•\(Ôë óur.äe)áÂ>^:uKw(^éó/n®¯/¯@VÄL] Ï,à=.NdNÂâ[‚¿	J˜[EC›eş9+Å[]ìÜ\ÿAZ¢Ö¤Hdù_ğHüİëºÒÅåÏ*ÁäˆStæ Ğ2Şõb•´âØÂó$‘˜d†ı*¥êQmñ%I1)ª7¸X´ÑíS%€”¹8sŸˆ)FHSÅôE³+Yˆ~Èzf`5İO•ò%®’¦E@ “FOM«Ë-€ş¶A×šş3–N€	ºªg˜"d¶êØp@0cV§®º*õiˆ;—¤Ğ(¶‘2›ü­Ï4†tO#ø„ıf‡QùÃèú\y¦µU&cs¶#4<õŠ L»xÒè; (Òeu%º¼ÃöÿV/€39tì -©ÆœÚ« u13ûg§ë$RÜkîzõ7õÜËLkR6;°+Áö÷Ie‰Á]|‰!Š7Ùì¬±ÃÙéC l‹H±ª8.ÊlÅ„f3I.³ğŸÙ¬XnpD`Áa=·/à6fËlÚ¼ù;Öõvæà–mÑàgD¡NG[¤5ğ½V›Ó½uÉÈ9›6K¡*w„¢B S­ÑâæR5GæÏØcSôw^;’ÑÀ¥WÈD»ã}WqúƒYGóo­›ßKõ[pÌ» ›‰€ÕLFÂwÜ™nŒÍAY-’7ãµ²m	\BMñ-´»ÒÉëØòaQ‡¢‰×÷›²^gLGBMèÇŠ.VG×Y¦¹³mî%öÛ‹­‘lÊ_ğ-¥û¼„˜¼ßGØe© !‡&Àš†s‰™Öõ@æhïÖPšöG)¦ªÎCZ¾v³j€),’c‹åŠYª±Iê®ãí*ZÜğ\â;†Ñ Úù	/°~È¢³¡gj>—·[SíFFa*âÍyá)Ğ–Z”#È4ÑºË–²<‡û/Ó£µ>Ä2ÛÒŒ©Lb°œIZsU€¤Ş!µ2òÑ U\Ğ'l	Ë+$¬Ş Óğˆ/•^Ó´@\Af#
+7± 5Î*À¶ÁÛ¥ZkÚŞ$`õÂzîğ¼Æ¥!4ÛH54ˆòÃ¶ÑŠXgJ(±p÷Pmõ¬ËiŠÇ¸íÓª²y¥XÏòyU9½ı÷WÍ¾ª‚ôjJ|RäÆÊ8ğ®uº¨U‘Â;°â@åZ'p`š¿iOÊ È©°h±ÉĞjórxC5ÈzDõ .ía<rº(ÅæöCñÒ›•«%nÁ&_ÄlìˆÂ^îĞGIytï¸ƒrø„.hıNZïı\“ÔŠI6è_[Z…ìC2V«%Iª&:ƒÈœ‡(Â…0¼˜º¥¢Ø³#§ç`;qâ|½¨&jø¨çLå0§‡o†ºBÄí¥¢È"Iõ?sao6nÅo)Óå„yC?Å•„²í)Û§»@Ú~‰p OÊäaXøĞ‹ßO¹ŒÀ0Fn»	ImØ‰ç’®d( $A×s+òi32;øt®O5¤šNX†oq_ Ä8æà…ÓV±k© ³Ísç"p©ÀA|é¡‡»f‰Â‡
+À^¼Hgı…KqHPE=ÉNVLÏ.;9ù¿ïÍvP(jß´{UÒÃš©
+9C(|YVpsà*¯û«po1n‚4dD'<v`ôAÎÕ†ÏNhırv'çÆj¥Ò’Í9ä¹xí½™kçXÓŸÆëŞÅRRÇ˜Å\†7·ªœJÜ¾éÒè¼†í²¨'Õô¶17¹ !g„}ˆş
+|L™                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     xÕ[{l[W?·vÛJ“ÁØ²6oë ¥[j;‰ã”	ÜÇİnhº™¸)ÕĞ¸u'õšÚÁ¾i“ÂF·l£Æº‰G7šBEÚx†´t`@ÅZ´¡nâ0ÁT$*„  ŠğûÎ9÷ú\_;JìvG½ÇßıÎï|¯óÇ½7ÉB‘h>v£2ı.Æà”ŸµYéq‹Ó¢:¥1öŒíj÷€² ‹ïnLZIWŒ±øLÛ@¡ ¶5«7’>D¸¼[`m/®rƒ!/Ö6îÆíÄcWKÁ0—ÅX0Ö6êÆà¸wJÜ†J‰~¸W$Î‡û@s|÷†öˆ‚bl5îş
+œZbÍÁØ†H·Êâ¸óÀı]‘Çq¡`XÎâÆ9cÍW
+.B.ô†C‚#êµøùp½Çı%½ía—b²oÕŒí”8òƒëíèh’DÀÏUÀYŠ<îog8¤âH^pjşƒ*p1à¬ÔérÙw¸^à¾.qËqÏõvuvtJ ÔIà~«ØÇõFİÂÇ¸3•z»İñ‹AŞyàş©ÈãzCA—#$/J•Rä¸EÕL ÈVª(¡Pœ8‡B]ê ÇĞî‰£qzÃ]ªÃ$êUJzÛ£êÀäë¨Z=z;¢j ›¡èpwJMc¡·³;ªè zúŒıA±Oèí
+ª8Ò{¸7=z£! îpjz£5¡iŠ¿gŠ’yêUú»8ÿ»¶çîHHéîf‰[†{®7l¯”7ZMo8¬ßO©Ô¹š¦÷á
+yBo8¢.1äïÑ
+s¸½SHç§ÛáÑÛáJü pÏTÈz;;Ô¸Ş“8¡7ÒQ™¯ —¯ĞÛ–²rù„ÈBòf;"qbİÍlwu¶Û üÆpÍUêÅ:œ+.¿V$çSª¼fÂEÛÕ¼"\¸oyqU/áà¾[ë7Š6&ÿ0ŠÛ›bKoQô··%ºúFIoé)şª§xÊ(¾ fó1còÅÀ}'úè¹Ë˜zfí!ğŠÛÏSúÓ¥şsFñ8GıR?	>+é'Ôj³ŒîMOÌ<2c­çm§Ô¶¦³;¢M_¢Ö•ÏQÏ^1©ŸÔÎşô9’¥"‹gÎ^gO¨,£xÆÑ1ùâ®ÃFá_P˜=¥Ÿçnğ‰ÈY%ıüäŒVÔ/”ô0{İüüü£3M_&õmh+õ_X÷Bñ¹^îc”ŞÍm‘nNÓÍÙ“úX‰È­cªÜëˆš8âpO>Ğ¬İôĞ-óóŒµ¨xĞ?‚5ÜÊŠ¾?#ôO)8sÏ"[Pa·’9l YÈ¤Ì‚•Ïd‡7n4·›©\wc)+	dsV`r$#Ğ¼¯´U¾å«Â~ŸgìÚ5şG×øV|sYî›Ÿ×Ö\)¾|RcG5Ú¢Ç÷	¼Ú·M}î 
+…~gqÑÜ¦ßğ((?	šÚé÷Y\húı® íq¥¼E‘¦Í¥ş–âµŞ©w Ã6Mó”ŸrÁÄ©vÍç%ıòœ6ìœ†ôYÌŠ9ÌŠs˜çÑÿœ19ÓdŸóÇgı"«Ö½hLm]PŒ¢>mçğs¬·´fFiû4dÌÍŸ*ê?DâşÀÎÖn1mL­n6¦ú ÔtOñtOñ%1ïf…*¥‹ü5ùKú¬1•~	€gE¹’cú°2¦MCØÔ–?£±ãbP‡Ó×ú`O%áÔq&ü{¨BáqlUâ8ƒ8¾„8BÏ¥ûf‹áÍ.ıLO×§Ô
+¬—œUG Ï^OÓ½¤'Åc2©UqWú¹Yñsõû®aìå;Ù^:L¢Œ‹ÛÇ º–×>×ÂGj0¿Ëñ$ª2—ÂÈİz¸¼®ê4¾ˆ¯”kŸcxl£Jl!£ÿb;ésK;@XÅ®ä÷Ôg­•Ó4/Î.çëZVc…YòYµ'e.î“ç›ö‡‘ªÇ6ñ~"O•n»¤	ËwûŞn(G,¹lá¬Tç†Ÿı€m2ÒBH*NÈ_Ç'‚¨2ÒGÈ±pÆúk·j×İÓƒ¶üUMû-%õµËÏjìß†¢à”òç9íX‘¶Ïû—-«œs´9îcÊö¼¤#‹ûÏl*oJnÛ5±¾:vo”VÙ¶Ø6hŠn<êğbc0ò-[ë|Ÿ6ÖëÍÕú\'ûĞúIå®-[6ZÇ£3Òqûh®¿½Şs{>½?x[`óXfÄ
+L¶g²w}ìöE:£ùÜıé”µ.mµÑ½ÄBó¡ılê•œú$ê1NM¡ŞÏ©Ÿ >À©_;Ô« húÙ_Pç9õ/ÔYN]@=Á©õğ-Ç© ¨ƒœê5Ê©ƒú§’ è<ëgC >Ï©ÇŞW@‘=~öMP_àTj²–NØŒ‘/>´ÛÔ*P4n>¾‹‰VÚxu•ÓJRVHAœVzŠ¼V‡ºÍi¥‹V:9*ê´Ò.)x1‡Úê´¾aıì²ÕÏÑt$/£m\x$(òèCœ·u—Ÿ×ŸæÔS¨¯åÔ·Q?À)7A½ jœóhO/GíJÜ	‚"›9îÄ%l¡x	œ w'ç½õgpù­‚‡8GMÑô³$ê«95‚ºš×€/$Š$„óHò¸„4WNP„»›óÚPßŒKà(®'(ÂõqŞûPßŠËÏ¶¡±'Kâ¼İ¨[9õê‡9uõ$§FM|?ûêG9õ<êÇ8õ2êÏrê5Ô‡9õê"§ŞBı9Nıu‰SÿA]-ğ…õ‚"ëwr*v§ÈOAQë½œw=êõ¸ğ^5]"ä³'(êñ	ÎCÅÖqŠ‚¢ÖÎCÅ(ÏE_AQëç¡â¹Š©ˆòE\‚¢x	êqNµeFÒ ¨ü'ãam83œ4­Üt¾-5:*Z°îá=²DÌæÉÑX€ù„HP«q‰YI½´ÕNó2Iu0&xß—Âú˜yoÇÈXjo†æ*éZÆö%3Yê<ëpèî¸ìÅ#¡Q$ÊFÙº^“˜õhõÕÀü]bhÎ×ÂÜ±(—ãòi§Q¯ [^l]Ï:Û¯ş@Ãıø4š}^‡Œİë»’ÓÌ{QFÒZ#Š­Ë~;ÒÌãCm[×­U>Ö8¯®'Œ­Ë~º¦õÀ§ÑjáíõÑ&°Q®vtıPrhmóit*ÜÛŞDæ£\ëô:,9ŸöNŞjWv¯Ÿ8ÛÂYÉ¡UÇ§mDmcËT+-Œ(7:ºî—œ›Áõi4jåb÷ŞÁØºÖH£hEòi´¦•‹İë€ƒ¡^¦i¥†Ì ãó‚wxz+s.Ç°Ğ‰BpÔ÷ä`B=©ÑÈ•‹úœtW›qêûq>w4’æ.ê»q>—ynT`”÷â”k>m7j·,õ8å¾O3P»GçİÍGŸ&§5 Ø1Ü"]½<ñ®ƒC“Ó§İ‚ºl-ç÷CZjÉ1hsD¡Ô¯eÏW%†²¸–œ7%†’Æ§P{íéäÏÏ"*µä<"1|Ï®Ÿ×%†~jÉ	Ò”Eá;t9OILpµäøI 
+e»O£ØëW^bhG«%gVbøÏWZ€e±Ç«™A¹W-91‰	8²ØrŠsøµäüNb(sÄªnK)ça+-`(kqÕ’ó Äğ½º†_sóşrÔ÷Ÿ­ãŞ­Àâ¥O.9|ç×>l³]¿÷IÌmàŠxd%‡ö8Á9$9´£	Î	Éa, iÚ;*‰&•×Œİë-‡ccşíátSRğbc
+Î³ÎÏ=œ_z8§=œ7<œ¿y8<œËhÃqY÷p¾áá<çáÌ{81Jv—äG=œ_x8WQú»z}ÜÃÙçá|ÏÃyŞÃyÙÃyËÅIâûlÆªÔ>ï`ìqßH›­,È–{V{JœÀˆ¹ŒmE;ßÃÖš÷Ş°ºL35>
+u[9ùUÏ0ñ­u! ÿÈº€¾&S{·igÇ¸06Üœ9.^Õö(ºCaõ%nO*a…B©=É¼iå“«Ğ“ÒITºk‡¿3ß4'âÛQ3Ò'›ÍƒŠÉo›F'o›F;¨åa[lèBasÓÈH.eîÉ¦ó[Cú~%bGœ‹#®~_·„zâ©ı”*‰.³o[¢İlÈ×jâğµš¸ú}Å¸*_<à·®ïç~7äòRğ|© ¢ÀL+AÀB‚Eg(9RH›ÖÄhº± ,MS#Zš¦‚W+{V88”ËHæÍŒ•Î'ñØ´’ÃpéÚ	âÒµÙTÖsl™‚IÍÑ\&‹PĞF4ß¡®)‹Ä;Î,/ÍIXÑÁLÁJfSiJmì›¡Îò˜ˆr‡©‡:3CCé|8ìz"lâ_yÈd;Ğ° Ç³Báø’Âg8—ŸXĞË.\ÇïvóbJ-û|1¥–4ÍFF5’OfsûÌd*•.ÊátMW$Í%Ö¤êkâ0¸öàAúÙ–OZù6:ìv¤³ƒ#ÕzbĞ.š9œAÓÉ}=;L$õD“¤Š¤TnÌªÖÀÏÓ¤«7Ô=šI§Ò2Ø_œ?;À™»·{!;Š¿H°†â)TS	h°W—òñÈuæ®}çª¢˜(X€ğPÅTnQ~G-ê’íƒ²‚]ÒSıÛù aûVŸ×®Ñl@N•¬Y¬´*Íº¬ª"§«jë2®¶¸Fl\Òù«>»—¤¢_–|ªÏŸ%«q|RÖ’N[°jq@[n£‡Zu<x•wù‹wÌ!³şO"ÜîK{0À·Ç‰—XIH[eöww¹¬‰#’9˜H÷ÁL†™wõŞ³yS/ºŒ˜=¦ıé²|`V^Q¹¶jñ9e¡·_ü›ÌÛúúË>~©³ä’nÍÕŞ.vkÂªíyå8pQößF¬«¶á5`]5qN~Ôål­7>¹À>Úˆ­KÛå±išñié;]#~-]›ãÛ"÷KÇºEâmùo¶â†•-º˜;cÙ¼‹)U±õÒî†Î&uéıÕòò“¸|(-3ì§Q…SßÃ:>)›£é|!—ÅoM˜ø«Î ¾Œš©={Ö^s_>“â?0q<–ß½méËmd$¶öà{I]çâÌ¸>Q_OşÆìÏÈàèÒ—.ŒíKsA™|AïÃáïr#|¬³©ø}‰\ÂÔ9ƒ¾—m¡¯<ÔJ7Bœ}®×ŸP;^·ã;RrÄ¤ÿfY·× †ÆSâC}¼µöäs hG¹t>ŸËã%
+÷Åù`¹Ø³F7}ÀÛ+­÷MÔ9]Áİ×iD(DV$G“)d«Èˆ:rÑ1£ÎdÄà%ğjtó$‰4Š§&şÕX
+…´eÊ‚Øâ3oÒHg²pÖJí©SpÂ)à¶Ó”`\j>ÍSBŞaİP5D3¹‚‰W{éûT·Ü|9ê~GH¹)Ö°ÿADy                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            #!/usr/bin/perl
+
+use strict;
+use warnings;
+use IPC::Open2;
+
+# An example hook script to integrate Watchman
+# (https://facebook.github.io/watchman/) with git to speed up detecting
+# new and modified files.
+#
+# The hook is passed a version (currently 2) and last update token
+# formatted as a string and outputs to stdout a new update token and
+# all files that have been modified since the update token. Paths must
+# be relative to the root of the working tree and separated by a single NUL.
+#
+# To enable this hook, rename this file to "query-watchman" and set
+# 'git config core.fsmonitor .git/hooks/query-watchman'
+#
+my ($version, $last_update_token) = @ARGV;
+
+# Uncomment for debugging
+# print STDERR "$0 $version $last_update_token\n";
+
+# Check the hook interface version
+if ($version ne 2) {
+	die "Unsupported query-fsmonitor hook version '$version'.\n" .
+	    "Falling back to scanning...\n";
+}
+
+my $git_work_tree = get_working_dir();
+
+my $retry = 1;
+
+my $json_pkg;
+eval {
+	require JSON::XS;
+	$json_pkg = "JSON::XS";
+	1;
+} or do {
+	require JSON::PP;
+	$json_pkg = "JSON::PP";
+};
+
+launch_watchman();
+
+sub launch_watchman {
+	my $o = watchman_query();
+	if (is_work_tree_watched($o)) {
+		output_result($o->{clock}, @{$o->{files}});
+	}
+}
+
+sub output_result {
+	my ($clockid, @files) = @_;
+
+	# Uncomment for debugging watchman output
+	# open (my $fh, ">", ".git/watchman-output.out");
+	# binmode $fh, ":utf8";
+	# print $fh "$clockid\n@files\n";
+	# close $fh;
+
+	binmode STDOUT, ":utf8";
+	print $clockid;
+	print "\0";
+	local $, = "\0";
+	print @files;
+}
+
+sub watchman_clock {
+	my $response = qx/watchman clock "$git_work_tree"/;
+	die "Failed to get clock id on '$git_work_tree'.\n" .
+		"Falling back to scanning...\n" if $? != 0;
+
+	return $json_pkg->new->utf8->decode($response);
+}
+
+sub watchman_query {
+	my $pid = open2(\*CHLD_OUT, \*CHLD_IN, 'watchman -j --no-pretty')
+	or die "open2() failed: $!\n" .
+	"Falling back to scanning...\n";
+
+	# In the query expression below we're asking for names of files that
+	# changed since $last_update_token but not from the .git folder.
+	#
+	# To accomplish this, we're using the "since" generator to use the
+	# recency index to select candidate nodes and "fields" to limit the
+	# output to file names only. Then we're using the "expression" term to
+	# further constrain the results.
+	if (substr($last_update_token, 0, 1) eq "c") {
+		$last_update_token = "\"$last_update_token\"";
+	}
+	my $query = <<"	END";
+		["query", "$git_work_tree", {
+			"since": $last_update_token,
+			"fields": ["name"],
+			"expression": ["not", ["dirname", ".git"]]
+		}]
+	END
+
+	# Uncomment for debugging the watchman query
+	# open (my $fh, ">", ".git/watchman-query.json");
+	# print $fh $query;
+	# close $fh;
+
+	print CHLD_IN $query;
+	close CHLD_IN;
+	my $response = do {local $/; <CHLD_OUT>};
+
+	# Uncomment for debugging the watch response
+	# open ($fh, ">", ".git/watchman-response.json");
+	# print $fh $response;
+	# close $fh;
+
+	die "Watchman: command returned no output.\n" .
+	"Falling back to scanning...\n" if $response eq "";
+	die "Watchman: command returned invalid output: $response\n" .
+	"Falling back to scanning...\n" unless $response =~ /^\{/;
+
+	return $json_pkg->new->utf8->decode($response);
+}
+
+sub is_work_tree_watched {
+	my ($output) = @_;
+	my $error = $output->{error};
+	if ($retry > 0 and $error and $error =~ m/unable to resolve root .* directory (.*) is not watched/) {
+		$retry--;
+		my $response = qx/watchman watch "$git_work_tree"/;
+		die "Failed to make watchman watch '$git_work_tree'.\n" .
+		    "Falling back to scanning...\n" if $? != 0;
+		$output = $json_pkg->new->utf8->decode($response);
+		$error = $output->{error};
+		die "Watchman: $error.\n" .
+		"Falling back to scanning...\n" if $error;
+
+		# Uncomment for debugging watchman output
+		# open (my $fh, ">", ".git/watchman-output.out");
+		# close $fh;
+
+		# Watchman will always return all files on the first query so
+		# return the fast "everything is dirty" flag to git and do the
+		# Watchman query just to get it over with now so we won't pay
+		# the cost in git to look up each individual file.
+		my $o = watchman_clock();
+		$error = $output->{error};
+
+		die "Watchman: $error.\n" .
+		"Falling back to scanning...\n" if $error;
+
+		output_result($o->{clock}, ("/"));
+		$last_update_token = $o->{clock};
+
+		eval { launch_watchman() };
+		return 0;
+	}
+
+	die "Watchman: $error.\n" .
+	"Falling back to scanning...\n" if $error;
+
+	return 1;
+}
+
+sub get_working_dir {
+	my $working_dir;
+	if ($^O =~ 'msys' || $^O =~ 'cygwin') {
+		$working_dir = Win32::GetCwd();
+		$working_dir =~ tr/\\/\//;
+	} else {
+		require Cwd;
+		$working_dir = Cwd::cwd();
+	}
+
+	return $working_dir;
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 xì½|TÕ7~&É„	fÀ‚Œ6hP	v†d`"“dÌFD'o“ÍË4™ğ¢h£uvŒÍ¶´µ+µ´õéÚ]ÛMŸÚJ]·ˆBWk)u»¬Ú6µ´
+u£¥J-5Ï÷w^î›;d”gw?ÿ>ÿŞOîœs~çû{9¿ó;ç{îIcGw£sõò•…¬|ËKeŒ¥ágì R:\üsò~TÏXğÌöTÆ®8`ñıàŠš¶ö^g¨§»µ§¡ÓÙÔĞÕÕv6=}]Îö.gieµ³³»9˜?}úÔ\)Úïa¬ù~;[ùô‹¶›1çÆÆØÕlZJÊå¬  œSÍBê &}ˆ|Š°›ŠV†NlxÔÂÛ‰œ,x)Ë…hIEà†Ë&²ü³±˜5®œ$[ïg,/fï'aš41A5Ëw„Q1´dbNê”¸£ùëó›Â #º'É,Âw¸˜$¿G kÈvØÄÒq®Œ!ëbõ®üÀñ6ÖƒH¸µ8ã+påï¸:’ÂI¸õq d9®±·—¨ıôA9óÑÏêGòÛ…<îë!`2qzXÈÉ/©¢`mô±'µ—SÊÃÅ\#ùá®×A´aœ„ÛLı ÜRé+?‘Gp®gÜÿ­_Z¸šSlÃéÄ¹gÜábõK—rJÂ+äİB–ãŠVpâ•¤L}»‹“´[±Š—¹+À¾_ƒğÚ±~éª”>w'i$O+\ óœ}A)c-ùö»9Â;p&Ïµş/!CŠ_AQ+|5¾Ğ_¨,¨{‹Ë·„ëÀäFU$ûËİŒEÙ‘ğŠïPSb¿Ÿ–ËIlöÏÎŠ8b-ˆp|æ[Â[
+G¼‡ó`ûYû.˜Nß¾ÀÅ¼MŞµ^ËÑ{‹iâèûœıioNË½œf	¯¦$¥ï»Á1Ã~ÿãããÑÏ¡Px|Ï÷íŸ>tªïàô„Zì,Æ¸Ô2°#ø&T–FûcïÙ3B«@3û§–ÖÂrß õå.Ø=˜ıCL?†$Ê"Ö'xÑúEJ"¥¹Nà…–•Fm1+2„¶£mıPÅÜµîšÚ›6W{ï=ó©ùÎt$ŞÁ°Eşı÷ŞôF×ãÌvZ±çY81è¦-¤î÷Fç/F]áï¼ÑÍ]xË½pÓLïêì»‹€ûN3»{üo$6æµc¹wÏHßŞè
+ç‰¦œ³ØwS@FÓÑŞİCîˆõt'OĞxuˆ{~gß]ˆí¸ÕM	ƒ¤p¦§päPYá÷ÇÅ‚ÙğíŸgá2’ıb?¡²û	I‰›ÉëşöÏãã1ß<8ÿ8Âœ¼Şú‹m •‚^ø}!ºoŞé€ŠÇİÇÃ‹~a	_ÍÁ;0b±ÛÑÿó_»#Gİc–ş÷®tÛK>ÙÂ{j÷ñ¾™§çêñèÇ§I6Ôy#Övè+NA‡g¿Sš»Õr ×fßó>#ÖÓ‹áùVx¡t°ÉRŞt²ìàÉT_ä±WçÂ¯¡;~ÑAÍzşMƒ%ã…¯ù

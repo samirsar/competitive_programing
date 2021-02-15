@@ -1,0 +1,14 @@
+nceResolver.ResolveReference(System.Object,System.String)">
+            <summary>
+            Resolves a reference to its object.
+            </summary>
+            <param name="context">The serialization context.</param>
+            <param name="reference">The reference to resolve.</param>
+            <returns>The object that</returns>
+        </member>
+        <member name="M:Newtonsoft.Json.Serialization.IReferenceResolver.GetReference(System.Object,System.Object)">
+            <summary>
+            Gets the reference for the sepecified object.
+            </summary>
+            <param name="context">The serialization context.</param>
+            <param name="value">The object to get a reference for

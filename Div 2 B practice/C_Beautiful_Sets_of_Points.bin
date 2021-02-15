@@ -1,0 +1,1140 @@
+onzero, the value is interpreted as a negative value; otherwise, 
+  it is positive.
+
+3.2.1.3  The direction of truncation when an integral number is converted 
+to a floating-point number that cannot exactly represent the original value.
+
+  The integer value is rounded to the nearest representable value. Thus,
+  for example, the long value (2 to the 31th power minus 1) is converted to 
+  the float value 2 to the 31th power. Ties are broken according to the rules 
+  of IEEE standard arithmetic.
+
+3.2.1.4  The direction of truncation or rounding when a floating-point number
+is converted to a narrower floating-point number.
+
+  The value is rounded to the nearest representable value. Ties are broken 
+  according to the rules of IEEE standard arithmetic.
+
+3.3  The results of bitwise operations on signed integers.
+
+  The bitwise operators apply to signed integers as if they were their
+  corresponding unsigned types. The sign bit is treated as a normal data
+  bit. The result is then interpreted as a normal 2's complement signed
+  integer.
+
+3.3.2.3  What happens when a member of a union object is accessed using a
+member of a different type.
+
+  The access is allowed and will simply access the bits stored there.
+  You'll need a detailed understanding of the bit encodings of floating-point 
+  values in order to understand how to access a floating-type member using a 
+  different member. If the member stored is shorter than the member used to 
+  access the value, the excess bits have the value they had before the short 
+  member was stored.
+
+3.3.3.4  The type of integer required to hold the maximum size of an array.
+
+  For a normal array, the type is unsigned int, and for huge arrays the
+  type is signed long.
+
+3.3.4  The result of casting a pointer to an integer or vice versa.
+
+  When converting between integers and pointers of the same size, no
+  bits are changed. When converting from a longer type to a shorter, the
+  high-order bits are truncated. When converting from a shorter integer
+  type to a longer pointer type, the integer is first widened to an
+  integer type that is the same size as the pointer type. Thus signed
+  integers will sign-extend to fill the new bytes. Similarly, smaller
+  pointer types being converted to larger integer types will first be
+  widened to a pointer type that is as wide as the integer type.
+
+3.3.5 The sign of the remainder on integer division.
+
+  The sign of the remainder is negative when only one of the operands is
+  negative. If neither or both operands are negative, the remainder is
+  positive.
+
+3.3.6  The type of integer required to hold the difference between two
+pointers to elements of the same array, ptrdiff_t.
+
+  The type is signed int when the pointers are near, or signed long when 
+  the pointers are far or huge. The type of ptrdiff_t depends on the memory 
+  model in use. In small data models, the type is int. In large data models, 
+  the type is long.
+
+3.3.7  The result of a right shift of a negative signed integral type.
+
+  A negative signed value is sign-extended when right shifted.
+
+3.5.1  The extent to which objects can actually be placed in registers by
+using the register storage-class specifier.
+
+  Objects declared with any two-byte integer or pointer types can be placed 
+  in registers. The compiler will place any small auto objects into registers, 
+  but objects explicitly declared as register will take precedence. At least 
+  two and as many as six registers are available. The number of registers 
+  actually used depends on what registers are needed for temporary values 
+  in the function.
+
+3.5.2.1  Whether a plain int bit-field is treated as a signed int or as an 
+unsigned int bit field.
+
+  Plain int bit fields are treated as signed int bit fields.
+
+3.5.2.1  The order of allocation of bit fields within an int.
+
+  Bit fields are allocated from the low-order bit position to the high-order.
+
+3.5.2.1  The padding and alignment of members of structures.
+
+  By default, no padding is used in structures. If you use the alignment
+  option (O|C|C|W), structures are padded to even size, and any members that
+  do not have character or character array type will be aligned to an even 
+  offset.
+
+3.5.2.1  Whether a bit-field can straddle a storage-unit boundary.
+
+  When alignment (O|C|C|W) is not requested, bit fields can straddle word
+  boundaries, but will never be stored in more than two adjacent bytes.
+
+3.5.2.2  The integer type chosen to represent the values of an enumeration
+type.
+
+  If all enumerators can fit in an unsigned char, that is the type
+  chosen. Otherwise, the type is signed int.
+
+3.5.3  What constitutes an access to an object that has volatile-qualified 
+type.
+
+  Any reference to a volatile object will access the object. Whether
+  accessing adjacent memory locations will also access an object depends on 
+  how the memory is constructed in the hardware. For special device memory, 
+  like video display memory, it depends on how the device is constructed. For 
+  normal PC memory, volatile objects are only used for memory that might be 
+  accessed by asynchronous interrupts, so accessing adjacent objects has no 
+  effect.
+
+3.5.4  The maximum number of declarators that can modify an arithmetic, 
+structure, or union type.
+
+  There is no specific limit on the number of declarators. The number of
+  declarators allowed is fairly large, but when nested deeply within a set 
+  of blocks in a function, the number of declarators will be reduced. The 
+  number allowed at file level is at least 50.
+
+3.6.4.2  The maximum number of case values in a switch statement.
+
+  There is no specific limit on the number of cases in a switch. As long
+  as there is enough memory to hold the case information, the compiler
+  will accept them.
+
+3.8.1  Whether the value of a single-character character constant in a
+constant expression that controls conditional inclusion matches the
+value of the same character constant in the execution character set.
+Whether such a character constant can have a negative value.
+
+  All character constants, even constants in conditional directives use
+  the same character set (execution). Single-character character
+  constants will be negative if the character type is signed (default
+  and O|C|C|U not requested).
+
+3.8.2  The method for locating includable source files.
+
+  For include file names given with angle brackets, the file is searched 
+  for in each of the include directories. If no include directories are 
+  specified, then only the current directory is searched.
+
+3.8.2  The support for quoted names for includable source files.
+
+  For quoted file names, the file is first searched for in the current
+  directory. If not found, Turbo C++ searches for the file as 
+  if it were in angle brackets.
+
+3.8.2  The mapping of source file name character sequences.
+
+  Backslashes in include file names are treated as distinct characters,
+  not as escape characters. Case differences are ignored for letters.
+
+
+3.8.8  The definitions for __DATE__ and __TIME__ when they are unavailable.
+
+  The date and time are always available, and will use the DOS date and time.
+
+4.1.1  The decimal point character.
+
+  The decimal point character is a period (.).
+
+4.1.5  The type of the sizeof operator, size_t.
+
+  The type size_t is unsigned int.
+
+4.1.5  The null pointer constant to which the macro NULL expands.
+
+  An integer or a long 0, depending upon the memory model.
+
+4.2  The diagnostic printed by and the termination behavior of the assert
+function.
+
+  The diagnostic message printed is "Assertion failed: expression, file
+  filename, line nn", where expression is the asserted expression which
+  failed, filename is the source file name, and nn is the line number
+  where the assertion took place.
+
+  abort is called immediately after the assertion message is displayed.
+
+4.3  The implementation-defined aspects of character testing and case
+mapping functions.
+
+  None, other than what is mentioned in 4.3.1.
+
+4.3.1  The sets of characters tested for by the isalnum, isalpha, iscntrl,
+islower, isprint and isupper functions.
+
+  First 128 ASCII characters.
+
+4.5.1  The values returned by the mathematics functions on domain errors.
+
+  An IEEE NAN (not a number).
+
+4.5.1  Whether the mathematics functions set the integer expression errno to
+the value of the macro ERANGE on underflow range errors.
+
+  No, only for the other errors--domain, singularity, overflow, and total 
+  loss of precision.
+
+4.5.6.4  Whether a domain error occurs or zero is returned when the fmod
+function has a second argument of zero.
+
+No. fmod(x,0) returns 0.
+
+4.7.1.1  The set of signals for the signal function.
+
+  SIGABRT, SIGFPE, SIGILL, SIGINT, SIGSEGV, SIGTERM.
+
+4.7.1.1  The semantics for each signal recognized by the signal function.
+
+  See the description of signal in the Help system.
+
+4.7.1.1  The default handling and the handling at program startup for each
+signal recognized by the signal function.
+
+  See the description of signal in the Help system.
+
+4.7.1.1  If the equivalent of signal(sig, SIG_DFL); is not executed prior to
+the call of a signal handler, the blocking of the signal that is performed.
+
+  The equivalent of signal (sig, SIG_DFL) is always executed.
+
+4.7.1.1  Whether the default handling is reset if the SIGILL signal is received
+by a handler specified to the signal function.
+
+  No, it is not.
+
+4.9.2  Whether the last line of a text stream requires a terminating newline
+character.
+
+  No, none is required.
+
+4.9.2  Whether space characters that are written out to a text stream 
+immediately before a newline character appear when read in.
+
+  Yes, they do.
+
+4.9.2  The number of null characters that may be appended to data written to
+a binary stream.
+
+  None.
+
+4.9.3  Whether the file position indicator of an append mode stream is
+initially positioned at the beginning or end of the file.
+
+  The file position indicator of an append-mode stream is initially placed 
+  at the beginning of the file. It is reset to the end of the file before 
+  each write.
+
+4.9.3  Whether a write on a text stream causes the associated file to be
+truncated beyond that point.
+
+  A write of 0 bytes may or may not truncate the file, depending upon
+  how the file is buffered. It is safest to classify a zero-length write
+  as having indeterminate behavior.
+
+4.9.3  The characteristics of file buffering.
+
+  Files can be fully buffered, line buffered, or unbuffered. If a file is 
+  buffered, a default buffer of 512 bytes is created upon opening the file.
+
+4.9.3  Whether a zero-length file actually exists.
+
+  Yes, it does.
+
+4.9.3  Whether the same file can be open multiple times.
+
+  Yes, it can.
+
+4.9.4.1  The effect of the remove function on an open file.
+
+  No special checking for an already open file is performed; the 
+  responsibility is left up to the programmer.
+
+4.9.4.2  The effect if a file with the new name exists prior to a call to
+rename.
+
+  rename will return a -1 and errno will be set to EEXIST.
+
+4.9.6.1  The output for %p conversion in fprintf.
+
+  In near data models, four hex digits (XXXX). In far data models, four
+  hex digits, colon, four hex digits (XXXX:XXXX).
+
+4.9.6.2  The input for %p conversion in fscanf.
+
+  See 4.9.6.1.
+
+4.9.6.2  The interpretation of an - (hyphen) character that is neither the
+first nor the last character in the scanlist for a %[ conversion in fscanf.
+
+  See the description of scanf in the Help system.
+
+4.9.9.1  The value to which the macro errno is set by the fgetpos or ftell
+function on failure.
+
+  EBADF   Bad file number.
+
+4.9.10.4  The messages generated by perror.
+
+--------------------------------------------------------------------------
+  Error 0                           Invalid data
+  Invalid function number           No such device
+  No such file or directory         Attempted to remove current directory
+  Path not found                    Not same device
+  Too many open files               No more files
+  Permission denied                 Invalid argument
+  Bad file number                   Arg list too big
+  Memory arena trashed              Exec format error
+  Not enough memory                 Cross-device link
+ Invalid memory block address       Math argument
+ Invalid environment                Result too large
+ Invalid format                     File already exists
+ Invalid access code
+---------------------------------------------------------------------------
+See perror in the Help system for details.
+
+4.10.3  The behavior of calloc, malloc, or realloc if the size requested is
+zero.
+
+  calloc and malloc will ignore the request. realloc will free the block.
+
+4.10.4.1 The behavior of the abort function with regard to open and temporary
+files.
+
+  The file buffers are not flushed and the files are not closed.
+
+4.10.4.3  The status returned by exit if the value of the argument is ]
+other than zero, EXIT_SUCCESS, or EXIT_FAILURE.
+
+  Nothing special. The status is returned exactly as it is passed. The
+  status is a represented as a signed char.
+
+4.10.4.4  The set of environment names and the method for altering the
+environment list used by getenv.
+
+  The environment strings are those defined in DOS with the SET command.
+  putenv can be used to change the strings for the duration of the current 
+  program, but the DOS SET command must be used to change an environment 
+  string permanently.
+
+4.10.4.5  The contents and mode of execution of the string by the system
+function.
+
+  The string is interpreted as a DOS command. COMMAND.COM is executed and 
+the argument string is passed as a command to execute. Any DOS built-in 
+command, as well as batch files and executable programs, can be executed.
+
+4.11.6.2  The contents of the error message strings returned by strerror.
+
+  See 4.9.10.4.
+
+4.12.1  The local time zone and Daylight Saving Time.
+
+  Defined as local PC time and date.
+
+4.12.2.1  The era for clock.
+
+  Represented as clock ticks, with the origin being the beginning of the
+  program execution.
+
+4.12.3.5  The formats for date and time.
+
+  Turbo C++ implements ANSI formats.
+                                                                                                                                                                                                                                                                                                                                                                                                                                                 lQuery  8 __C_specific_handler  R __getmainargs S __initenv T __iob_func  [ __lconv_init  a __set_app_type  c __setusermatherr  s _acmdln { _amsg_exit  ç _cexit  ˝ _fmode  K_initterm c_onexit abort calloc  'exit  :fprintf Afree  Mfwrite  |malloc  Ñmemcpy  ¢signal  ∑strlen  ∫strncmp ⁄vfprintf    ©_ZNSirsERx    À_ZNSolsEPFRSoS_E  ‘_ZNSolsEi ⁄_ZNSolsEx `_ZNSt8ios_base4InitC1Ev   b_ZNSt8ios_base4InitD1Ev   _ZSt3cin  Ç_ZSt4cout É_ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_    Ô_ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc    Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä   Ä  KERNEL32.dll    Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  Ä  msvcrt.dll  (Ä  (Ä  (Ä  (Ä  (Ä  (Ä  (Ä  (Ä  (Ä  (Ä  libstdc++-6.dll                                                                                                                                                                                     0@                     @     ∞@                     ‡@     ∞@                                                                                                                                                                                                                                                                                                                                                                                                                                                     /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  TMPLINST.CPP                                                          */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*  Provides instantiations of the various Object containers,             */
+/*  for use in the DLL version of the class libraries.                    */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+
+#if !defined( TEMPLATES )
+#define TEMPLATES
+#endif
+
+#pragma option -Jgd
+
+#include <VectImp.h>
+#include <Stacks.h>
+#include <Queues.h>
+#include <ListImp.h>
+#include <DListImp.h>
+#include <Deques.h>
+#include <Sets.h>
+
+typedef BI_SDoubleListImp<void _FAR *> dummy1;
+typedef BI_DoubleListIteratorImp<void _FAR *> dummy2;
+
+typedef BI_IDequeAsVector<Object> dummy3;
+typedef BI_IDequeAsVectorIterator<Object> dummy4;
+
+typedef BI_IDequeAsDoubleList<Object> dummy5;
+typedef BI_IDequeAsDoubleListIterator<Object> dummy6;
+
+typedef BI_SListImp<void _FAR *> dummy7;
+typedef BI_ListIteratorImp<void _FAR *> dummy8;
+
+typedef BI_IQueueAsVector<Object> dummy9;
+typedef BI_IQueueAsVectorIterator<Object> dummy10;
+
+typedef BI_IQueueAsDoubleList<Object> dummy11;
+typedef BI_IQueueAsDoubleListIterator<Object> dummy12;
+
+typedef BI_IStackAsVector<Object> dummy13;
+typedef BI_IStackAsVectorIterator<Object> dummy14;
+
+typedef BI_IStackAsList<Object> dummy15;
+typedef BI_IStackAsListIterator<Object> dummy16;
+
+typedef BI_VectorImp<void _FAR *> dummy17;
+typedef BI_CVectorImp<void _FAR *> dummy18;
+typedef BI_SVectorImp<void _FAR *> dummy19;
+typedef BI_VectorIteratorImp<void _FAR *> dummy20;
+
+typedef BI_ISetAsVector<Object> dummy21;
+typedef BI_ISetAsVectorIterator<Object> dummy22;
+
+typedef BI_IVectorImp<Object> dummy23;
+typedef BI_ICVectorImp<Object> dummy24;
+
+                                                                                                                                                                                                                                                                                                                      last_alg 	 0  ˘  Ó   „  
+unspec_strings XÓ  
+unspecv_strings ÆÓ  stringop_strategy 	›k  max 	ﬁ|   alg 	ﬂﬁ  noalign 	‡	u   $  stringop_algs 4	⁄¨  unknown_size 	‹ﬁ   size 	·º   k  º  	   ¨  processor_costs à	Ê›  add 	Á|   lea 	Ë|  shift_var 	È|  shift_const 	Í|  mult_init 	ÎÚ  mult_bit 	Ì|  $divide 	ÓÚ  (movsx 	u  <movzx 	Òu  @large_insn 	Ú|  Dmove_ratio 	Û|  Hmovzbl_load 	ı|  Lint_load 	ˆ  Pint_store 	˘  \fp_move 	˚|  hfp_load 	¸  lfp_store 	˛  xmmx_move 	 |  Ñmmx_load 	  àmmx_store 	  êxmm_move 	|  òymm_move 	|  úzmm_move 	|  †sse_load 	Ú  §sse_unaligned_load 		Ú  ∏sse_store 	
+Ú  Ãsse_unaligned_store 	Ú  ‡mmxsse_to_integer 	|  Ùssemmx_to_integer 	|  ¯gather_static 	|  ¸gather_per_elt 	|   scatter_static 	|  scatter_per_elt 	|  l1_cache_size 	|  l2_cache_size 	|  prefetch_block 	|  simultaneous_prefetches 	|  branch_cost 	|  fadd 	|   fmul 	|  $fdiv 	|  (fabs 	|  ,fchs 	|  0fsqrt 	|  4sse_op 	"|  8addss 	#|  <mulss 	$|  @mulsd 	%|  Dfmass 	&|  Hfmasd 	'|  Ldivss 	(|  Pdivsd 	)|  Tsqrtss 	*|  Xsqrtsd 	+|  \reassoc_int 	,|  `reassoc_fp 	,|  dreassoc_vec_int 	,&|  hreassoc_vec_fp 	,7|  lmemcpy 	3!  pmemset 	3"!  xcond_taken_branch_cost 	4|  Äcond_not_taken_branch_cost /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  TIMER.CPP                                                             */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( __TIMER_H )
+#include <Timer.h>
+#endif  // __TIMER_H
+
+#if !defined( __DOS_H )
+#include <Dos.h>
+#endif  // __DOS_H
+
+const unsigned long far * const dosTime =
+    (const unsigned long far * const)MK_FP( 0x40, 0x6C );
+
+unsigned Timer::adjust = calibrate();
+
+Timer::Timer() : time_(0), running(0)
+{
+}
+
+void Timer::start()
+{
+    if( !running )
+        {
+        outportb( 0x43, 0x34 );
+        asm jmp __1;
+    __1:
+        outportb( 0x40, 0 );
+        asm jmp __2;
+    __2:
+        outportb( 0x40, 0 );
+        startTime.dosCount = *dosTime;
+        startTime.timerCount = 0;
+        running = 1;
+        }
+}
+
+void Timer::stop()
+{
+    outportb( 0x43, 0 );
+    unsigned char temp = inportb( 0x40 );
+
+    TIME stopTime;
+    stopTime.timerCount = (inportb( 0x40 ) << 8) + temp;
+    stopTime.dosCount = *dosTime;
+
+    TIME elapsedTime;
+    elapsedTime.dosCount = stopTime.dosCount - startTime.dosCount;
+    elapsedTime.timerCount = -( stopTime.timerCount - adjust );
+
+    const double fudge = 83810.0/100000.0;
+    time_ += ((elapsedTime.dosCount << 16) + elapsedTime.timerCount)*fudge;
+
+    running = 0;
+
+}
+
+void Timer::reset()
+{
+    time_ = 0;
+    if( running )
+        start();
+}
+
+unsigned Timer::calibrate()
+{
+    adjust = 0;
+    unsigned long sum = 0;
+    Timer w;
+    for( int i = 0; i < 100; i++ )
+        {
+        w.start();
+        w.stop();
+        sum += w.time();
+        w.reset();
+        }
+    return (unsigned)((sum+5)/100);
+}
+
+#if defined( TEST_TIMER )
+#include <iostream.h>
+#include <stdio.h>
+
+int main( void )
+{
+    delay( 0 );
+    cout << "Resolution: " << Timer::resolution() << endl;
+    Timer w;
+    for( unsigned del = 0; del < 10; del++ )
+        {
+        unsigned d1 = del*100;
+        w.start();
+        delay( d1 );
+        w.stop();
+        printf( "%4u ms., actual time = %6f seconds.\n", d1, w.time() );
+        w.reset();
+        }
+    return 0;
+}
+#endif /* TEST_TIMER */
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                  DREG CREG BREG SIREG DIREG AD_REGS CLOBBERED_REGS Q_REGS 	NON_Q_REGS 
+TLS_GOTBASE_REGS INDEX_REGS LEGACY_REGS GENERAL_REGS FP_TOP_REG FP_SECOND_REG FLOAT_REGS SSE_FIRST_REG NO_REX_SSE_REGS SSE_REGS EVEX_SSE_REGS BND_REGS ALL_SSE_REGS MMX_REGS FP_TOP_SSE_REGS FP_SECOND_SSE_REGS FLOAT_SSE_REGS FLOAT_INT_REGS INT_SSE_REGS FLOAT_INT_SSE_REGS MASK_EVEX_REGS MASK_REGS  MOD4_SSE_REGS !ALL_REGS "LIM_REG_CLASSES # ß  |  Ω  	  P ≠  
+dbx_register_map 	=Ω  
+dbx64_register_map 	>Ω  
+svr4_dbx_register_map 	?Ω  processor_type ü  	⁄Ï  PROCESSOR_GENERIC  PROCESSOR_I386 PROCESSOR_I486 PROCESSOR_PENTIUM PROCESSOR_LAKEMONT PROCESSOR_PENTIUMPRO PROCESSOR_PENTIUM4 PROCESSOR_NOCONA PROCESSOR_CORE2 PROCESSOR_NEHALEM 	PROCESSOR_SANDYBRIDGE 
+PROCESSOR_HASWELL PROCESSOR_BONNELL PROCESSOR_SILVERMONT PROCESSOR_KNL PROCESSOR_KNM PROCESSOR_SKYLAKE PROCESSOR_SKYLAKE_AVX512 PROCESSOR_CANNONLAKE PROCESSOR_ICELAKE_CLIENT /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  STRNG.CPP                                                             */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( __CHECKS_H )
+#include <Checks.h>
+#endif	// __CHECKS_H
+
+#if !defined( __STRNG_H )
+#include <Strng.h>
+#endif  // __STRNG_H
+
+#ifndef __STDLIB_H
+#include <stdlib.h>
+#endif
+
+#ifndef __STRING_H
+#include <string.h>
+#endif
+
+#if !defined( __IOSTREAM_H )
+#include <iostream.h>
+#endif  // __IOSTREAM_H
+
+String::String( const char *aPtr )
+{
+    if ( aPtr == 0 )
+        aPtr = "";
+
+    len = strlen( aPtr ) + 1;
+    theString = new char[ len ];
+    CHECK( theString != 0 );
+    strcpy( theString, aPtr );
+}
+
+String::String( const String& sourceString )
+{
+    len = sourceString.len;
+    theString = new char[ len ];
+    CHECK( theString != 0 );
+    strcpy( theString, sourceString.theString );
+}
+
+String::isEqual( const Object& testString ) const
+{
+    return ( len == ((String &)testString).len &&
+             !strcmp( theString, ((String &)testString).theString ) );
+}
+
+int String::isLessThan( const Object& testString ) const
+{
+    return ( strcmp ( theString, ((String &)testString).theString ) < 0 );
+}
+
+hashValueType String::hashValue() const
+{
+    hashValueType   value = hashValueType(0);
+    for( int i = 0; i < len; i++ )
+        {
+        value ^= theString[i];
+        value = _rotl( value, 1 );
+        }
+    return value;
+}
+
+void String::printOn( ostream& outputStream ) const
+{
+    outputStream << theString;
+}
+
+String& String::operator =( const String& sourceString )
+{
+    if ( *this != sourceString )
+        {
+        if ( len != sourceString.len )
+            {
+            delete theString;
+            len = sourceString.len;
+            theString = new char[ len ];
+            CHECK( theString != 0 );
+            }
+        strcpy( theString, sourceString.theString );
+        }
+    return *this;
+}
+                                                                                                                                  ˇˇˇˇ x †      ,       `+@     2       AÇAÄn¿A¬                                                                                                                                                                                                                                                                                                                                                                                                                                                              ../../../../../src/gcc-8.1.0/libgcc/config/i386/cygwin.S C:\mingw810\x86_64-810-posix-seh-rt_v6-rev0\build\gcc-8.1.0\x86_64-w64-mingw32\libgcc GNU AS 2.30                                                                                                                                                                                                                                                                                                                                                                      .file   M   ˛ˇ  gcrtexe.c              Q                                q              |   @                        £   P                        …   `                        Ô   0                                                   .                           L             W  ‡                        m  †                        ô  0          ¶                      envp           argv           argc                æ  /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  STACK.CPP                                                             */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( __STACK_H )
+#include <Stack.h>
+#endif	// __STACK_H
+
+#ifndef __IOSTREAM_H
+#include <iostream.h>
+#endif
+
+void Stack::push( Object& toPush )
+{
+    theStack.add( toPush );
+    itemsInContainer++;
+}
+
+Object& Stack::pop()
+{
+    Object& temp = theStack.peekHead();
+    theStack.detach( temp );
+    if( temp != NOOBJECT )
+        itemsInContainer--;
+    return temp;
+}
+
+ContainerIterator& Stack::initIterator() const
+{
+    return *( (ContainerIterator *)new ListIterator( this->theStack ) );
+}
+
+                                                                                                                                                                                                                                                                                                                                                                                                    ö  ,           ∏  0           ◊  4           ˛  8           &  <           N  @           v  D           û  H           ∆  L           È  P             T           =  X           h  \           ë  `           ∂  d           ﬂ  h             l           3  p           Y  t           Ä  x           ®  |           Œ  Ä           Ù  Ñ           	  à           C	  å           i	  ê           è	  î           π	  ò           ‰	  ú           
+
+  †       main    P          0
+  ∞                        H
+  ¿                        a
+  –                    __tcf_0 )          ´
+  D          €
+  Ä      .text   P     N               .data                           .bss    0                       .rdata         ¶                     Ô
+  x                            l                     .xdata  Ä      0                 .pdata  x      0                .ctors  8                         )  p     ?                 .text   †      .idata$7@	      .idata$5      .idata$4(      .idata$6      .text   ®      .idata$7<	      .idata$5      .idata$4       .idata$6ƒ      .text   ∞      .idata$78	      .idata$5       .idata$4      .idata$6∏      .text   ∞      .idata$74	      .idata$5¯      .idata$4      .idata$6¨      .text   ∞      .idata$70	      .idata$5      .idata$4      .idata$6ê      .text   ∏      .idata$7,	      .idata$5Ë      .idata$4       .idata$6t      .text   ¿      .idata$7(	      .idata$5‡      .idata$4¯      .idata$6h      .text   »      .idata$7$	      .idata$5ÿ      .idata$4      .idata$6\      .text   –      .idata$7 	      .idata$5–      .idata$4Ë      .idata$6H      .text   ÿ      .idata$7	      .idata$5»      .idata$4‡      .idata$68      .file   Ù   ˛ˇ  ggccmain.c             S  ‡                       p.93846            e             w  ‡                    __main  ê          î  @       .text   ‡     œ                .data                         .bss    @                       .xdata  ∞                       .pdata  ®      $   	             .file   ¸   ˛ˇ  gnatstart.c        .text   ∞                       .data                           .bss    P                        .file     ˛ˇ  gwildcard.c        .text   ∞                       INDX( 	 Yw           (   x  Ë         	   ( ) ’               † é         	 R"Pr≤◊ Z.–’XüÙŒV÷ryPr≤◊        I      !       & A B S T A R R Y   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P       ò à         	 uÛLr≤◊ Z.–’dÙŒV÷»MMr≤◊              !       # A R R A Y   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P      ò à         	 ?ÂIr≤◊ Z.–’x«ÙŒV÷I4Jr≤◊       T      !       # A S S O C   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7  U T C ) . C P P      † é         	 ÀFr≤◊ Z.–’Ω(!ÙŒV÷
+Gr≤◊       9	      !       & B A B S T A R Y   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P       ò à         	 )dCr≤◊ Z.–’‹ã#ÙŒV÷l Dr≤◊       w      !       # B D I C T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P      † é         	 ≠ô@r≤◊ Z.–’ãt&ÙŒV÷ÒÚ@r≤◊       ∫      !       & B S O R T A R Y   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P       ò à          ¡=r≤◊ Z.–’6◊(ÙŒV÷~>r≤◊ @      ◊>      !       # B T R E E   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P      † é         	 $m:r≤◊ Z.–’‹õ-ÙŒV÷Sª:r≤◊ `      ÑZ      !       & B T R E E I N N   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P       † é         	 ÀÍ6r≤◊ Z.–’#˛/ÙŒV÷˙87r≤◊ 0      \*      !       & B T R E E L F N   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P       † å         	 “§2r≤◊ Z.–’è`2ÙŒV÷Û2r≤◊      |      !       % C O L L E C T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P         † å         	 ≠.r≤◊ Z.–’ﬁ¬4ÙŒV÷["/r≤◊             !       % C O N T A I N   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P         † å         	 &Ú)r≤◊ Z.–’/%7ÙŒV÷ö@*r≤◊        ‘      !       % D B L L I S T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P         ò à         	 ;&r≤◊ Z.–’sá9ÙŒV÷ÿã&r≤◊       &      !       # D E Q U E    2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P      ò Ü         	 :-#r≤◊ Z.–’GL>ÙŒV÷a{#r≤◊       ?      !       " D I C T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P C      † å         	 Àl r≤◊ Z.–’òÆ@ÙŒV÷Ø r≤◊        ü      !       % H A S H T B L   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P         ò à         	 Wr≤◊ Z.–’ÙCÙŒV÷ldr≤◊       R      !       # L D A T E   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C  . C P P 
+     ò Ü         	 r≤◊ Z.–’MtEÙŒV÷^fr≤◊       ⁄
+      !       " L I S T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P P 	     ò à         	 ç›r≤◊ Z.–’3÷GÙŒV÷+r≤◊             !       # L T I M E   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P      † ä         	 4€r≤◊ Z.–’Ù7JÙŒV÷*r≤◊       è      !       $ M E M M G R   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P P P       † ä         	 Ÿœr≤◊ Z.– ÿöLÙŒV÷,r≤◊       ï      !       $ O B J E C T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P P P       † é         	 ›¶r≤◊ Z.–’Ä¸NÙŒV÷O>r≤◊       6      !       & S O R T A R R Y   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P       ò à         	 —H
+r≤◊ Z.–’Ë^QÙŒV÷ﬂ¿
+r≤◊       É      !       # S T A C K   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P      ò à         	 R;r≤◊ Z.–’¬SÙŒV÷Xär≤◊       Å	      !      # S T R N G   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P      ò à         	 /Ìr≤◊ Z.–’°#VÙŒV÷˜Br≤◊       N
+      !       # T I M E R   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P      † é         	 Ò r≤◊ Z.–’›ÖXÙŒV÷I‹ r≤◊              !       & T M P L I N S T   ( 2 0 2 1 _ 0 2 _ 1 5   1 4 _ 4 0 _ 1 7   U T C ) . C P P                                                                                                                                /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  SORTARRY.CPP                                                          */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( __SORTARRY_H )
+#include <SortArry.h>
+#endif  // __SORTARRY_H
+
+#ifndef __STDLIB_H
+#include <stdlib.h>
+#endif
+
+#if !defined( __IOSTREAM_H )
+#include <iostream.h>
+#endif  // __IOSTREAM_H
+
+void SortedArray::add( Object& toAdd )
+{
+    if( toAdd.isSortable() )
+        {
+        if( lastElementIndex == upperbound )
+            {
+            reallocate( arraySize() + 1 );
+            }
+        int insertionPoint = lowerbound;
+        while( insertionPoint <= lastElementIndex &&
+               (Sortable&)objectAt( insertionPoint ) < (Sortable&)toAdd
+             )
+            insertionPoint++;
+
+        insertEntry( insertionPoint );
+        setData( insertionPoint, &toAdd );
+        itemsInContainer++;
+        lastElementIndex++;
+        }
+    else
+        ClassLib_error( __ENOTSORT );
+}
+
+void SortedArray::detach( Object& toDetach, DeleteType dt )
+{
+    int detachPoint = find( toDetach );
+    if( detachPoint != INT_MIN )
+        {
+        if( delObj(dt) )
+            delete ptrAt( detachPoint );
+        removeEntry( detachPoint );
+        itemsInContainer--;
+        if( detachPoint <= lastElementIndex )
+            lastElementIndex--;
+        }
+}
+
+                                                                                                                                                                                                            P	      .idata$7	      .idata$5∞      .idata$4»      .idata$6       .text   ∞      .data   p       .bss    P	      .idata$7	      .idata$5®      .idata$4¿      .idata$6      .text   ∏      .data   p       .bss    P	      .idata$7 	      .idata$5†      .idata$4∏      .idata$6      .text   ¿      .data   p       .bss    P	      .idata$7¸      .idata$5ò      .idata$4∞      .idata$6      .text   »      .data   p       .bss    P	      .idata$7¯      .idata$5ê      .idata$4®      .idata$6¯      .text   –      .data   p       .bss    P	      .idata$7Ù      .idata$5à      .idata$4†      .idata$6Ó      .text   ÿ      .data   p       .bss    P	      .idata$7      .idata$5Ä      .idata$4ò      .idata$6Ê      .text   ‡      .data   p       .bss    P	      .idata$7Ï      .idata$5x      .idata$4ê      .idata$6‹      .text   Ë      .data   p       .bss    P	      .idata$7Ë      .idata$5p      .idata$4à      .idata$6‘      .text         .data   p       .bss    P	      .idata$7‰      .idata$5h      .idata$4Ä      .idata$6       .text   ¯      .data   p       .bss    P	      .idata$7‡      .idata$5`      .idata$4x      .idata$6¬      .text          .data   p       .bss    P	      .idata$7‹      .idata$5X      .idata$4p      .idata$6∏      .text         .data   p       .bss    P	      .idata$7ÿ      .idata$5P      .idata$4h      .idata$6¨      .text         .data   p       .bss    P	      .idata$7–      .idata$5@      .idata$4X      .idata$6ò      .text         .data   p       .bss    P	      .idata$7Ã      .idata$58      .idata$4P      .idata$6ä      .text          .data   p       .bss    P	      .idata$7ƒ      .idata$5(      .idata$4@      .idata$6l      .text   (      .data   p       .bss    P	      .idata$7¿      .i/*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  OBJECT.CPP                                                            */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( TEMPLATES )
+#define TEMPLATES
+#endif
+
+#if !defined( __CLSDEFS_H )
+#include <ClsDefs.h>
+#endif  // __CLSDEFS_H
+
+#if !defined( __OBJECT_H )
+#include <Object.h>
+#endif  // __OBJECT_H
+
+#if !defined( __STDLIB_H )
+#include <StdLib.h>
+#endif  // __STDLIB_H
+
+#if !defined( __STRSTREA_H )
+#include <StrStrea.h>
+#endif  // __STRSTREA_H
+
+#if !defined( __MALLOC_H )
+#include <Malloc.h>
+#endif  // __MALLOC_H
+
+void *Object::operator new( size_t s )
+{
+    void *allocated = ::operator new( s );
+    if( allocated == 0 )
+        return ZERO;
+    else
+        return allocated;
+}
+
+Error theErrorObject;
+
+Object *Object::ZERO = &theErrorObject;
+
+// Error reporting
+
+static char *errstring[__ElastError] =
+{
+    "firstError: [[ Error in error reporting???? ]]",
+    "EDELERROR: Attemping to delete the ERROR object",
+    "EXPANDFS: Attempting to expand a fixed size array.",
+    "EXPANDLB: Attempt to expand lower bound of array.",
+    "NOMEM: Out of Memory",
+    "NOTSORT: Object must be sortable.",
+    "NOTASSOC: Object must be association type.",
+    "ORDER3: B-trees must be at least of order 3.",
+    "NOMEMIA: No room for the item array for an InnerNode",
+    "NOMEMLN: No room for item array for a LeafNode.",
+    "PRBADCLASS: PersistRegister called with bad class id.",
+    "PRINCONS: PersistRegister called with inconsistent values.",
+    "BNZERODIV: Attempt to divide by zero.",
+    "BNILLLOG: Attempt to take log of zero or negative number.",
+    "BNNOMEM: No memory for a bignum.",
+    "RANDOM2SMALL: Bignum RNG must be bigger than 32 bits (> 2 words).",
+    "BNTEMPSTKOVFL: Too many markTempRing invocations,",
+    "BNTEMPSTKUNFL: Too many releaseTempRing invocations,",
+    "BN2MANYTEMPS: Ran out of temporaries on the Temp ring.",
+    "BN2BIG2PRINT: Bignum has too many digits in current output base.",
+    "BNNOMEM4PRINT: No memory for temporaries for printing.",
+    "BNRESULT2BIG: An operation would have resulted in too large of a number.",
+    "RNG2BIG: Sorry.  RNGs are limited to 32767 `digits' in size.",
+    "BNSQRTILLEGAL: Trying to take sqrt of negative bignum.",
+};
+
+extern "C" void __ErrorMessage( const char _FAR * );
+
+void _FARFUNC ClassLib_error( ClassLib_errors errnum, char _FAR *addstr )
+{
+    ostrstream os;
+    os << endl << "Fatal error from class library:" << endl;
+    os << "__E" << errstring[errnum] << endl;
+    if( addstr != 0 )
+        os << addstr << endl;
+    os << ends;
+
+    char *buf = os.str();
+    __ErrorMessage( buf );
+    delete [] buf;
+
+    exit( errnum );
+}
+                                                                                                                                                                                                                                                                                                                                                                           ta$6T      .text         .data   ∞       .bss    `	      .idata$7t      .idata$5†      .idata$4∏       .idata$6@      .text         .data   ∞       .bss    `	      .idata$7p      .idata$5ò      .idata$4∞       .idata$6*      .text         .data   ∞       .bss    `	      .idata$7l      .idata$5ê      .idata$4®       .idata$6      .text          .data   ∞       .bss    `	      .idata$7h      .idata$5à      .idata$4†       .idata$6¯  /*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  MEMMGR.CPP                                                            */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( __STDTEMPL_H )
+#include <StdTempl.h>
+#endif	// __STDTEMPL_H
+
+#if !defined( __CHECKS_H )
+#include <Checks.h>
+#endif	// __CHECKS_H
+
+#if !defined( __MEMMGR_H )
+#include <MemMgr.h>
+#endif	// __MEMMGR_H
+
+unsigned max( unsigned, unsigned );
+
+int BaseMemBlocks::allocBlock( size_t sz )
+{
+    BlockList _FAR *temp = new( max(sz,blockSize) ) BlockList( curBlock-1 );
+    if( temp == 0 )
+        return 0;
+    curBlock = temp+1;
+    blockCount++;
+    return 1;
+}
+
+void BaseMemBlocks::freeTo( unsigned term )
+{
+    PRECONDITION( blockCount >= term );
+    while( blockCount > term )
+        {
+        BlockList _FAR *temp = curBlock-1;
+        curBlock = (temp->next)+1;
+        delete temp;
+        blockCount--;
+        }
+}
+
+void _FAR *MemStack::allocate( size_t sz )
+{
+    sz = max( 1, sz );
+    if( sz > blockSize - curLoc )
+        if( allocBlock( sz ) == 0 )
+            return 0;
+        else
+            curLoc = 0;
+    void _FAR *temp = block() + curLoc;
+    curLoc += sz;
+    return temp;
+}
+
+                                                                                                                                                                                                                                                                                                                                                                                 `	                           8                            F                            U  î                         d  @                     .rdata  Ä          q  ∞          q  »      .idata$2(       .idata$5»      .idata$4‡      .idata$40      .idata$5      .idata$7D	      __xc_z             ç  ∞          ¨  h          ¬  †          ˙  `            ú          "              1  P          @  H          M  ∞          ^  ¨          l  ∞          É            ü  h          ¨  †           Ω      	        Ã  Ä          Î    @ ˇˇ   __xl_a  8           ˜  H            8                      3  ÿ          C  ∞      _cexit            W  P          v      ˇˇ       é     ˇˇ       ß  ∞          ≤  0          ¿      ˇˇ       ⁄     ˇˇ       ˆ  8             8      __xl_d  H           $  à       _tls_end   	        I  ‡          _  ¿          l             ~  »          è  P          §  8          µ  8           ≈  0          ›      	    memcpy  ¿          Ë  `	                                    9  @          R  X          k  `      malloc  »          ä  X      _CRT_MT P           û  ÿ          ™  ‡          ª  (           —              ﬂ              ¯          8  ‘          [             r     ˇˇ       ä  `          ù  –          ±  Ä          º  ®          Ÿ  »          Ë            ˜  X           	  à          $  –          5  (           C  @          X  0          r  x          Ö  `      abort   ¯          ¶            –  X           ‡  –      __dll__     ˇˇ       #      ˇˇ       8  p          V  h          k  `           à  –          ü  ∞          Æ    @ ˇˇ       Ω  ê          Õ            ﬂ     ˇˇ       ı  $       call/*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  LTIME.CPP                                                             */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( __LTIME_H )
+#include <LTime.h>
+#endif  // __LTIME_H
+
+#ifndef __IOMANIP_H
+#include <iomanip.h>
+#endif
+
+#ifndef __STRSTREAM_H
+#include <strstream.h>
+#endif
+
+#ifndef __STDIO_H
+#include <stdio.h>
+#endif
+
+const BufSize = 20;
+
+BaseTime::isEqual( const Object& testTime ) const
+{
+    return HH == ((BaseTime&)testTime).HH &&
+           MM == ((BaseTime&)testTime).MM &&
+           SS == ((BaseTime&)testTime).SS &&
+           HD == ((BaseTime&)testTime).HD;
+}
+
+BaseTime::isLessThan( const Object& testTime ) const
+{
+    if( HH != ((BaseTime&)testTime).HH )
+        return HH < ((BaseTime&)testTime).HH;
+    if( MM != ((BaseTime&)testTime).MM )
+        return MM < ((BaseTime&)testTime).MM;
+    if( SS != ((BaseTime&)testTime).SS )
+        return SS < ((BaseTime&)testTime).SS;
+    if( HD != ((BaseTime&)testTime).HD )
+        return HD < ((BaseTime&)testTime).HD;
+    return 0;
+}
+
+hashValueType BaseTime::hashValue() const
+{
+    return hashValueType( HH + MM + SS + HD );
+}
+
+void Time::printOn( ostream& outputStream ) const
+{
+    char temp[BufSize];
+    ostrstream os( temp, BufSize );
+    os << ((hour()%12 == 0) ? 12 : hour()%12) << ":"
+       << setfill( '0' )
+       << setw( 2 ) << minute() << ":"
+       << setw( 2 ) << second() << "."
+       << setw( 2 ) << hundredths() << " "
+       << ((hour() > 11) ? "p" : "a") << "m" << ends;
+    outputStream << temp;
+}
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     H          ‚"  †          Ò"  X       vfprintf†      free    ÿ          #  ∞       #  .debug_aranges .debug_info .debug_abbrev .debug_line .debug_frame .debug_str __mingw_invalidParameterHandler pre_c_init .rdata$.refptr.mingw_initltsdrot_force .rdata$.refptr.mingw_initltsdyn_force .rdata$.refptr.mingw_initltssuo_force .rdata$.refptr.mingw_initcharmax .rdata$.refptr.__image_base__ .rdata$.refptr.mingw_app_type managedapp .rdata$.refptr._fmode .rdata$.refptr._MINGW_INSTALL_DEBUG_MATHERR pre_cpp_init .rdata$.refptr._newmode startinfo .rdata$.refptr._dowildcard __tmainCRTStartup .rdata$.refptr.__native_startup_lock .rdata$.refptr.__native_startup_state has_cctor .rdata$.refptr.__dyn_tls_init_callback .rdata$.refptr.__mingw_oldexcpt_handler .rdata$.refptr.__imp___initenv .rdata$.refptr.__xc_z .rdata$.refptr.__xc_a .rdata$.refptr.__xi_z .rdata$.refptr.__xi_a WinMainCRTStartup .l_startw mainCRTStartup .rdata$.refptr._gnu_exception_handler .rdata$.refptr._matherr .CRT$XCAA .CRT$XIAA __gcc_register_frame __gcc_deregister_frame _ZStL19piecewise_construct .text$_ZSt3minIxERKT_S2_S2_ _ZSt3minIxERKT_S2_S2_ _ZStL13allocator_arg _ZStL6ignore _ZStL8__ioinit _ZN9__gnu_cxxL21__default_lock_policyE _ZStL10defer_lock _ZStL11try_to_lock _ZStL10adopt_lock _ZNSt15regex_constantsL5icaseE _ZNSt15regex_constantsL6nosubsE _ZNSt15regex_constantsL8optimizeE _ZNSt15regex_constantsL7collateE _ZNSt15regex_constantsL10ECMAScriptE _ZNSt15regex_constantsL5basicE _ZNSt15regex_constantsL8extendedE _ZNSt15regex_constantsL3awkE _Z/*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  LIST.CPP                                                              */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( __RESOURCE_H )
+#include <Resource.h>
+#endif  // __RESOURCE_H
+
+#if !defined( __LIST_H )
+#include <List.h>
+#endif  // __LIST_H
+
+unsigned ListBlockInitializer::count = 0;
+
+MemBlocks *List::ListElement::mgr = 0;
+
+void List::add( Object& toAdd )
+{
+    ListElement *newElement = new ListElement( &toAdd, head->next );
+    CHECK( newElement != 0 );
+    head->next = newElement;
+    itemsInContainer++;
+}
+
+List::ListElement *List::findPred( const Object& o )
+{
+    tail->data = (Object *)&o;
+    ListElement *cursor = head;
+    while( o != *(cursor->next->data) )
+        cursor = cursor->next;
+    tail->data = 0;
+    return cursor;
+}
+
+void List::detach( Object& toDetach, DeleteType dt )
+{
+    ListElement *pred = findPred( toDetach );
+    ListElement *item = pred->next;
+    if( delObj(dt) && pred->next != tail )
+        delete item->data;
+    pred->next = pred->next->next;
+    if( item != tail )
+        {
+        itemsInContainer--;
+        delete item;
+        }
+}
+
+void List::flush( DeleteType dt )
+{
+    ListElement *current = head->next;
+    while( current != tail )
+        {
+        ListElement *temp = current;
+        current = current->next;
+        if( delObj(dt) )
+            delete temp->data;
+        delete temp;
+        }
+    head->next = tail;
+    itemsInContainer = 0;
+}
+
+ContainerIterator& List::initIterator() const
+{
+    return *( (ContainerIterator *)new ListIterator( *this ) );
+}
+
+ListIterator::~ListIterator()
+{
+}
+
+ListIterator::operator int()
+{
+    return currentElement->next != currentElement;
+}
+
+Object& ListIterator::current()
+{
+    return currentElement->data == 0 ? NOOBJECT : *(currentElement->data);
+}
+
+Object& ListIterator::operator ++ ( int )
+{
+    Object *data = currentElement->data;
+    currentElement = currentElement->next;
+    return data == 0 ? NOOBJECT : *data;
+}
+
+Object& ListIterator::operator ++ ()
+{
+    currentElement = currentElement->next;
+    return currentElement->data == 0 ? NOOBJECT : *(currentElement->data);
+}
+
+void ListIterator::restart()
+{
+    currentElement = startingElement;
+}
+
+
+                                                                                                                                                                                                                                                                                                      DO_RELOC_LIST__ __imp_GetStartupInfoA _ZStlsISt11char_traitsIcEERSt13basic_ostreamIcT_ES5_PKc __imp_abort __lib64_libkernel32_a_iname __data_start__ ___DTOR_LIST__ __imp__fmode .refptr._ZSt3cin __nm__ZSt3cin __imp_RtlVirtualUnwind SetUnhandledExceptionFilter __imp_calloc __imp___p__fmode ___tls_start__ .refptr.__native_startup_state __ImageBase GetLastError GetSystemTimeAsFileTime mingw_initltssuo_force __imp__ZNSolsEi __rt_psrelocs_start .refptr.mingw_initltsdyn_force __dll_characteristics__ __size_of_stack_commit__ __iob_func __imp__acmdln __size_of_stack_reserve__ __major_subsystem_version__ ___crt_xl_start__ __imp_DeleteCriticalSection __imp__set_invalid_parameter_handler .refptr.__CTOR_LIST__ VirtualQuery ___crt_xi_start__ __imp__ZNSirsERx .refptr.__imp__fmode __imp__amsg_exit ___crt_xi_end__ .refptr.__imp___initenv _tls_start __mingw_winmain_lpCmdLine .refptr._matherr .refptr.__RUNTIME_PSEUDO_RELOC_LIST__ __mingw_oldexcpt_handler __imp_GetCurrentThreadId .refptr.mingw_initltssuo_force GetCurrentProcessI/*------------------------------------------------------------------------*/
+/*                                                                        */
+/*  LDATE.CPP                                                             */
+/*                                                                        */
+/*  Copyright Borland International 1991                                  */
+/*  All Rights Reserved                                                   */
+/*                                                                        */
+/*------------------------------------------------------------------------*/
+
+#if !defined( __LDATE_H )
+#include <LDate.h>
+#endif  // __LDATE_H
+
+#ifndef __STRSTREAM_H
+#include <strstream.h>
+#endif
+
+#ifndef __STDIO_H
+#include <stdio.h>
+#endif
+
+const BufSize = 20;
+
+static char *MonthNames[] =
+    {
+    "",
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December"
+    };
+
+int BaseDate::isEqual( const Object& testDate ) const
+{
+    return MM == ((BaseDate&)testDate).MM &&
+           DD == ((BaseDate&)testDate).DD &&
+           YY == ((BaseDate&)testDate).YY;
+}
+
+int BaseDate::isLessThan( const Object& testDate ) const
+{
+    if( YY != ((BaseDate&)testDate).YY )
+        return YY < ((BaseDate&)testDate).YY;
+    if( MM != ((BaseDate&)testDate).MM )
+        return MM < ((BaseDate&)testDate).MM;
+    return DD < ((BaseDate&)testDate).DD;
+}
+
+hashValueType BaseDate::hashValue() const
+{
+    return hashValueType( YY + MM + DD );
+}
+
+void Date::printOn( ostream& outputStream ) const
+{
+    char temp[BufSize];
+    ostrstream os( temp, BufSize );
+    os << MonthNames[ Month() ] << " "
+       << Day() << ", " << Year() << ends;
+    outputStream << temp;
+}
+
+                                                                                                                                                                              tUnhandledExceptionFilter .refptr.mingw_app_type __imp__ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ __imp__onexit __DTOR_LIST__ RtlVirtualUnwind .refptr.__imp__acmdln __set_app_type __imp_Sleep __imp___p__acmdln LeaveCriticalSection __imp___setusermatherr __size_of_heap_reserve__ ___crt_xt_start__ __subsystem__ _amsg_exit __security_cookie_complement __imp_TlsGetValue __imp__ZSt3cin GetCurrentProcess __setusermatherr __imp_fprintf __imp__ZNSolsEx _ZNSt8ios_base4InitD1Ev __imp_VirtualProtect ___tls_end__ QueryPerformanceCounter __imp_VirtualQuery __imp__initterm mingw_initltsdyn_force _dowildcard __imp___iob_func __dyn_tls_init_callback __imp__ZSt4cout .refptr.__image_base__ _initterm __imp_strncmp _head_lib64_libmsvcrt_os_a .refptr._fmode __imp___acrt_iob_func __major_image_version__ __loader_flags__ __fu0__ZSt4cout _ZSt4endlIcSt11char_traitsIcEERSt13basic_ostreamIT_T0_ES6_ ___chkstk_ms __native_startup_lock __mingw_winmain_hInstance GetStartupInfoA GetCurrentThreadId __rt_psrelocs_end __imp__get_invalid_parameter_handler __minor_subsystem_version__ __minor_image_version__ __imp___set_app_type mingw_initltsdrot_force .refptr.__xc_a __imp__ZNSt8ios_base4InitC1Ev .refptr.__xi_z .refptr._MINGW_INSTALL_DEBUG_MATHERR DeleteCriticalSection __imp_RtlCaptureContext __RUNTIME_PSEUDO_RELOC_LIST_END__ __imp_GetCurrentProcess .refptr.__xc_z ___crt_xt_end__ __security_cookie 
